@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   Trophy, TrendingUp, Copy, ExternalLink, ArrowUpRight, 
-  Search, Coins, RefreshCw, Zap, CheckCircle2, Shield, ArrowLeft
+  Search, Coins, RefreshCw, Zap, CheckCircle2, ArrowLeft
 } from 'lucide-react';
 import { rpcService } from '../services/rpc';
 import { explorerApiService } from '../services/explorerApi';
@@ -137,34 +137,13 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-[#D97706] border border-amber-200 flex items-center gap-1.5">
                   <Trophy className="w-3.5 h-3.5 text-[#D97706]" />
-                  <span>Top 50 Monitored Whale Accounts</span>
+                  <span>Top Whale Accounts</span>
                 </span>
               </div>
               <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
                 Bitnet <span className="text-[#016976]">Rich List</span>
               </h1>
-              <p className="text-xs text-slate-500 font-medium mt-1">
-                Top 50 monitored and verified HODL balances (Queried live via Bitnet JSON-RPC).
-              </p>
             </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
-            <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-teal-50 text-[#016976] border border-teal-200 text-xs font-semibold">
-              <Shield className="w-3.5 h-3.5 text-[#016976]" />
-              <span>50 Monitored Accounts • Live RPC Balances</span>
-            </div>
-
-            <button
-              onClick={loadBalances}
-              disabled={loading}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#016976] hover:bg-[#015661] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
-            >
-              <div className="p-1 rounded-lg bg-[#015661]">
-                <RefreshCw className={`w-3.5 h-3.5 text-white ${loading ? 'animate-spin' : ''}`} />
-              </div>
-              <span>Live Refresh (RPC)</span>
-            </button>
           </div>
         </div>
 
@@ -260,7 +239,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
         </div>
 
         <div className="text-xs text-slate-600 font-mono font-medium">
-          Monitored Wallets: <span className="text-[#016976] font-bold">{filteredAccounts.length}</span> (Verified Top 50 Watchlist)
+          Accounts: <span className="text-[#016976] font-bold">{filteredAccounts.length}</span>
         </div>
       </div>
 
@@ -271,7 +250,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
           {loading && accounts.length === 0 ? (
             <div className="py-12 text-center text-slate-500 font-sans flex flex-col items-center gap-3">
               <RefreshCw className="w-6 h-6 animate-spin text-[#016976]" />
-              <span className="text-xs">Fetching live balance ranking from Bitnet blockchain...</span>
+              <span className="text-xs">Loading rich list accounts...</span>
             </div>
           ) : filteredAccounts.length === 0 ? (
             <div className="py-10 text-center text-slate-500 font-sans text-xs">
