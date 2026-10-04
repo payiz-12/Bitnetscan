@@ -155,19 +155,47 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-xs">
       {/* Top micro-ticker banner with sharp high-contrast background */}
       <div className="bg-slate-900 border-b border-slate-800 py-1.5 px-3 sm:px-6 lg:px-8 text-xs text-slate-300">
-        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-4 flex-wrap">
+        <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-3">
+          
+          {/* Row 1 on mobile / Left group on desktop: Bitnet Chain Node Button + BTN Price */}
+          <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 w-full sm:w-auto">
+            {/* Bitnet Chain & Node Status Button */}
             <button
               onClick={() => setShowNetworkModal(true)}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-2.5 py-0.5 rounded-lg border border-slate-700 text-xs transition-colors cursor-pointer group"
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 sm:px-2.5 rounded-lg border border-slate-700 text-xs transition-colors cursor-pointer group shrink-0"
               title="View Bitnet RPC & Node Health Status"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#22C55E] animate-pulse"></span>
-              <span className="text-white font-bold">Bitnet Mainnet (Chain 210)</span>
-              <span className="text-emerald-400 text-[10px] font-mono font-bold bg-slate-900/60 px-1.5 py-0.5 rounded group-hover:bg-slate-900 min-w-[58px] text-center inline-flex items-center justify-center tabular-nums">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#22C55E] animate-pulse shrink-0"></span>
+              <span className="text-white font-bold text-[11px] sm:text-xs">
+                <span className="sm:hidden">Bitnet (210)</span>
+                <span className="hidden sm:inline">Bitnet Mainnet (Chain 210)</span>
+              </span>
+              <span className="text-emerald-400 text-[10px] font-mono font-bold bg-slate-900/60 px-1.5 py-0.5 rounded group-hover:bg-slate-900 text-center inline-flex items-center justify-center tabular-nums">
                 {rpcLatency}ms
               </span>
             </button>
+
+            {/* Live NestEx BTN/USDT Spot Price */}
+            <a
+              href="https://trade.nestex.one/spot/BTN"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 sm:gap-1.5 bg-slate-800/90 hover:bg-slate-800 px-2 py-0.5 sm:px-2.5 rounded-lg border border-slate-700/80 text-xs transition-colors group cursor-pointer shrink-0"
+              title="NestEx BTN/USDT Live Spot Exchange"
+            >
+              <span className="text-slate-400 font-medium text-[11px] sm:text-xs">BTN:</span>
+              <span className="text-white font-mono font-bold text-[11px] sm:text-xs group-hover:text-sky-300 transition-colors">
+                {priceData.priceFormatted}
+              </span>
+              <span className={`text-[10px] sm:text-[11px] font-bold ${priceData.change24h >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {priceData.change24hFormatted}
+              </span>
+              <span className="text-[9px] text-slate-300 font-medium bg-slate-700 px-1 py-0.2 rounded hidden xs:inline sm:inline">
+                NestEx
+              </span>
+            </a>
+
+            {/* Desktop Ticker Items */}
             <div className="hidden sm:flex items-center gap-1">
               <span className="text-slate-400 font-medium">Block:</span>
               <span className="text-sky-400 font-mono font-bold">
@@ -192,32 +220,13 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
                 {stats?.hashrateEstimate || 'Active'}
               </span>
             </div>
-
-            {/* Live NestEx BTN/USDT Spot Price */}
-            <a
-              href="https://trade.nestex.one/spot/BTN"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-800 px-2.5 py-0.5 rounded-lg border border-slate-700/80 text-xs transition-colors group cursor-pointer"
-              title="NestEx BTN/USDT Live Spot Exchange"
-            >
-              <span className="text-slate-400 font-medium">BTN:</span>
-              <span className="text-white font-mono font-bold group-hover:text-sky-300 transition-colors">
-                {priceData.priceFormatted}
-              </span>
-              <span className={`text-[11px] font-bold ${priceData.change24h >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {priceData.change24hFormatted}
-              </span>
-              <span className="text-[9px] text-slate-300 font-medium bg-slate-700 px-1 py-0.2 rounded">
-                NestEx
-              </span>
-            </a>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Row 2 on mobile / Right group on desktop: Add Wallet + PoW Badge */}
+          <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto pt-1 sm:pt-0 border-t border-slate-800/80 sm:border-0">
             <button
               onClick={handleAddToMetaMask}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold border border-slate-700 text-xs transition-all cursor-pointer shadow-xs"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-2.5 py-1 sm:px-3 rounded-lg sm:rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold border border-slate-700 text-[11px] sm:text-xs transition-all cursor-pointer shadow-xs"
               title="Add Bitnet Network to MetaMask"
             >
               {addedToWallet ? (
@@ -232,8 +241,8 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
                 </>
               )}
             </button>
-            <span className="text-slate-700 hidden sm:inline">|</span>
-            <div className="hidden sm:flex items-center gap-1 text-slate-300 text-xs font-semibold">
+            <div className="flex items-center gap-1.5 text-slate-400 text-[11px] sm:text-xs font-mono shrink-0">
+              <span className="text-slate-700 hidden sm:inline">|</span>
               <Globe className="w-3.5 h-3.5 text-sky-400" />
               <span>Ethash PoW</span>
             </div>
