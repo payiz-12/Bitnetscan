@@ -7,7 +7,7 @@ import {
 import { BITNET_NFT_COLLECTIONS, NftCollection, NftItem } from '../data/nftCollections';
 import { NftImage } from '../components/NftImage';
 import { nftSyncService, NftSyncResult } from '../services/nftSyncService';
-import { resourceUrls, ZERO_ADDRESS } from '../services/nftData';
+import { ZERO_ADDRESS } from '../services/nftData';
 
 interface NftsViewProps { onSelectAddress: (address: string) => void; }
 const shortAddress = (address: string) => address ? `${address.slice(0, 6)}…${address.slice(-4)}` : 'Unknown';
@@ -827,23 +827,6 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress }) => {
                     <span className="text-slate-500 block text-[11px] font-medium">Mint Date</span>
                     <span className="text-slate-800 font-medium block mt-1">{date(modal.item.mintDate)}</span>
                   </div>
-
-                  {modal.item.tokenUri && (
-                    <div>
-                      <span className="text-slate-500 block text-[11px] font-medium">Contract TokenURI</span>
-                      <span className="font-mono break-all block mt-1 text-[11px] text-slate-700">{modal.item.tokenUri}</span>
-                      {resourceUrls(modal.item.tokenUri)[0] && (
-                        <a 
-                          href={resourceUrls(modal.item.tokenUri)[0]} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-[#016976] hover:underline flex items-center gap-1 mt-1 font-semibold"
-                        >
-                          Open metadata link <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
-                  )}
                 </div>
 
                 <div>
