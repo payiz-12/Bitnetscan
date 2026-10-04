@@ -182,13 +182,13 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress }) => {
       <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-7 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shadow-xs flex-shrink-0">
-              <Sparkles className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200/60 flex items-center justify-center text-purple-600 shadow-xs flex-shrink-0">
+              <ImageIcon className="w-6 h-6 text-purple-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold tracking-wider text-[#016976] uppercase">BITNET L1</span>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-[#016976]">BTS-721 / ERC-721</span>
+                <span className="text-[11px] font-bold tracking-wider text-purple-600 uppercase">BITNET L1</span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">BTS-721 / ERC-721</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">NFT & Digital Asset Explorer</h1>
             </div>
@@ -219,8 +219,8 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress }) => {
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-slate-500 font-bold uppercase">Total Supply</span>
-              <div className="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+                <ImageIcon className="w-3.5 h-3.5" />
               </div>
             </div>
             <div className="text-xl font-black text-slate-900 mt-2">{count(totalSupply)}</div>
