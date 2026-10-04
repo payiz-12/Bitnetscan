@@ -1792,7 +1792,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-slate-900">BTS-20 Token Holdings & Balances</h3>
-                <p className="text-xs text-slate-500">Official BTS-20 fungible tokens and verified on-chain balances on Bitnet L1.</p>
+                <p className="text-xs text-slate-500">BTS-20 fungible tokens and verified on-chain balances on Bitnet L1.</p>
               </div>
             </div>
             <div className="flex items-center gap-2">

@@ -325,7 +325,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Right: Assembly Progress Meter */}
+                    {/* Right: Block Progress Meter */}
                     <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
                       <span className="font-mono font-bold text-xs text-[#016976]">
                         %{Math.min(100, Math.round(((recentBlocks[0] ? Math.max(0, nowSec - recentBlocks[0].timestamp) : 0) / (stats?.avgBlockTimeSeconds || 14.6)) * 100))}
@@ -366,23 +366,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-2 group-hover:border-[#016976] group-hover:scale-110 group-hover:rotate-6 group-hover:shadow-sm transition-all duration-300 shadow-2xs flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-2 group-hover:border-[#016976] group-hover:scale-105 transition-all duration-200 shadow-2xs shrink-0">
                         <img src="/bitnet-logo-blue.svg" alt="Block" className="w-full h-full object-contain" />
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-sm text-[#016976] group-hover:underline">
-                            #{block.number}
+                        <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5">
+                          <span className="font-mono font-bold text-sm text-[#016976] group-hover:underline shrink-0">
+                            #{block.number.toLocaleString()}
                           </span>
                           {isNewest && isVeryRecent && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-[#016976] border border-teal-300 animate-pulse">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-teal-100 text-[#016976] border border-teal-300 animate-pulse shrink-0">
                               <span className="w-1 h-1 rounded-full bg-[#016976]"></span>
-                              New Block
+                              New
                             </span>
                           )}
-                          <span className="text-[11px] text-slate-500 font-mono flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-slate-400" />
-                            {formatTimeAgo(block.timestamp)}
+                          <span className="text-[11px] text-slate-500 font-mono flex items-center gap-1 shrink-0">
+                            <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span>{formatTimeAgo(block.timestamp)}</span>
                           </span>
                         </div>
                         <div className="text-xs text-slate-600 flex items-center gap-1.5 mt-0.5 truncate">

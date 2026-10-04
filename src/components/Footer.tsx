@@ -83,16 +83,16 @@ export const Footer: React.FC = () => {
               Ecosystem & Code
             </h4>
             <ul className="space-y-2">
-              <li className="bg-[#016976]/5 rounded-lg p-1.5 border border-[#016976]/20">
+              <li>
                 <a 
                   href="https://github.com/payiz-12/Bitnetscan" 
                   target="_blank" 
                   rel="noreferrer"
-                  className="flex items-center gap-2 text-[#016976] font-semibold hover:text-[#01525d] transition-colors"
+                  className="flex items-center gap-2 text-slate-700 hover:text-[#016976] transition-colors"
                 >
-                  <Github className="w-3.5 h-3.5 text-[#016976]" />
+                  <Github className="w-3.5 h-3.5 text-slate-800" />
                   <span>BitnetScan (Open Source)</span>
-                  <ExternalLink className="w-3 h-3 text-[#016976] ml-auto" />
+                  <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
                 </a>
               </li>
               <li>

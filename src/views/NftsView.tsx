@@ -219,7 +219,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress }) => {
                 Bitnet NFT & Digital Asset Explorer
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                Official BTS-721 collections, artworks, holders, and on-chain ownership records minted on Bitnet L1.
+                BTS-721 collections, artworks, holders, and on-chain ownership records minted on Bitnet L1.
               </p>
             </div>
           </div>

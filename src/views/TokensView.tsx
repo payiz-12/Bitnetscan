@@ -196,7 +196,7 @@ export const TokensView: React.FC<TokensViewProps> = ({ onSelectAddress }) => {
 
       {/* Bitnet Token Standards Showcase */}
       <div className="space-y-4">
-        <h3 className="text-lg font-bold text-slate-900">Official Bitnet Token Standards</h3>
+        <h3 className="text-lg font-bold text-slate-900">Bitnet Token Standards</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {standardsInfo.map((std) => (
             <div
@@ -206,7 +206,7 @@ export const TokensView: React.FC<TokensViewProps> = ({ onSelectAddress }) => {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-mono font-black text-lg text-[#D68142]">{std.name}</span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-200">Official</span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-200">Standard</span>
                 </div>
                 <h4 className="text-sm font-bold text-slate-900 mb-2">{std.type}</h4>
                 <p className="text-xs text-slate-600 leading-relaxed">{std.desc}</p>

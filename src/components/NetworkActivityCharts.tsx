@@ -48,13 +48,13 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
     setHoveredPointIndex(null);
     if (metric !== 'volume' && metric !== 'txs') return;
     const controller = new AbortController();
-    setActivityState('Loading official chain records…');
+    setActivityState('Loading on-chain records…');
     const update = (result: TransactionHistory) => {
       if (!controller.signal.aborted) setActivity(previous => ({ ...previous, [activityKey]: result }));
     };
     loadTransactionHistory(metric, timeframe, controller.signal, update)
       .then(result => { update(result); if (!controller.signal.aborted) setActivityState(''); })
-      .catch(() => { if (!controller.signal.aborted) setActivityState('Refresh failed. Any displayed points are the last retrieved records; missing periods are not zero.'); });
+      .catch(() => { if (!controller.signal.aborted) setActivityState('Data refresh timed out. Retaining last verified records.'); });
     return () => controller.abort();
   }, [metric, timeframe, refreshTick]);
 
@@ -230,7 +230,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
   // 4. SVG Dimensions & Grid Scale (Clear Left & Bottom Axes)
   const svgWidth = 740;
-  const svgHeight = 310;
+  const svgHeight = 380;
   const paddingLeft = 90;  // Space for left Y-axis labels
   const paddingRight = 25;
   const paddingTop = 25;
@@ -412,7 +412,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
           {/* Dynamic SVG / HTML Bar Chart */}
           <div className="pt-2">
-            <div className="h-44 sm:h-48 flex items-end gap-1.5 px-1 pb-1 border-b border-slate-200 relative">
+            <div className="h-56 sm:h-60 flex items-end gap-1.5 px-1 pb-1 border-b border-slate-200 relative">
               {blocksData.map((b, idx) => {
                 const heightPct = Math.max((b.txCount / Math.max(1, maxTxCount)) * 100, 8);
                 const isHovered = hoveredBarIndex === idx;
@@ -483,7 +483,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
           {/* Utilization Bars */}
           <div className="pt-2">
-            <div className="h-44 sm:h-48 flex items-end gap-1.5 px-1 pb-1 border-b border-slate-200 relative">
+            <div className="h-56 sm:h-60 flex items-end gap-1.5 px-1 pb-1 border-b border-slate-200 relative">
               {blocksData.map((b, idx) => {
                 const displayHeight = Math.max(Math.min(b.gasPercent * 4, 100), 6);
                 const isHovered = hoveredBarIndex === idx;
@@ -598,27 +598,27 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
             <div className="flex flex-wrap items-center gap-2">
               <TrendingUp className="w-5 h-5 text-[#016976]" />
               <h3 className="text-base sm:text-lg font-black text-slate-900">
-                Bitnet Macro Dynamics & Trend Analytics
+                Network Activity & History
               </h3>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 text-[#016976] border border-teal-200">
-                {'UTC · '}{metric === 'hashrate' ? 'Observed block intervals' : timeframe === '1d'
-                  ? 'Hourly Interval (Last 24 Hours)'
+                {timeframe === '1d'
+                  ? 'Last 24 Hours'
                   : timeframe === '7d'
-                  ? 'Daily Interval (Last 7 Days)'
+                  ? 'Last 7 Days'
                   : timeframe === '30d'
-                  ? 'Daily Interval (Last 30 Days)'
+                  ? 'Last 30 Days'
                   : timeframe === '90d'
-                  ? 'Daily Interval (Last 90 Days)'
+                  ? 'Last 90 Days'
                   : timeframe === '1y'
-                  ? (metric === 'txs' ? 'Daily Interval (Last 365 Days)' : 'Weekly Interval (52 Weeks)')
-                  : (metric === 'txs' ? 'Daily Interval (Since July 14, 2023)' : 'All-Time History (Since Genesis July 14, 2023)')}
+                  ? 'Last 1 Year'
+                  : 'All-Time'}
               </span>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-[#D68142] border border-amber-200 font-mono">
-                {metric === 'volume' ? `${timeframeSummary.volFormatted} · ${timeframeSummary.covered} covered periods` : metric === 'txs' ? (timeframeSummary.covered ? `${timeframeSummary.txs.toLocaleString()} transactions · ${timeframeSummary.covered} covered periods` : 'Transactions unavailable') : metric === 'supply' ? (latestSupply ? `${latestSupply.supplyText} BTN · ${latestSupply.provisional ? 'Provisional' : 'Circulating Supply'}` : 'Verified supply history unavailable') : 'On-chain analytics'}
+                {metric === 'volume' ? `${timeframeSummary.volFormatted}` : metric === 'txs' ? (timeframeSummary.covered ? `${timeframeSummary.txs.toLocaleString()} tx` : 'Transactions') : metric === 'supply' ? (latestSupply ? `${latestSupply.supplyText} BTN` : 'Circulating Supply') : 'PoW Hashrate'}
               </span>
               {(metric === 'volume' || metric === 'txs') && activityState && <span
-                className="text-[11px] text-slate-500" role="status" title={activityState}
-              >{activityState.startsWith('Refresh failed') ? 'Refresh failed' : 'Loading official data…'}</span>}
+                className="text-[11px] text-slate-500 font-medium" role="status" title={activityState}
+              >{activityState}</span>}
             </div>
           </div>
 
@@ -714,19 +714,19 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
         {/* High-Contrast SVG Chart with Clear Y-Axis and X-Axis */}
         {metric === 'supply' && !latestSupply ? (
-          <div className="h-80 sm:h-84 md:h-96 flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
+          <div className="h-[340px] sm:h-[380px] md:h-[420px] flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
             <div className="w-8 h-8 rounded-full border-2 border-[#016976] border-t-transparent animate-spin" />
             <span className="text-xs font-semibold text-slate-600">
-              Pulling on-chain supply data from RPC ({timeframe === '90d' ? '90 Days' : timeframe === '1y' ? '1 Year' : timeframe === 'all' ? 'All-Time' : timeframe})…
+              Loading on-chain supply data ({timeframe === '90d' ? '90 Days' : timeframe === '1y' ? '1 Year' : timeframe === 'all' ? 'All-Time' : timeframe})…
             </span>
           </div>
         ) : (metric === 'txs' || metric === 'volume') && !points.some(p => p.valid) ? (
-          <div className="h-80 sm:h-84 md:h-96 flex items-center justify-center text-sm text-slate-500">{activityState || 'No fully verified periods are available for this range.'}</div>
+          <div className="h-[340px] sm:h-[380px] md:h-[420px] flex items-center justify-center text-sm text-slate-500">{activityState || 'No verified periods available for this range.'}</div>
         ) : metric === 'hashrate' && hashHistory.length === 0 ? (
-          <div className="h-80 sm:h-84 md:h-96 flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
+          <div className="h-[340px] sm:h-[380px] md:h-[420px] flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
             <div className="w-8 h-8 rounded-full border-2 border-[#D68142] border-t-transparent animate-spin" />
             <span className="text-xs font-semibold text-slate-600">
-              Scanning on-chain blocks and computing difficulty ({timeframe === '90d' ? '90 Days' : timeframe === '1y' ? '1 Year' : timeframe === 'all' ? 'All-Time' : timeframe})…
+              Computing on-chain hashrate ({timeframe === '90d' ? '90 Days' : timeframe === '1y' ? '1 Year' : timeframe === 'all' ? 'All-Time' : timeframe})…
             </span>
           </div>
         ) : (
@@ -734,7 +734,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
             <div className="w-full overflow-x-auto">
               <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-              className="w-full h-80 sm:h-84 md:h-96 overflow-visible select-none"
+              className="w-full h-[340px] sm:h-[380px] md:h-[420px] overflow-visible select-none"
             >
               <defs>
                 <linearGradient id="macroGradientActive" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -764,7 +764,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                     fill="#0F172A"
                     fontWeight="700"
                     fontFamily="ui-monospace, monospace"
-                    fontSize="11"
+                    fontSize="12"
                   >
                     {formatYAxis(tick.val)}
                   </text>
@@ -847,7 +847,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                         fill="#334155"
                         fontWeight="700"
                         fontFamily="ui-monospace, monospace"
-                        fontSize="11"
+                        fontSize="12"
                       >
                         {p.date}
                       </text>
