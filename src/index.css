@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #F8F7F4;
+    color: #0F172A;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Subtle, elegant warm canvas background pattern */
+.bg-canvas-warm {
+  background-color: #F8F7F4;
+  background-image: radial-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F1EFEA;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #016976;
+}
+
+/* Standardized Card Style: Pure white with crisp border and subtle ambient shadow */
+.card-clean {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+
+.card-clean-hover {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease-in-out;
+}
+.card-clean-hover:hover {
+  border-color: #016976;
+  box-shadow: 0 8px 24px -4px rgba(1, 105, 118, 0.12);
+  transform: translateY(-1px);
+}
+
+/* Number badge helper to guarantee crisp white text on colored circles */
+.badge-circle {
+  color: #FFFFFF !important;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Interactive link and hash styles */
+.link-hash {
+  color: #0284C7;
+  font-family: monospace;
+  transition: color 0.15s ease;
+}
+.link-hash:hover {
+  color: #0369A1;
+  text-decoration: underline;
+}
+
+.link-teal {
+  color: #016976;
+  font-family: monospace;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+.link-teal:hover {
+  color: #014E58;
+  text-decoration: underline;
+}
+
+/* Animated Block Entrance & Live Pulse */
+@keyframes slideDownFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px);
+    background-color: rgba(1, 105, 118, 0.14);
+  }
+  40% {
+    background-color: rgba(1, 105, 118, 0.08);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-new-block {
+  animation: slideDownFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes liveBeacon {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.animate-live-beacon {
+  animation: liveBeacon 2s infinite;
+}
+
+@keyframes pulseDashed {
+  0%, 100% {
+    border-color: rgba(1, 105, 118, 0.35);
+    box-shadow: 0 0 0 0 rgba(1, 105, 118, 0.12);
+  }
+  50% {
+    border-color: rgba(1, 105, 118, 0.8);
+    box-shadow: 0 0 10px 1px rgba(1, 105, 118, 0.1);
+  }
+}
+
+.animate-pulse-dashed {
+  animation: pulseDashed 2.2s ease-in-out infinite;
+}
+

@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Production build output (generated on build)
+dist/
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+*.local
+.env*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
