@@ -52,12 +52,12 @@ export const App: React.FC = () => {
       ]);
 
       if (netStats) setStats(netStats);
+      // Collect all transactions from these blocks
+      const rpcTxs: Transaction[] = [];
       if (blocks.length > 0) {
         setRecentBlocks(blocks);
         latestKnownBlockRef.current = Math.max(latestKnownBlockRef.current, blocks[0].number);
 
-        // Collect all transactions from these blocks
-        const rpcTxs: Transaction[] = [];
         for (const blk of blocks) {
           if (Array.isArray(blk.transactions)) {
             for (const tx of blk.transactions) {
@@ -73,7 +73,7 @@ export const App: React.FC = () => {
         }
       }
 
-      // Merge and sort real transactions from both live blocks and ledger indexer!
+      // Merge and sort real transactions from live blocks, ledger indexer, and verified ledger database!
       setRecentTxs((prev) => {
         const seen = new Set<string>();
         const ledgerConverted: Transaction[] = (liveLedgerTxs || []).map((t) => ({
@@ -89,7 +89,20 @@ export const App: React.FC = () => {
           fee: t.fee,
         }));
 
-        const combined = [...prev, ...ledgerConverted].filter((t) => {
+        const fallbackDb: Transaction[] = explorerApiService.getLedgerTransactions({ pageSize: 20 }).transactions.map((t) => ({
+          hash: t.hash,
+          blockHash: '',
+          blockNumber: t.blockNumber,
+          from: t.from,
+          to: t.to,
+          value: t.valueNum.toString(),
+          timestamp: t.timestamp,
+          status: t.status === 'success' ? 1 : 0,
+          gasPrice: '2',
+          fee: t.fee,
+        }));
+
+        const combined = [...rpcTxs, ...ledgerConverted, ...prev, ...fallbackDb].filter((t) => {
           if (!t || !t.hash) return false;
           const h = t.hash.toLowerCase();
           if (seen.has(h)) return false;

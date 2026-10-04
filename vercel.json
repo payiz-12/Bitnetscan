@@ -1,8 +1,50 @@
 {
   "rewrites": [
     {
+      "source": "/api/rpc2/:path*",
+      "destination": "https://rpc.bitnetmoney.com/:path*"
+    },
+    {
+      "source": "/api/rpc2",
+      "destination": "https://rpc.bitnetmoney.com/"
+    },
+    {
+      "source": "/api/rpc/:path*",
+      "destination": "https://rpc.bitnetmoney.org/:path*"
+    },
+    {
+      "source": "/api/rpc",
+      "destination": "https://rpc.bitnetmoney.org/"
+    },
+    {
+      "source": "/api/nestex/:path*",
+      "destination": "https://api.nestex.one/:path*"
+    },
+    {
+      "source": "/api/explorer/:path*",
+      "destination": "https://explorer.bitnetmoney.com/:path*"
+    },
+    {
+      "source": "/api/stats/:path*",
+      "destination": "https://stats.explorer.bitnetmoney.com/:path*"
+    },
+    {
+      "source": "/api/bitnet-explorer/:path*",
+      "destination": "https://explorer.bitnetmoney.org/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, Accept" }
+      ]
     }
   ]
 }

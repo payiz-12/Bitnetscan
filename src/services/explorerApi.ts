@@ -233,12 +233,12 @@ class ExplorerApiService {
     // 1. Fetch live validated blocks & counters from explorer indexer
     try {
       const [countersRes, blocksRes] = await Promise.all([
-        fetch(`https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/counters`, {
+        fetch(`/api/explorer/api/v2/addresses/${cleanAddr}/counters`, {
           headers: { Accept: 'application/json' },
-        }).catch(() => null),
-        fetch(`https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/blocks-validated`, {
+        }).catch(() => fetch(`https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/counters`, { headers: { Accept: 'application/json' } })).catch(() => null),
+        fetch(`/api/explorer/api/v2/addresses/${cleanAddr}/blocks-validated`, {
           headers: { Accept: 'application/json' },
-        }).catch(() => null),
+        }).catch(() => fetch(`https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/blocks-validated`, { headers: { Accept: 'application/json' } })).catch(() => null),
       ]);
 
       if (countersRes && countersRes.ok) {
@@ -291,10 +291,15 @@ class ExplorerApiService {
 
     // 1. Fetch live token balances for this address from official explorer indexer
     try {
-      const res = await fetch(`https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/tokens`, {
+      let res = await fetch(`/api/explorer/api/v2/addresses/${cleanAddr}/tokens`, {
         headers: { Accept: 'application/json' },
-      });
-      if (res.ok) {
+      }).catch(() => null);
+      if (!res || !res.ok) {
+        res = await fetch(`https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/tokens`, {
+          headers: { Accept: 'application/json' },
+        }).catch(() => null);
+      }
+      if (res && res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data.items)) {
           return data.items
