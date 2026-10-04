@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import { rpcService } from './rpc';
 import { BITNET_NFT_COLLECTIONS, NftCollection, NftItem, NftTransfer } from '../data/nftCollections';
+import { SEEDED_NFT_COLLECTIONS } from '../data/nftSeeds';
 import {
   ZERO_ADDRESS, PUBLIC_IPFS_GATEWAYS, resourceUrls, metadataFields, decodeInlineMetadata,
   tokenIdString, compareTokenIds, addressString, mapInstance, mapTransfer, transferKey,
@@ -149,6 +150,14 @@ export class NftSyncService {
       }
     } catch {}
     return [...collections.values()];
+  }
+
+  public getInitialCollections(): NftCollection[] {
+    const stored = this.getStoredCollections();
+    if (stored.some(c => c.items && c.items.length > 0)) {
+      return stored;
+    }
+    return SEEDED_NFT_COLLECTIONS.map(c => ({ ...c }));
   }
 
   public saveCollectionsToStorage(collections: NftCollection[]) {
