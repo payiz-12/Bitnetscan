@@ -42,7 +42,7 @@ BitnetScan is a state-of-the-art, feature-complete Block Explorer and Web3 Analy
 
 ### 6. Bitnet Token Standards & NFT Explorers
 - **BTS-20 Explorer:** Inspect any token contract on Bitnet.
-- **BTS-721 NFT Explorer:** Query any NFT contract and Token ID to view owner and IPFS metadata pointers.
+- **BTS-721 NFT Explorer:** Load every ERC-721 collection, instance and transfer page from the Bitnet indexer. Holder balances use the complete instance list. Token details check ERC-721 support, `ownerOf` and `tokenURI` at a single RPC block; images and attributes come from creator metadata, with explicit indexer fallback when gateways are unavailable.
 - Documentation for official standards: `BTS-20`, `BTS-721`, `BTS-1155`, `BTS-21`, `BTS-HCE`.
 
 ### 7. PoW Mining Calculator & Guide
@@ -83,6 +83,8 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Data coverage and validation
 
-Run `npm test` and `npm run build`. Hashrate is an estimate from cumulative work divided by elapsed time. Daily/weekly/monthly/yearly/all charts use real block timestamps; transaction activity is the average of 12 sampled blocks per interval, not a full-chain total. Supply history is unavailable until a complete issuance index is provided. Watched wallets, transaction snapshots and partial NFT pages are labelled accordingly.
+Run `npm run test:nfts` and `npm run build` for NFT regression checks. `node scripts/check-nfts.mjs --live` additionally checks current indexed holder quantities and sample NFT owners/tokenURIs against Bitnet RPC; it needs network access. Hashrate is an estimate from cumulative work divided by elapsed time. Daily/weekly/monthly/yearly/all charts use real block timestamps; transaction activity is the average of 12 sampled blocks per interval, not a full-chain total. Supply history is unavailable until a complete issuance index is provided. Watched wallets and transaction snapshots are labelled accordingly.
+
+NFT collection hints contain addresses and labels only. Legacy NFT snapshots are not loaded. Partial scans, unavailable metadata and cached records are labelled; missing prices and mint timestamps are not estimated. Collection names can be reused by different contracts: the five known addresses are grouped separately from additional indexed contracts. Indexer inclusion is not an authenticity badge. Wallet holdings exclude cached ownership records, and transfer events are keyed by transaction, log index and token ID. ERC-721 IDs remain decimal strings to preserve all 256 bits.
 
 Vite `/api/*` proxies apply only to development. Production must configure equivalent HTTPS reverse proxies for `/api/rpc`, `/api/rpc2`, `/api/explorer`, `/api/bitnet-explorer`, `/api/nestex`, or allow the listed direct endpoints through CORS. No production deployment is performed by this change.

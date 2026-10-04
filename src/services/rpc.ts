@@ -247,8 +247,8 @@ class BitnetRpcService {
     return await this.rawRequest('eth_getCode', [clean, 'latest']);
   }
 
-  public async call(to: string, data: string): Promise<string> {
-    return await this.rawRequest('eth_call', [{ to, data }, 'latest']);
+  public async call(to: string, data: string, blockTag = 'latest'): Promise<string> {
+    return await this.rawRequest('eth_call', [{ to, data }, blockTag]);
   }
 
   public async getBlock(numberOrHash: number | string, includeTxs = true): Promise<Block | null> {

@@ -69,6 +69,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
   const [nftTransfers, setNftTransfers] = useState<AddressNftTransfer[]>([]);
   const [nftHoldings, setNftHoldings] = useState<AddressNftHolding[]>([]);
   const [nftLoading, setNftLoading] = useState<boolean>(true);
+  const [nftCoverage, setNftCoverage] = useState('Loading indexed NFT records…');
   const [nftFilter, setNftFilter] = useState<'all' | 'mint' | 'in' | 'out'>('all');
   const [selectedHolding, setSelectedHolding] = useState<AddressNftHolding | null>(null);
 
@@ -329,17 +330,24 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
 
     // 6. Fetch on-chain BTS NFT transfers and owned holdings
     setNftLoading(true);
+    setNftTransfers([]);
+    setNftHoldings([]);
+    setNftCoverage('Loading indexed NFT records…');
     nftSyncService.getAddressNftOverview(cleanAddr)
-      .then(({ transfers, holdings }) => {
+      .then(({ transfers, holdings, message }) => {
         if (isMounted) {
           setNftTransfers(transfers);
           setNftHoldings(holdings);
+          setNftCoverage(message);
           setNftLoading(false);
         }
       })
       .catch((err) => {
         console.warn('Failed to load address NFT data:', err);
-        if (isMounted) setNftLoading(false);
+        if (isMounted) {
+          setNftLoading(false);
+          setNftCoverage('NFT records are unavailable. Missing records do not mean this wallet owns no NFTs.');
+        }
       });
 
     return () => {
@@ -1480,7 +1488,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   BTS-721 NFT Transfers & Activity
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  On-chain BTS-721 mint, inbound, and outbound transfer records on Bitnet L1.
+                  Indexed ERC-721 mint, inbound, and outbound transfer records on Bitnet L1.
                 </p>
               </div>
             </div>
@@ -1531,6 +1539,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           </div>
 
           {/* NFT Transfers Table */}
+          <p className="text-xs text-slate-500" role="status">{nftCoverage}</p>
           {nftLoading ? (
             <div className="py-16 text-center text-slate-500">
               <div className="flex flex-col items-center gap-3">
@@ -1553,7 +1562,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 No BTS NFT activity found matching the selected filter.
               </p>
               <p className="text-slate-500 max-w-md mx-auto">
-                This wallet has not minted or transferred any NFTs yet. Explore popular collections on the Bitnet NFT Hub.
+                No matching records were returned. Check the data coverage status above.
               </p>
               {onNavigate && (
                 <button
@@ -1591,7 +1600,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     })
                     .map((tx) => (
                       <tr
-                        key={tx.hash}
+                        key={`${tx.collectionContract}:${tx.hash}:${tx.logIndex}:${tx.tokenId}`}
                         onClick={() => onSelectTx(tx.hash)}
                         className="hover:bg-slate-50 transition-colors cursor-pointer group"
                       >
@@ -1759,16 +1768,17 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   BTS-721 NFT Portfolio
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  Verified on-chain NFT digital collectibles owned by this address.
+                  NFT holdings from complete indexed collection ownership records.
                 </p>
               </div>
             </div>
 
             <span className="px-3 py-1 bg-teal-50 border border-teal-200 rounded-xl text-xs font-bold text-[#016976]">
-              Total {nftHoldings.length} NFTs Owned
+              {nftHoldings.length} Indexed Holdings
             </span>
           </div>
 
+          <p className="text-xs text-slate-500" role="status">{nftCoverage}</p>
           {nftLoading ? (
             <div className="py-16 text-center text-slate-500">
               <div className="flex flex-col items-center gap-3">
@@ -1782,10 +1792,10 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 <ImageIcon className="w-6 h-6" />
               </div>
               <p className="font-bold text-slate-800 text-sm">
-                No BTS-721 NFTs found in this wallet.
+                No indexed NFT holdings available.
               </p>
               <p className="text-slate-500 max-w-md mx-auto">
-                Acquire NFTs from official Bitnet L1 collections (BitnetPunks, Milestone, TheVillage, Xenwave, BabyChimpGang) to view them here.
+                Check the data coverage status above, or inspect a contract and token ID in the NFT explorer.
               </p>
               {onNavigate && (
                 <button
@@ -1809,7 +1819,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     <NftImage src={h.image} alt={h.name} className="w-full h-full group-hover:scale-105 transition-transform duration-300" />
                     <div className="absolute top-2.5 left-2.5 z-20">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-xs ${h.rarityColor || 'bg-slate-900/80 text-white'}`}>
-                        {h.rarity || 'Common'}
+                        Indexed metadata
                       </span>
                     </div>
                     <div className="absolute top-2.5 right-2.5 z-20">
@@ -1991,7 +2001,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 {selectedHolding.standard}
               </span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${selectedHolding.rarityColor || 'bg-slate-800 text-white'}`}>
-                {selectedHolding.rarity || 'Common'}
+                Indexed metadata
               </span>
             </div>
 
