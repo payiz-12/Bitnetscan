@@ -473,12 +473,9 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                         </div>
                       </div>
 
-                      <div className="mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500 flex items-center justify-between">
-                        <span className="font-mono truncate">
+                      <div className="mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500">
+                        <span className="font-mono truncate block">
                           {item.owner && item.owner.toLowerCase() !== ZERO_ADDRESS ? shortAddress(item.owner) : 'Genesis'}
-                        </span>
-                        <span className="text-[#016976] font-bold group-hover:translate-x-0.5 transition-transform">
-                          →
                         </span>
                       </div>
                     </div>
