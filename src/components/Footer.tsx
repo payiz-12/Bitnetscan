@@ -5,7 +5,7 @@ export const Footer: React.FC = () => {
   return (
     <footer className="bg-white border-t border-slate-200 mt-16 text-xs text-slate-600 shadow-sm">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* Col 1: Brand & Mission */}
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
@@ -52,32 +52,7 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Col 3: Contract Standards */}
-          <div className="space-y-2">
-            <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-3">
-              Bitnet Standards (BTS)
-            </h4>
-            <ul className="space-y-1.5 text-slate-600">
-              <li className="hover:text-[#016976] transition-colors flex items-center gap-1.5">
-                <Code className="w-3.5 h-3.5 text-[#016976]" />
-                <span className="font-mono text-slate-900 font-bold">BTS-20:</span> Fungible Tokens (ERC-20)
-              </li>
-              <li className="hover:text-[#016976] transition-colors flex items-center gap-1.5">
-                <Code className="w-3.5 h-3.5 text-[#016976]" />
-                <span className="font-mono text-slate-900 font-bold">BTS-721:</span> Non-Fungible Tokens (NFT)
-              </li>
-              <li className="hover:text-[#016976] transition-colors flex items-center gap-1.5">
-                <Code className="w-3.5 h-3.5 text-[#016976]" />
-                <span className="font-mono text-slate-900 font-bold">BTS-1155:</span> Multi-Token Standard
-              </li>
-              <li className="hover:text-[#016976] transition-colors flex items-center gap-1.5">
-                <Code className="w-3.5 h-3.5 text-[#016976]" />
-                <span className="font-mono text-slate-900 font-bold">BTS-21 & HCE:</span> Compliant & Oracle Tokens
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 4: Community & Development */}
+          {/* Col 3: Ecosystem & Code */}
           <div className="space-y-2">
             <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-3">
               Ecosystem & Code
@@ -91,7 +66,7 @@ export const Footer: React.FC = () => {
                   className="flex items-center gap-2 text-slate-700 hover:text-[#016976] transition-colors"
                 >
                   <Github className="w-3.5 h-3.5 text-slate-800" />
-                  <span>BitnetScan (Open Source)</span>
+                  <span>BitnetScan Explorer (Source Code)</span>
                   <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
                 </a>
               </li>
@@ -153,17 +128,6 @@ export const Footer: React.FC = () => {
             &copy; {new Date().getFullYear()} BitnetScan. Built for the decentralized Bitnet Money community.
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <a
-              href="https://github.com/payiz-12/Bitnetscan"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1.5 text-slate-800 font-semibold hover:text-[#016976] transition-colors group px-2 py-0.5 rounded bg-slate-100 hover:bg-[#016976]/10"
-            >
-              <Github className="w-3.5 h-3.5 text-slate-800 group-hover:text-[#016976]" />
-              <span>GitHub: payiz-12/Bitnetscan</span>
-              <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-[#016976]" />
-            </a>
-            <span className="text-slate-300 hidden sm:inline">•</span>
             <span className="flex items-center gap-1 text-slate-600">
               <Server className="w-3 h-3 text-[#016976]" />
               <span>RPC: rpc.bitnetmoney.org</span>

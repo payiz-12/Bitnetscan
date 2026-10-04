@@ -1053,65 +1053,18 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-mono">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 text-[11px] uppercase tracking-wider font-semibold">
-                  <tr>
-                    <th className="py-3 px-3">Txn Hash</th>
-                    <th className="py-3 px-3">Block</th>
-                    <th className="py-3 px-3">Age</th>
-                    <th className="py-3 px-3 text-center">Type</th>
-                    <th className="py-3 px-3">From</th>
-                    <th className="py-3 px-3">To</th>
-                    <th className="py-3 px-3 text-right">Value (BTN)</th>
-                    <th className="py-3 px-3 text-right hidden sm:table-cell">Txn Fee</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredTransactions.map((tx) => (
-                    <tr
-                      key={tx.hash}
-                      onClick={() => onSelectTx(tx.hash)}
-                      className="hover:bg-slate-50 transition-colors cursor-pointer group"
-                    >
-                      {/* Hash */}
-                      <td className="py-3.5 px-3 font-semibold text-[#0284C7] group-hover:underline truncate max-w-[130px]">
-                        <div className="flex items-center gap-1.5">
-                          <span>{tx.hash.slice(0, 10)}...{tx.hash.slice(-6)}</span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              copyToClipboard(tx.hash);
-                            }}
-                            className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-800"
-                            title="Copy Txn Hash"
-                          >
-                            <Copy className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-
-                      {/* Block */}
-                      <td
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectBlock(tx.blockNumber);
-                        }}
-                        className="py-3.5 px-3 text-slate-900 font-semibold hover:text-[#016976] hover:underline"
-                      >
-                        #{tx.blockNumber.toLocaleString()}
-                      </td>
-
-                      {/* Age */}
-                      <td className="py-3.5 px-3 text-slate-500 whitespace-nowrap">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-slate-400" />
-                          {formatTimeAgo(tx.timestamp)}
-                        </span>
-                      </td>
-
-                      {/* Type Badge: IN / OUT */}
-                      <td className="py-3.5 px-3 text-center">
+            <div>
+              {/* Mobile Card Feed (100% width, zero horizontal sliding) */}
+              <div className="divide-y divide-slate-100 sm:hidden">
+                {filteredTransactions.map((tx) => (
+                  <div
+                    key={tx.hash}
+                    onClick={() => onSelectTx(tx.hash)}
+                    className="p-3.5 hover:bg-slate-50 transition-colors cursor-pointer space-y-2.5"
+                  >
+                    {/* Top Row: Type Badge + Value + Age */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                           tx.type === 'IN'
                             ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
@@ -1131,64 +1084,193 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                             </>
                           )}
                         </span>
-                      </td>
-
-                      {/* From */}
-                      <td className="py-3.5 px-3 text-slate-600 truncate max-w-[130px]">
-                        {tx.from.toLowerCase() === address.toLowerCase() ? (
-                          <span className="text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">This Wallet</span>
-                        ) : (
-                          <span
-                            onClick={(e) => {
-                              if (onSelectAddress) {
-                                e.stopPropagation();
-                                onSelectAddress(tx.from);
-                              }
-                            }}
-                            className={`truncate ${onSelectAddress ? 'hover:text-[#016976] hover:underline cursor-pointer' : ''}`}
-                            title={tx.from}
-                          >
-                            {tx.from.slice(0, 6)}...{tx.from.slice(-4)}
-                          </span>
-                        )}
-                      </td>
-
-                      {/* To */}
-                      <td className="py-3.5 px-3 text-slate-600 truncate max-w-[130px]">
-                        {tx.to.toLowerCase() === address.toLowerCase() ? (
-                          <span className="text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">This Wallet</span>
-                        ) : (
-                          <span
-                            onClick={(e) => {
-                              if (onSelectAddress) {
-                                e.stopPropagation();
-                                onSelectAddress(tx.to);
-                              }
-                            }}
-                            className={`truncate ${onSelectAddress ? 'hover:text-[#016976] hover:underline cursor-pointer' : ''}`}
-                            title={tx.to}
-                          >
-                            {tx.to.slice(0, 6)}...{tx.to.slice(-4)}
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Value */}
-                      <td className="py-3.5 px-3 text-right font-bold text-slate-900 whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center gap-1 font-mono font-bold text-xs text-slate-900">
                           <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
-                          <span>{tx.value}</span>
+                          <span>{tx.value} BTN</span>
                         </div>
-                      </td>
+                      </div>
+                      <span className="text-[11px] text-slate-400 font-mono flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-slate-400" />
+                        <span>{formatTimeAgo(tx.timestamp)}</span>
+                      </span>
+                    </div>
 
-                      {/* Fee */}
-                      <td className="py-3.5 px-3 text-right text-slate-500 hidden sm:table-cell whitespace-nowrap">
-                        {tx.fee}
-                      </td>
+                    {/* Middle Row: From -> To Addresses */}
+                    <div className="text-xs font-mono flex items-center justify-between gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] text-slate-400 block font-sans">From</span>
+                        <span className="font-semibold text-slate-700 truncate block">
+                          {tx.from.toLowerCase() === address.toLowerCase() ? (
+                            <span className="text-amber-800 font-bold">This Wallet</span>
+                          ) : (
+                            `${tx.from.slice(0, 6)}...${tx.from.slice(-4)}`
+                          )}
+                        </span>
+                      </div>
+                      <span className="text-slate-300 font-bold shrink-0">→</span>
+                      <div className="min-w-0 flex-1 text-right">
+                        <span className="text-[10px] text-slate-400 block font-sans">To</span>
+                        <span className="font-semibold text-slate-700 truncate block">
+                          {tx.to.toLowerCase() === address.toLowerCase() ? (
+                            <span className="text-emerald-800 font-bold">This Wallet</span>
+                          ) : (
+                            `${tx.to.slice(0, 6)}...${tx.to.slice(-4)}`
+                          )}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Bottom Row: Txn Hash + Block Number */}
+                    <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-0.5">
+                      <span className="text-[#0284C7] font-semibold">
+                        {tx.hash.slice(0, 10)}...{tx.hash.slice(-6)}
+                      </span>
+                      <span className="text-slate-700 font-semibold">
+                        Block #{tx.blockNumber.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 text-[11px] uppercase tracking-wider font-semibold">
+                    <tr>
+                      <th className="py-3 px-3">Txn Hash</th>
+                      <th className="py-3 px-3">Block</th>
+                      <th className="py-3 px-3">Age</th>
+                      <th className="py-3 px-3 text-center">Type</th>
+                      <th className="py-3 px-3">From</th>
+                      <th className="py-3 px-3">To</th>
+                      <th className="py-3 px-3 text-right">Value (BTN)</th>
+                      <th className="py-3 px-3 text-right hidden sm:table-cell">Txn Fee</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredTransactions.map((tx) => (
+                      <tr
+                        key={tx.hash}
+                        onClick={() => onSelectTx(tx.hash)}
+                        className="hover:bg-slate-50 transition-colors cursor-pointer group"
+                      >
+                        {/* Hash */}
+                        <td className="py-3.5 px-3 font-semibold text-[#0284C7] group-hover:underline truncate max-w-[130px]">
+                          <div className="flex items-center gap-1.5">
+                            <span>{tx.hash.slice(0, 10)}...{tx.hash.slice(-6)}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                copyToClipboard(tx.hash);
+                              }}
+                              className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-800"
+                              title="Copy Txn Hash"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+
+                        {/* Block */}
+                        <td
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectBlock(tx.blockNumber);
+                          }}
+                          className="py-3.5 px-3 text-slate-900 font-semibold hover:text-[#016976] hover:underline"
+                        >
+                          #{tx.blockNumber.toLocaleString()}
+                        </td>
+
+                        {/* Age */}
+                        <td className="py-3.5 px-3 text-slate-500 whitespace-nowrap">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            {formatTimeAgo(tx.timestamp)}
+                          </span>
+                        </td>
+
+                        {/* Type Badge: IN / OUT */}
+                        <td className="py-3.5 px-3 text-center">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            tx.type === 'IN'
+                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                              : tx.type === 'OUT'
+                              ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                              : 'bg-slate-100 text-slate-800 border border-slate-200'
+                          }`}>
+                            {tx.type === 'IN' ? (
+                              <>
+                                <ArrowDownLeft className="w-3 h-3 text-emerald-700" />
+                                <span>IN</span>
+                              </>
+                            ) : (
+                              <>
+                                <ArrowUpRight className="w-3 h-3 text-amber-700" />
+                                <span>OUT</span>
+                              </>
+                            )}
+                          </span>
+                        </td>
+
+                        {/* From */}
+                        <td className="py-3.5 px-3 text-slate-600 truncate max-w-[130px]">
+                          {tx.from.toLowerCase() === address.toLowerCase() ? (
+                            <span className="text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">This Wallet</span>
+                          ) : (
+                            <span
+                              onClick={(e) => {
+                                if (onSelectAddress) {
+                                  e.stopPropagation();
+                                  onSelectAddress(tx.from);
+                                }
+                              }}
+                              className={`truncate ${onSelectAddress ? 'hover:text-[#016976] hover:underline cursor-pointer' : ''}`}
+                              title={tx.from}
+                            >
+                              {tx.from.slice(0, 6)}...{tx.from.slice(-4)}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* To */}
+                        <td className="py-3.5 px-3 text-slate-600 truncate max-w-[130px]">
+                          {tx.to.toLowerCase() === address.toLowerCase() ? (
+                            <span className="text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">This Wallet</span>
+                          ) : (
+                            <span
+                              onClick={(e) => {
+                                if (onSelectAddress) {
+                                  e.stopPropagation();
+                                  onSelectAddress(tx.to);
+                                }
+                              }}
+                              className={`truncate ${onSelectAddress ? 'hover:text-[#016976] hover:underline cursor-pointer' : ''}`}
+                              title={tx.to}
+                            >
+                              {tx.to.slice(0, 6)}...{tx.to.slice(-4)}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Value */}
+                        <td className="py-3.5 px-3 text-right font-bold text-slate-900 whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
+                            <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
+                            <span>{tx.value}</span>
+                          </div>
+                        </td>
+
+                        {/* Fee */}
+                        <td className="py-3.5 px-3 text-right text-slate-500 hidden sm:table-cell whitespace-nowrap">
+                          {tx.fee}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>

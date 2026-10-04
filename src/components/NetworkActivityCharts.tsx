@@ -33,6 +33,13 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
   const [activity, setActivity] = useState<Record<string, TransactionHistory>>({});
   const [activityState, setActivityState] = useState('');
   const [refreshTick, setRefreshTick] = useState(0);
+  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 640);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   // 60-second periodic refresh for active chart view without resetting long scans
   useEffect(() => {
@@ -229,12 +236,12 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
   }, [timeframeData, metric]);
 
   // 4. SVG Dimensions & Grid Scale (Clear Left & Bottom Axes)
-  const svgWidth = 740;
-  const svgHeight = 380;
-  const paddingLeft = 90;  // Space for left Y-axis labels
-  const paddingRight = 25;
-  const paddingTop = 25;
-  const paddingBottom = 45; // Space for bottom X-axis labels
+  const svgWidth = isMobile ? 360 : 740;
+  const svgHeight = isMobile ? 240 : 320;
+  const paddingLeft = isMobile ? 54 : 85;  // Space for left Y-axis labels
+  const paddingRight = isMobile ? 12 : 25;
+  const paddingTop = isMobile ? 10 : 20;
+  const paddingBottom = isMobile ? 26 : 40; // Space for bottom X-axis labels
 
   const plotWidth = svgWidth - paddingLeft - paddingRight;
   const plotHeight = svgHeight - paddingTop - paddingBottom;
@@ -294,32 +301,32 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
   // Format Y-axis value based on metric
   const formatYAxis = (val: number) => {
     if (metric === 'volume') {
-      if (val >= 1e6) return `${(val / 1e6).toFixed(2)}M BTN`;
-      if (val >= 1e3) return `${(val / 1e3).toFixed(1)}K BTN`;
-      return `${Math.round(val)} BTN`;
+      if (val >= 1e6) return `${(val / 1e6).toFixed(1)}M${isMobile ? '' : ' BTN'}`;
+      if (val >= 1e3) return `${(val / 1e3).toFixed(val >= 10000 ? 0 : 1)}K${isMobile ? '' : ' BTN'}`;
+      return `${Math.round(val)}${isMobile ? '' : ' BTN'}`;
     }
     if (metric === 'txs') {
-      if (val >= 1000) return `${(val / 1000).toFixed(val >= 10000 ? 0 : 1)}K tx`;
-      return `${Math.round(val)} tx`;
+      if (val >= 1000) return `${(val / 1000).toFixed(val >= 10000 ? 0 : 1)}K${isMobile ? '' : ' tx'}`;
+      return `${Math.round(val)}${isMobile ? '' : ' tx'}`;
     }
     if (metric === 'hashrate') {
-      if (val >= 1000) return `${(val / 1000).toFixed(2)} TH/s`;
+      if (val >= 1000) return `${(val / 1000).toFixed(1)} TH/s`;
       if (val < 1 && val > 0) return `${(val * 1000).toFixed(0)} MH/s`;
-      return `${val.toFixed(2)} GH/s`;
+      return `${val.toFixed(1)} GH/s`;
     }
     if (metric === 'supply') {
       if (valRange < 100000) {
-        return `${(val / 1e6).toFixed(4)}M BTN`;
+        return `${(val / 1e6).toFixed(3)}M`;
       }
       if (val >= 1e6) {
-        return `${(val / 1e6).toFixed(3)}M BTN`;
+        return `${(val / 1e6).toFixed(2)}M`;
       }
       if (val >= 1e3) {
-        return `${(val / 1e3).toFixed(1)}K BTN`;
+        return `${(val / 1e3).toFixed(1)}K`;
       }
-      return `${Math.round(val)} BTN`;
+      return `${Math.round(val)}`;
     }
-    return `${(val / 1e6).toFixed(3)}M BTN`;
+    return String(Math.round(val));
   };
 
   // Calculate coordinates for data points
@@ -414,8 +421,21 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           <div className="pt-2">
             <div className="h-56 sm:h-60 flex items-end gap-1.5 px-1 pb-1 border-b border-slate-200 relative">
               {blocksData.map((b, idx) => {
-                const heightPct = Math.max((b.txCount / Math.max(1, maxTxCount)) * 100, 8);
+                // Height scaled by actual tx count: 0 tx is 6%, 1 tx is 22%, 2 tx is 36%, 5+ tx is 65-100%
+                const heightPct = b.txCount === 0 
+                  ? 6 
+                  : Math.min(100, 18 + Math.min(b.txCount * 12, 82));
                 const isHovered = hoveredBarIndex === idx;
+
+                const barBg = isHovered
+                  ? 'bg-[#016976] shadow-md scale-y-105'
+                  : b.txCount === 0
+                  ? 'bg-slate-200'
+                  : b.txCount === 1
+                  ? 'bg-teal-500 hover:bg-teal-600'
+                  : b.txCount <= 4
+                  ? 'bg-[#016976] hover:bg-[#01525d]'
+                  : 'bg-[#014E58] hover:bg-[#01383e]';
 
                 return (
                   <div
@@ -427,13 +447,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                   >
                     <div
                       style={{ height: `${heightPct}%` }}
-                      className={`w-full rounded-t-sm transition-all duration-200 ${
-                        isHovered
-                          ? 'bg-[#016976] shadow-md scale-y-105'
-                          : b.txCount > 0
-                          ? 'bg-[#016976]/70 hover:bg-[#016976]'
-                          : 'bg-slate-200'
-                      }`}
+                      className={`w-full rounded-t-sm transition-all duration-200 ${barBg}`}
                     />
 
                     {/* Tooltip on Hover */}
@@ -476,7 +490,9 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                 <h3 className="text-sm font-bold text-slate-900">Block Capacity & Gas Load</h3>
               </div>
               <span className="text-[11px] font-mono font-bold text-[#D97706] bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                {avgGasPercent}% Utilization
+                {blocksData.some(b => b.txCount > 0 || b.gasUsed > 0)
+                  ? `${blocksData.reduce((acc, b) => acc + (b.gasUsed || b.txCount * 21000), 0).toLocaleString()} Gas (${avgGasPercent}%)`
+                  : `${avgGasPercent}% Utilization`}
               </span>
             </div>
           </div>
@@ -485,8 +501,20 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           <div className="pt-2">
             <div className="h-56 sm:h-60 flex items-end gap-1.5 px-1 pb-1 border-b border-slate-200 relative">
               {blocksData.map((b, idx) => {
-                const displayHeight = Math.max(Math.min(b.gasPercent * 4, 100), 6);
+                const effectiveGas = Math.max(b.gasUsed, b.txCount * 21000);
+                const hasTx = b.txCount > 0 || effectiveGas > 0;
+                const displayHeight = !hasTx 
+                  ? 6 
+                  : Math.min(100, Math.max(24, Math.min(b.gasPercent * 6 + b.txCount * 14, 100)));
                 const isHovered = hoveredBarIndex === idx;
+
+                const barBg = isHovered
+                  ? 'bg-[#D97706] shadow-md scale-y-105'
+                  : !hasTx
+                  ? 'bg-slate-200'
+                  : b.txCount === 1
+                  ? 'bg-amber-500 hover:bg-amber-600'
+                  : 'bg-[#D97706] hover:bg-amber-700';
 
                 return (
                   <div
@@ -498,14 +526,17 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                   >
                     <div
                       style={{ height: `${displayHeight}%` }}
-                      className={`w-full rounded-t-sm transition-all duration-200 ${
-                        isHovered
-                          ? 'bg-[#D97706] shadow-md scale-y-105'
-                          : b.gasPercent > 10
-                          ? 'bg-[#D97706]'
-                          : 'bg-amber-300 hover:bg-[#D97706]'
-                      }`}
+                      className={`w-full rounded-t-sm transition-all duration-200 ${barBg}`}
                     />
+
+                    {/* Tooltip on Hover */}
+                    {isHovered && (
+                      <div className="absolute bottom-full mb-2 z-30 pointer-events-none transform -translate-x-1/2 left-1/2 min-w-[140px] p-2 bg-[#0F172A] text-white rounded-xl text-[10px] font-mono shadow-xl border border-slate-700 space-y-0.5">
+                        <div className="text-amber-300 font-bold">Block #{b.number}</div>
+                        <div>Gas Used: <span className="font-bold text-white">{effectiveGas.toLocaleString()} gas</span></div>
+                        <div className="text-slate-400">Transactions: {b.txCount} tx</div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -591,7 +622,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
       </div>
 
       {/* Panel 4: Multi-Timeframe Trend Analytics */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+      <div className="bg-white rounded-3xl p-4 sm:p-8 border border-slate-200 shadow-sm space-y-4 sm:space-y-6">
         {/* Top Controls: Title, Metric Tabs, and Timeframe Tabs */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 border-b border-slate-100 pb-5">
           <div className="space-y-1">
@@ -714,28 +745,28 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
         {/* High-Contrast SVG Chart with Clear Y-Axis and X-Axis */}
         {metric === 'supply' && !latestSupply ? (
-          <div className="h-[340px] sm:h-[380px] md:h-[420px] flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
+          <div className="h-[240px] sm:h-[320px] md:h-[380px] flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
             <div className="w-8 h-8 rounded-full border-2 border-[#016976] border-t-transparent animate-spin" />
             <span className="text-xs font-semibold text-slate-600">
               Loading on-chain supply data ({timeframe === '90d' ? '90 Days' : timeframe === '1y' ? '1 Year' : timeframe === 'all' ? 'All-Time' : timeframe})…
             </span>
           </div>
         ) : (metric === 'txs' || metric === 'volume') && !points.some(p => p.valid) ? (
-          <div className="h-[340px] sm:h-[380px] md:h-[420px] flex items-center justify-center text-sm text-slate-500">{activityState || 'No verified periods available for this range.'}</div>
+          <div className="h-[240px] sm:h-[320px] md:h-[380px] flex items-center justify-center text-sm text-slate-500">{activityState || 'No verified periods available for this range.'}</div>
         ) : metric === 'hashrate' && hashHistory.length === 0 ? (
-          <div className="h-[340px] sm:h-[380px] md:h-[420px] flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
+          <div className="h-[240px] sm:h-[320px] md:h-[380px] flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
             <div className="w-8 h-8 rounded-full border-2 border-[#D68142] border-t-transparent animate-spin" />
             <span className="text-xs font-semibold text-slate-600">
               Computing on-chain hashrate ({timeframe === '90d' ? '90 Days' : timeframe === '1y' ? '1 Year' : timeframe === 'all' ? 'All-Time' : timeframe})…
             </span>
           </div>
         ) : (
-          <div className="relative pt-2">
-            <div className="w-full overflow-x-auto">
+          <div className="relative pt-1 sm:pt-2">
+            <div className="w-full">
               <svg
-              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-              className="w-full h-[340px] sm:h-[380px] md:h-[420px] overflow-visible select-none"
-            >
+                viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+                className="w-full h-auto aspect-[360/240] sm:aspect-[740/320] max-h-[420px] overflow-visible select-none"
+              >
               <defs>
                 <linearGradient id="macroGradientActive" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor={themeColor} stopOpacity="0.28" />
@@ -788,7 +819,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
               <path
                 fill="none"
                 stroke={themeColor}
-                strokeWidth="3.5"
+                strokeWidth={isMobile ? "4" : "3.5"}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 d={polylinePoints}
@@ -907,10 +938,10 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                     key={`dot-${idx}`}
                     cx={p.x}
                     cy={p.y}
-                    r={isHovered ? 6 : 3.5}
+                    r={isHovered ? 7 : (isMobile ? 4.5 : 3.5)}
                     fill={isHovered ? themeColor : '#FFFFFF'}
                     stroke={themeColor}
-                    strokeWidth={isHovered ? '3' : '2'}
+                    strokeWidth={isHovered ? '3.5' : (isMobile ? '2.5' : '2')}
                     pointerEvents="none"
                     className="transition-all duration-150"
                   />

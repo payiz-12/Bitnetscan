@@ -19,11 +19,60 @@ import { Block, NetworkStats, Transaction } from './types/blockchain';
 import { rpcService } from './services/rpc';
 import { explorerApiService } from './services/explorerApi';
 
+// URL hash route parser for browser history & back/forward support
+const parseHash = (): { view: string; param?: string | number } => {
+  if (typeof window === 'undefined') return { view: 'dashboard' };
+  const rawHash = window.location.hash.replace(/^#\/?/, '').trim();
+  if (!rawHash) {
+    return { view: 'dashboard' };
+  }
+  const parts = rawHash.split('/');
+  const route = parts[0].toLowerCase();
+  const param = parts.slice(1).join('/');
+
+  if ((route === 'block' || route === 'blocks') && param) {
+    return { view: 'block-detail', param: /^\d+$/.test(param) ? parseInt(param, 10) : param };
+  }
+  if ((route === 'tx' || route === 'txs' || route === 'transaction' || route === 'transactions') && param) {
+    return { view: 'tx-detail', param };
+  }
+  if ((route === 'address' || route === 'wallet') && param) {
+    return { view: 'address-detail', param };
+  }
+  if (route === 'blocks') return { view: 'blocks' };
+  if (route === 'transactions' || route === 'txs') return { view: 'transactions' };
+  if (route === 'rich-list' || route === 'richlist') return { view: 'rich-list' };
+  if (route === 'tokens' || route === 'token') return { view: 'tokens' };
+  if (route === 'nfts' || route === 'nft') return { view: 'nfts' };
+  if (route === 'contracts' || route === 'contract') return { view: 'contracts' };
+  if (route === 'mining' || route === 'miner') return { view: 'mining' };
+  if (route === 'console') return { view: 'console' };
+  if (route === 'nodes' || route === 'rpc' || route === 'rpc-status') return { view: 'nodes' };
+
+  return { view: 'dashboard' };
+};
+
+const getHashForView = (view: string, param?: string | number): string => {
+  if (view === 'dashboard') return '#/';
+  if (view === 'block-detail' && param !== undefined) return `#/block/${param}`;
+  if (view === 'tx-detail' && param) return `#/tx/${param}`;
+  if (view === 'address-detail' && param) return `#/address/${param}`;
+  if (view === 'transactions') return '#/transactions';
+  return `#/${view}`;
+};
+
 export const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<string>('dashboard');
-  const [selectedBlock, setSelectedBlock] = useState<number | string>(0);
-  const [selectedTx, setSelectedTx] = useState<string>('');
-  const [selectedAddress, setSelectedAddress] = useState<string>('');
+  const initialRoute = parseHash();
+  const [currentView, setCurrentView] = useState<string>(initialRoute.view);
+  const [selectedBlock, setSelectedBlock] = useState<number | string>(
+    initialRoute.view === 'block-detail' && initialRoute.param !== undefined ? initialRoute.param : 0
+  );
+  const [selectedTx, setSelectedTx] = useState<string>(
+    initialRoute.view === 'tx-detail' && initialRoute.param ? String(initialRoute.param) : ''
+  );
+  const [selectedAddress, setSelectedAddress] = useState<string>(
+    initialRoute.view === 'address-detail' && initialRoute.param ? String(initialRoute.param) : ''
+  );
 
   const [stats, setStats] = useState<NetworkStats | null>(null);
   const [recentBlocks, setRecentBlocks] = useState<Block[]>([]);
@@ -188,6 +237,59 @@ export const App: React.FC = () => {
     };
   }, [refreshData]);
 
+  const navigateTo = useCallback((view: string, param?: string | number, replace: boolean = false) => {
+    setCurrentView(view);
+    if (view === 'block-detail' && param !== undefined) setSelectedBlock(param);
+    if (view === 'tx-detail' && param !== undefined) setSelectedTx(String(param));
+    if (view === 'address-detail' && param !== undefined) setSelectedAddress(String(param));
+
+    const newHash = getHashForView(view, param);
+    if (window.location.hash !== newHash) {
+      if (replace) {
+        window.history.replaceState({ view, param }, '', newHash);
+      } else {
+        window.history.pushState({ view, param }, '', newHash);
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const handleBack = useCallback(() => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      navigateTo('dashboard', undefined, true);
+    }
+  }, [navigateTo]);
+
+  // Synchronize browser history (Back / Forward navigation)
+  useEffect(() => {
+    const handlePopState = () => {
+      const parsed = parseHash();
+      setCurrentView(parsed.view);
+      if (parsed.view === 'block-detail' && parsed.param !== undefined) {
+        setSelectedBlock(parsed.param);
+      } else if (parsed.view === 'tx-detail' && parsed.param) {
+        setSelectedTx(String(parsed.param));
+      } else if (parsed.view === 'address-detail' && parsed.param) {
+        setSelectedAddress(String(parsed.param));
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+
+    // Normalize initial URL if empty
+    if (!window.location.hash) {
+      window.history.replaceState({ view: 'dashboard' }, '', '#/');
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
+  }, []);
+
   // Universal omni-search handler
   const handleSearch = async (query: string) => {
     const clean = query.trim();
@@ -195,15 +297,13 @@ export const App: React.FC = () => {
 
     // Check if numeric (Block number)
     if (/^\d+$/.test(clean)) {
-      setSelectedBlock(parseInt(clean, 10));
-      setCurrentView('block-detail');
+      navigateTo('block-detail', parseInt(clean, 10));
       return;
     }
 
     // Check if Ethereum Address (42 chars, starts with 0x)
     if (/^0x[a-fA-F0-9]{40}$/.test(clean)) {
-      setSelectedAddress(clean);
-      setCurrentView('address-detail');
+      navigateTo('address-detail', clean);
       return;
     }
 
@@ -213,24 +313,21 @@ export const App: React.FC = () => {
         // Try tx first
         const tx = await rpcService.getTransaction(clean);
         if (tx) {
-          setSelectedTx(clean);
-          setCurrentView('tx-detail');
+          navigateTo('tx-detail', clean);
           return;
         }
 
         // Try block hash
         const blk = await rpcService.getBlock(clean, false);
         if (blk) {
-          setSelectedBlock(clean);
-          setCurrentView('block-detail');
+          navigateTo('block-detail', clean);
           return;
         }
 
         alert('No block or transaction with this hash was found on Bitnet.');
       } catch {
         // Default to tx view
-        setSelectedTx(clean);
-        setCurrentView('tx-detail');
+        navigateTo('tx-detail', clean);
       }
       return;
     }
@@ -239,31 +336,22 @@ export const App: React.FC = () => {
   };
 
   const handleSelectBlock = (numOrHash: number | string) => {
-    setSelectedBlock(numOrHash);
-    setCurrentView('block-detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateTo('block-detail', numOrHash);
   };
 
   const handleSelectTx = (hash: string) => {
-    setSelectedTx(hash);
-    setCurrentView('tx-detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateTo('tx-detail', hash);
   };
 
   const handleSelectAddress = (addr: string) => {
-    setSelectedAddress(addr);
-    setCurrentView('address-detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigateTo('address-detail', addr);
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas-warm text-slate-900 font-sans selection:bg-teal-100 selection:text-teal-900">
       <Header
         currentView={currentView}
-        onNavigate={(view) => {
-          setCurrentView(view);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onNavigate={(view) => navigateTo(view)}
         stats={stats}
         onSearch={handleSearch}
       />
@@ -281,28 +369,16 @@ export const App: React.FC = () => {
               onSelectTx={handleSelectTx}
               onSelectAddress={handleSelectAddress}
               onRefresh={refreshData}
-              onViewRichList={() => {
-                setCurrentView('rich-list');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onViewAllBlocks={() => {
-                setCurrentView('blocks');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onViewAllTransactions={() => {
-                setCurrentView('transactions');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onViewRichList={() => navigateTo('rich-list')}
+              onViewAllBlocks={() => navigateTo('blocks')}
+              onViewAllTransactions={() => navigateTo('transactions')}
             />
           )}
 
           {currentView === 'blocks' && (
             <BlocksView
               latestBlockNumber={stats?.latestBlock || 0}
-              onBack={() => {
-                setCurrentView('dashboard');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onBack={handleBack}
               onSelectBlock={handleSelectBlock}
               onSelectAddress={handleSelectAddress}
             />
@@ -310,10 +386,7 @@ export const App: React.FC = () => {
 
           {currentView === 'transactions' && (
             <TransactionsView
-              onBack={() => {
-                setCurrentView('dashboard');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onBack={handleBack}
               onSelectTx={handleSelectTx}
               onSelectBlock={handleSelectBlock}
               onSelectAddress={handleSelectAddress}
@@ -323,7 +396,7 @@ export const App: React.FC = () => {
           {currentView === 'block-detail' && (
             <BlockDetailView
               blockNumberOrHash={selectedBlock}
-              onBack={() => setCurrentView('dashboard')}
+              onBack={handleBack}
               onSelectBlock={handleSelectBlock}
               onSelectTx={handleSelectTx}
               onSelectAddress={handleSelectAddress}
@@ -333,7 +406,7 @@ export const App: React.FC = () => {
           {currentView === 'tx-detail' && (
             <TxDetailView
               txHash={selectedTx}
-              onBack={() => setCurrentView('dashboard')}
+              onBack={handleBack}
               onSelectBlock={handleSelectBlock}
               onSelectAddress={handleSelectAddress}
             />
@@ -343,14 +416,11 @@ export const App: React.FC = () => {
             <AddressDetailView
               address={selectedAddress}
               recentBlocks={recentBlocks}
-              onBack={() => setCurrentView('dashboard')}
+              onBack={handleBack}
               onSelectTx={handleSelectTx}
               onSelectBlock={handleSelectBlock}
               onSelectAddress={handleSelectAddress}
-              onNavigate={(view) => {
-                setCurrentView(view);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onNavigate={(view) => navigateTo(view)}
             />
           )}
 
@@ -358,6 +428,7 @@ export const App: React.FC = () => {
             <RichListView
               onSelectAddress={handleSelectAddress}
               latestBlock={stats?.latestBlock || 0}
+              onBack={handleBack}
             />
           )}
 
@@ -372,10 +443,7 @@ export const App: React.FC = () => {
           {currentView === 'contracts' && (
             <ContractsView
               onSelectAddress={handleSelectAddress}
-              onBack={() => {
-                setCurrentView('dashboard');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onBack={handleBack}
             />
           )}
 

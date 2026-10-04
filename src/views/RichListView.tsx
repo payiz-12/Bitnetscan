@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   Trophy, TrendingUp, Copy, ExternalLink, ArrowUpRight, 
-  Search, Coins, RefreshCw, Zap, CheckCircle2, Shield
+  Search, Coins, RefreshCw, Zap, CheckCircle2, Shield, ArrowLeft
 } from 'lucide-react';
 import { rpcService } from '../services/rpc';
 import { explorerApiService } from '../services/explorerApi';
@@ -11,9 +11,10 @@ import { priceService, BtnPriceData } from '../services/priceService';
 interface RichListViewProps {
   onSelectAddress: (address: string) => void;
   latestBlock: number;
+  onBack?: () => void;
 }
 
-export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, latestBlock }) => {
+export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, latestBlock, onBack }) => {
   const [accounts, setAccounts] = useState<RichAccount[]>(VERIFIED_HODL_WALLETS);
   const [loading, setLoading] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -108,7 +109,19 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
   );
 
   return (
-    <div className="space-y-8 w-full animate-fade-in">
+    <div className="space-y-6 md:space-y-8 w-full animate-fade-in">
+      {onBack && (
+        <div>
+          <button
+            onClick={onBack}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors shadow-xs"
+          >
+            <ArrowLeft className="w-4 h-4 text-slate-500" />
+            <span>Back to Dashboard</span>
+          </button>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
