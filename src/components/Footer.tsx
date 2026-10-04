@@ -83,6 +83,18 @@ export const Footer: React.FC = () => {
               Ecosystem & Code
             </h4>
             <ul className="space-y-2">
+              <li className="bg-[#016976]/5 rounded-lg p-1.5 border border-[#016976]/20">
+                <a 
+                  href="https://github.com/payiz-12/Bitnetscan" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="flex items-center gap-2 text-[#016976] font-semibold hover:text-[#01525d] transition-colors"
+                >
+                  <Github className="w-3.5 h-3.5 text-[#016976]" />
+                  <span>BitnetScan (Open Source)</span>
+                  <ExternalLink className="w-3 h-3 text-[#016976] ml-auto" />
+                </a>
+              </li>
               <li>
                 <a 
                   href="https://github.com/BitnetMoney/bitnet" 
@@ -140,15 +152,26 @@ export const Footer: React.FC = () => {
           <div>
             &copy; {new Date().getFullYear()} BitnetScan. Built for the decentralized Bitnet Money community.
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="https://github.com/payiz-12/Bitnetscan"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 text-slate-800 font-semibold hover:text-[#016976] transition-colors group px-2 py-0.5 rounded bg-slate-100 hover:bg-[#016976]/10"
+            >
+              <Github className="w-3.5 h-3.5 text-slate-800 group-hover:text-[#016976]" />
+              <span>GitHub: payiz-12/Bitnetscan</span>
+              <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-[#016976]" />
+            </a>
+            <span className="text-slate-300 hidden sm:inline">•</span>
             <span className="flex items-center gap-1 text-slate-600">
               <Server className="w-3 h-3 text-[#016976]" />
               <span>RPC: rpc.bitnetmoney.org</span>
             </span>
-            <span className="text-slate-300">•</span>
+            <span className="text-slate-300 hidden sm:inline">•</span>
             <span className="flex items-center gap-1 text-slate-600">
               <ShieldCheck className="w-3 h-3 text-[#016976]" />
-              <span>Open Source / Non-Custodial</span>
+              <span>Open Source / MIT</span>
             </span>
           </div>
         </div>

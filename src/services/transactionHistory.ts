@@ -206,7 +206,7 @@ export async function loadTransactionHistory(metric: 'txs'|'volume', timeframe: 
       const res: TransactionHistory = {
         points,
         fetchedAt: now,
-        message: 'Official Blockscout newTxns · UTC. Missing periods remain blank (never filled with zero).',
+        message: 'Verified Blockscout newTxns · UTC. Missing periods remain blank (never filled with zero).',
       };
       completedPeriodCache.set(scanKey, { points, at: now });
       return res;
@@ -233,7 +233,7 @@ export async function loadTransactionHistory(metric: 'txs'|'volume', timeframe: 
       const result: TransactionHistory = {
         points,
         fetchedAt: now,
-        message: `Official indexer ledger · UTC · ${scanned} transactions scanned. ${complete ? 'Requested range verified.' : 'Only fully scanned periods are shown; earlier periods remain blank.'}`,
+        message: `Verified indexer ledger · UTC · ${scanned} transactions scanned. ${complete ? 'Requested range verified.' : 'Only fully scanned periods are shown; earlier periods remain blank.'}`,
       };
       if (onProgress) onProgress(result);
       if (complete) {

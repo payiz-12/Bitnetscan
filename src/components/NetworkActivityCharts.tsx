@@ -230,7 +230,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
   // 4. SVG Dimensions & Grid Scale (Clear Left & Bottom Axes)
   const svgWidth = 740;
-  const svgHeight = 250;
+  const svgHeight = 310;
   const paddingLeft = 90;  // Space for left Y-axis labels
   const paddingRight = 25;
   const paddingTop = 25;
@@ -412,7 +412,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
           {/* Dynamic SVG / HTML Bar Chart */}
           <div className="pt-2">
-            <div className="h-32 flex items-end gap-1.5 px-1 pb-1 border-b border-slate-200 relative">
+            <div className="h-44 sm:h-48 flex items-end gap-1.5 px-1 pb-1 border-b border-slate-200 relative">
               {blocksData.map((b, idx) => {
                 const heightPct = Math.max((b.txCount / Math.max(1, maxTxCount)) * 100, 8);
                 const isHovered = hoveredBarIndex === idx;
@@ -483,7 +483,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
           {/* Utilization Bars */}
           <div className="pt-2">
-            <div className="h-32 flex items-end gap-1.5 px-1 pb-1 border-b border-slate-200 relative">
+            <div className="h-44 sm:h-48 flex items-end gap-1.5 px-1 pb-1 border-b border-slate-200 relative">
               {blocksData.map((b, idx) => {
                 const displayHeight = Math.max(Math.min(b.gasPercent * 4, 100), 6);
                 const isHovered = hoveredBarIndex === idx;
@@ -714,16 +714,16 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
         {/* High-Contrast SVG Chart with Clear Y-Axis and X-Axis */}
         {metric === 'supply' && !latestSupply ? (
-          <div className="h-64 sm:h-72 flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
+          <div className="h-80 sm:h-84 md:h-96 flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
             <div className="w-8 h-8 rounded-full border-2 border-[#016976] border-t-transparent animate-spin" />
             <span className="text-xs font-semibold text-slate-600">
               Pulling on-chain supply data from RPC ({timeframe === '90d' ? '90 Days' : timeframe === '1y' ? '1 Year' : timeframe === 'all' ? 'All-Time' : timeframe})…
             </span>
           </div>
         ) : (metric === 'txs' || metric === 'volume') && !points.some(p => p.valid) ? (
-          <div className="h-64 flex items-center justify-center text-sm text-slate-500">{activityState || 'No fully verified periods are available for this range.'}</div>
+          <div className="h-80 sm:h-84 md:h-96 flex items-center justify-center text-sm text-slate-500">{activityState || 'No fully verified periods are available for this range.'}</div>
         ) : metric === 'hashrate' && hashHistory.length === 0 ? (
-          <div className="h-64 sm:h-72 flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
+          <div className="h-80 sm:h-84 md:h-96 flex flex-col items-center justify-center gap-3 bg-slate-50/70 rounded-2xl border border-dashed border-slate-200">
             <div className="w-8 h-8 rounded-full border-2 border-[#D68142] border-t-transparent animate-spin" />
             <span className="text-xs font-semibold text-slate-600">
               Scanning on-chain blocks and computing difficulty ({timeframe === '90d' ? '90 Days' : timeframe === '1y' ? '1 Year' : timeframe === 'all' ? 'All-Time' : timeframe})…
@@ -734,7 +734,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
             <div className="w-full overflow-x-auto">
               <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-              className="w-full h-64 sm:h-72 overflow-visible select-none"
+              className="w-full h-80 sm:h-84 md:h-96 overflow-visible select-none"
             >
               <defs>
                 <linearGradient id="macroGradientActive" x1="0%" y1="0%" x2="0%" y2="100%">
