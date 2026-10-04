@@ -279,20 +279,22 @@ export class NftSyncService {
     const address = contractAddress.trim().toLowerCase();
     if (!ethers.isAddress(address)) throw new Error('Enter a valid contract address.');
     const id = tokenIdString(tokenId), padded = BigInt(id).toString(16).padStart(64, '0');
-    const code = await this.rpc.getCode(address);
+    let code: string;
+    try { code = await this.rpc.getCode(address, 15000); }
+    catch { throw new Error('RPC contract lookup unavailable. Refresh to retry verification.'); }
     if (!code || code === '0x') throw new Error('No contract exists at this address.');
     const block = await this.rpc.getBlockNumber(), blockTag = '0x' + block.toString(16);
     const coder = ethers.AbiCoder.defaultAbiCoder();
-    const support = await this.rpc.call(address, '0x01ffc9a7' + '80ac58cd'.padEnd(64, '0'), blockTag);
+    const support = await this.rpc.call(address, '0x01ffc9a7' + '80ac58cd'.padEnd(64, '0'), blockTag, 15000);
     if (!coder.decode(['bool'], support)[0]) throw new Error('This contract does not support ERC-721.');
     let owner: string;
     try {
-      const rawOwner = await this.rpc.call(address, '0x6352211e' + padded, blockTag);
+      const rawOwner = await this.rpc.call(address, '0x6352211e' + padded, blockTag, 15000);
       owner = String(coder.decode(['address'], rawOwner)[0]);
       if (owner.toLowerCase() === ZERO_ADDRESS) throw new Error('Invalid owner');
     } catch { throw new Error('The NFT does not exist at this block, or its owner could not be verified.'); }
     const [nameResult, uriResult] = await Promise.allSettled([
-      this.rpc.call(address, '0x06fdde03', blockTag), this.rpc.call(address, '0xc87b56dd' + padded, blockTag),
+      this.rpc.call(address, '0x06fdde03', blockTag, 15000), this.rpc.call(address, '0xc87b56dd' + padded, blockTag, 15000),
     ]);
     const collectionName = nameResult.status === 'fulfilled' ? decodeStringOrBytes32(nameResult.value) : '';
     const tokenUri = uriResult.status === 'fulfilled' ? decodeStringOrBytes32(uriResult.value) : '';

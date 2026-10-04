@@ -106,9 +106,9 @@ class BitnetRpcService {
     });
   }
 
-  private async rawRequest(method: string, params: any[] = []): Promise<any> {
+  private async rawRequest(method: string, params: any[] = [], timeoutMs = 2500): Promise<any> {
     // In-flight request deduplication for identical concurrent queries
-    const dedupKey = `${method}:${JSON.stringify(params)}`;
+    const dedupKey = `${method}:${JSON.stringify(params)}:${timeoutMs}`;
     if (this.inFlightRequests.has(dedupKey)) {
       return this.inFlightRequests.get(dedupKey)!;
     }
@@ -123,7 +123,7 @@ class BitnetRpcService {
       for (const url of urlsToTry) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 2500);
+          const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
           const startTime = performance.now();
 
           const response = await fetch(url, {
@@ -242,13 +242,13 @@ class BitnetRpcService {
     return parseInt(hex || '0x0', 16);
   }
 
-  public async getCode(address: string): Promise<string> {
+  public async getCode(address: string, timeoutMs = 2500): Promise<string> {
     const clean = (address || '').trim().toLowerCase();
-    return await this.rawRequest('eth_getCode', [clean, 'latest']);
+    return await this.rawRequest('eth_getCode', [clean, 'latest'], timeoutMs);
   }
 
-  public async call(to: string, data: string, blockTag = 'latest'): Promise<string> {
-    return await this.rawRequest('eth_call', [{ to, data }, blockTag]);
+  public async call(to: string, data: string, blockTag = 'latest', timeoutMs = 2500): Promise<string> {
+    return await this.rawRequest('eth_call', [{ to, data }, blockTag], timeoutMs);
   }
 
   public async getBlock(numberOrHash: number | string, includeTxs = true): Promise<Block | null> {
