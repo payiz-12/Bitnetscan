@@ -238,7 +238,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
   // 4. SVG Dimensions & Grid Scale (Clear Left & Bottom Axes)
   const svgWidth = isMobile ? 360 : 740;
   const svgHeight = isMobile ? 240 : 320;
-  const paddingLeft = isMobile ? 54 : 85;  // Space for left Y-axis labels
+  const paddingLeft = isMobile ? 62 : 85;  // Space for left Y-axis labels - ample breathing room
   const paddingRight = isMobile ? 12 : 25;
   const paddingTop = isMobile ? 10 : 20;
   const paddingBottom = isMobile ? 26 : 40; // Space for bottom X-axis labels
@@ -310,9 +310,9 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
       return `${Math.round(val)}${isMobile ? '' : ' tx'}`;
     }
     if (metric === 'hashrate') {
-      if (val >= 1000) return `${(val / 1000).toFixed(1)} TH/s`;
-      if (val < 1 && val > 0) return `${(val * 1000).toFixed(0)} MH/s`;
-      return `${val.toFixed(1)} GH/s`;
+      if (val >= 1000) return `${(val / 1000).toFixed(1)}${isMobile ? ' TH' : ' TH/s'}`;
+      if (val < 1 && val > 0) return `${(val * 1000).toFixed(0)}${isMobile ? ' MH' : ' MH/s'}`;
+      return `${val >= 10 ? val.toFixed(0) : val.toFixed(1)}${isMobile ? ' GH' : ' GH/s'}`;
     }
     if (metric === 'supply') {
       if (valRange < 100000) {
@@ -762,10 +762,10 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           </div>
         ) : (
           <div className="relative pt-1 sm:pt-2">
-            <div className="w-full">
+            <div className="w-full overflow-hidden">
               <svg
                 viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-                className="w-full h-auto aspect-[360/240] sm:aspect-[740/320] max-h-[420px] overflow-visible select-none"
+                className="w-full h-auto aspect-[360/240] sm:aspect-[740/320] max-h-[420px] select-none"
               >
               <defs>
                 <linearGradient id="macroGradientActive" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -789,13 +789,13 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                   />
                   {/* Y-Axis Numerical Value Label (Left aligned, high contrast pitch dark) */}
                   <text
-                    x={paddingLeft - 12}
-                    y={tick.y + 4}
+                    x={paddingLeft - (isMobile ? 6 : 12)}
+                    y={tick.y + (isMobile ? 3.5 : 4)}
                     textAnchor="end"
                     fill="#0F172A"
                     fontWeight="700"
                     fontFamily="ui-monospace, monospace"
-                    fontSize="12"
+                    fontSize={isMobile ? "10" : "12"}
                   >
                     {formatYAxis(tick.val)}
                   </text>
