@@ -437,7 +437,10 @@ export const App: React.FC = () => {
           )}
 
           {currentView === 'nfts' && (
-            <NftsView onSelectAddress={handleSelectAddress} />
+            <NftsView 
+              onSelectAddress={handleSelectAddress} 
+              onSelectTx={handleSelectTx}
+            />
           )}
 
           {currentView === 'contracts' && (
