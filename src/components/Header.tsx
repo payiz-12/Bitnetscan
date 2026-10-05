@@ -9,6 +9,7 @@ import { priceService, BtnPriceData } from '../services/priceService';
 import { rpcService } from '../services/rpc';
 import { QuickSearchModal } from './QuickSearchModal';
 import { NetworkStatusModal } from './NetworkStatusModal';
+import { BitnetScanIcon } from './BitnetScanIcon';
 
 interface HeaderProps {
   currentView: string;
@@ -253,21 +254,16 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
       {/* Main navigation header */}
       <div className="max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-6 py-2">
         <div className="flex items-center justify-between gap-2 lg:gap-3">
-          {/* Logo with new BitnetScan brand icon & laser scan animation */}
+          {/* Logo with BitnetScan brand icon & rotating inner block */}
           <div 
             onClick={() => onNavigate('dashboard')} 
             className="flex items-center gap-2.5 cursor-pointer group flex-shrink-0"
           >
             <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white border border-slate-200 p-1.5 shadow-sm group-hover:border-[#015866] group-hover:shadow-md transition-all flex items-center justify-center overflow-hidden">
-              <img 
-                src="/bitnetscan-icon.svg" 
-                alt="BitnetScan" 
-                className="w-full h-full object-contain group-hover:scale-105 transition-transform animate-scan-vibrate" 
+              <BitnetScanIcon 
+                animated={true}
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform" 
               />
-              {/* Lazer Tarama Çizgisi */}
-              <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
-                <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-[#00f0ff] to-transparent shadow-[0_0_8px_#00f0ff] animate-scan-laser" />
-              </div>
             </div>
             <div>
               <div className="flex items-center gap-1.5">

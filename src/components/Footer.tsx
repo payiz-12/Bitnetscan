@@ -3,6 +3,7 @@ import {
   Github, Globe, Server, Code, FileText, Cpu, ExternalLink, ShieldCheck,
   Heart, Copy, Check, X, QrCode
 } from 'lucide-react';
+import { BitnetScanIcon } from './BitnetScanIcon';
 
 const DONATION_ADDRESS = '0x4251F40A6e3CbD1CA01669DAd35E157CeEa7Be48';
 
@@ -35,7 +36,7 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 p-1 flex items-center justify-center shadow-xs">
-                <img src="/bitnetscan-icon.svg" alt="BitnetScan" className="w-full h-full object-contain" />
+                <BitnetScanIcon animated={false} className="w-full h-full object-contain" />
               </div>
               <span className="font-bold text-[#162334] text-base">
                 Bitnet<span className="text-[#015866]">Scan</span>

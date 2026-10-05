@@ -1,3 +1,23 @@
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/bitnetscan-logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="public/bitnetscan-logo.png">
+    <img src="public/bitnetscan-logo.png" alt="BitnetScan Logo" width="480">
+  </picture>
+
+  <p align="center">
+    <strong>Next-Generation Blockchain Explorer & Web3 Analytics Suite for Bitnet Money (BTN)</strong>
+  </p>
+
+  <p align="center">
+    <a href="https://trade.nestex.one/spot/BTN"><img src="https://img.shields.io/badge/Chain_ID-210-015866?style=flat-square" alt="Chain ID 210" /></a>
+    <a href="https://bitnetmoney.org"><img src="https://img.shields.io/badge/Consensus-Ethash_PoW-162334?style=flat-square" alt="PoW Ethash" /></a>
+    <img src="https://img.shields.io/badge/Network-Bitnet_Mainnet-016976?style=flat-square" alt="Mainnet" />
+  </p>
+</div>
+
+<br />
+
 # BitnetScan — Next-Generation Bitnet (BTN) Blockchain Explorer
 
 BitnetScan is a state-of-the-art, feature-complete Block Explorer and Web3 Analytics Suite engineered specifically for the **Bitnet Money** Layer-1 Proof-of-Work (PoW) EVM blockchain.
