@@ -19,23 +19,19 @@ export const BitnetScanIcon: React.FC<BitnetScanIconProps> = ({
       {/* Base B Mark with filled teal bottom loop */}
       <image href="/bitnetscan-icon-filled.png" width="512" height="512" />
 
-      {/* 360° Rotating White Square inside bottom loop */}
-      <g
-        className={animated ? "animate-spin-slow" : ""}
-        style={{
-          transformBox: 'fill-box',
-          transformOrigin: '309.5px 376.5px',
-        }}
-      >
-        <rect 
-          x="265.5" 
-          y="332.5" 
-          width="88" 
-          height="88" 
-          rx="4" 
-          ry="4" 
-          fill="#ffffff" 
-        />
+      {/* 360° Rotating White Cube (True Propeller centered at X: 309, Y: 377) */}
+      <g transform="translate(309, 377)">
+        <g className={animated ? "animate-spin-slow" : ""}>
+          <rect 
+            x="-44" 
+            y="-44" 
+            width="88" 
+            height="88" 
+            rx="4" 
+            ry="4" 
+            fill="#ffffff" 
+          />
+        </g>
       </g>
     </svg>
   );
