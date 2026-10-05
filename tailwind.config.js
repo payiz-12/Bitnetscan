@@ -74,6 +74,8 @@ export default {
       animation: {
         'pulse-glow': 'pulseGlow 2s infinite',
         'fade-in': 'fadeIn 0.3s ease-in-out',
+        'scan-laser': 'scanLaser 2.4s ease-in-out infinite',
+        'scan-vibrate': 'scanVibrate 2.4s ease-in-out infinite',
       },
       keyframes: {
         pulseGlow: {
@@ -83,6 +85,20 @@ export default {
         fadeIn: {
           '0%': { opacity: 0, transform: 'translateY(4px)' },
           '100%': { opacity: 1, transform: 'translateY(0)' },
+        },
+        scanLaser: {
+          '0%, 100%': { transform: 'translateY(-20px)', opacity: '0' },
+          '10%': { opacity: '0.9' },
+          '50%': { transform: 'translateY(42px)', opacity: '0.9' },
+          '65%': { opacity: '0' },
+        },
+        scanVibrate: {
+          '0%, 100%': { transform: 'scale(1)' },
+          '28%': { transform: 'scale(1)' },
+          '30%': { transform: 'scale(1.03) translate(-0.7px, 0.5px)' },
+          '32%': { transform: 'scale(1.01) translate(0.7px, -0.5px)' },
+          '34%': { transform: 'scale(1.03) translate(-0.5px, 0)' },
+          '36%': { transform: 'scale(1)' },
         }
       }
     },

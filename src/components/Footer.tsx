@@ -35,9 +35,11 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 p-1 flex items-center justify-center shadow-xs">
-                <img src="/bitnet-logo-blue.svg" alt="Bitnet" className="w-full h-full object-contain" />
+                <img src="/bitnetscan-icon.svg" alt="BitnetScan" className="w-full h-full object-contain" />
               </div>
-              <span className="font-bold text-slate-900 text-base">BitnetScan</span>
+              <span className="font-bold text-[#162334] text-base">
+                Bitnet<span className="text-[#015866]">Scan</span>
+              </span>
             </div>
             <p className="text-slate-500 text-xs">
               Bitnet Money (BTN) L1 Block Explorer

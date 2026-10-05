@@ -253,22 +253,26 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
       {/* Main navigation header */}
       <div className="max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-6 py-2">
         <div className="flex items-center justify-between gap-2 lg:gap-3">
-          {/* Logo with official Blue Bitnet icon */}
+          {/* Logo with new BitnetScan brand icon & laser scan animation */}
           <div 
             onClick={() => onNavigate('dashboard')} 
             className="flex items-center gap-2.5 cursor-pointer group flex-shrink-0"
           >
-            <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white border border-slate-200 p-1.5 shadow-sm group-hover:border-[#016976] group-hover:shadow-md transition-all flex items-center justify-center">
+            <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white border border-slate-200 p-1.5 shadow-sm group-hover:border-[#015866] group-hover:shadow-md transition-all flex items-center justify-center overflow-hidden">
               <img 
-                src="/bitnet-logo-blue.svg" 
-                alt="Bitnet" 
-                className="w-full h-full object-contain group-hover:scale-105 transition-transform" 
+                src="/bitnetscan-icon.svg" 
+                alt="BitnetScan" 
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform animate-scan-vibrate" 
               />
+              {/* Lazer Tarama Çizgisi */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+                <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-[#00f0ff] to-transparent shadow-[0_0_8px_#00f0ff] animate-scan-laser" />
+              </div>
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 group-hover:text-[#016976] transition-colors">
-                  Bitnet<span className="text-[#016976]">Scan</span>
+                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-[#162334] group-hover:text-[#015866] transition-colors">
+                  Bitnet<span className="text-[#015866]">Scan</span>
                 </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium -mt-0.5 hidden sm:block">Bitnet Money Block Explorer</p>
