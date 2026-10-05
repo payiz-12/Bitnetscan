@@ -16,17 +16,10 @@ export const BitnetScanIcon: React.FC<BitnetScanIconProps> = ({
       className={className}
       aria-label="BitnetScan Logo"
     >
-      <defs>
-        <linearGradient id="btnBlockGradComp" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#016976" />
-          <stop offset="100%" stopColor="#015866" />
-        </linearGradient>
-      </defs>
+      {/* Base B Mark with filled teal bottom loop */}
+      <image href="/bitnetscan-icon-filled.png" width="512" height="512" />
 
-      {/* Static Base B Mark */}
-      <image href="/bitnetscan-icon.png" width="512" height="512" />
-
-      {/* 360° Rotating Inner Block inside the bottom loop */}
+      {/* 360° Rotating White Square inside bottom loop */}
       <g
         className={animated ? "animate-spin-slow" : ""}
         style={{
@@ -35,16 +28,13 @@ export const BitnetScanIcon: React.FC<BitnetScanIconProps> = ({
         }}
       >
         <rect 
-          x="282.5" 
-          y="349.5" 
-          width="54" 
-          height="54" 
-          rx="6" 
-          ry="6" 
-          fill="url(#btnBlockGradComp)"
-          stroke="#028497"
-          strokeWidth="1.5"
-          strokeOpacity="0.6"
+          x="265.5" 
+          y="332.5" 
+          width="88" 
+          height="88" 
+          rx="4" 
+          ry="4" 
+          fill="#ffffff" 
         />
       </g>
     </svg>
