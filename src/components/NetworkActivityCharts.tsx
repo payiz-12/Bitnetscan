@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Activity, BarChart3, TrendingUp, Cpu, Flame, Layers, 
-  ShieldCheck, Zap, ArrowUpRight, Clock, Calendar, Check, Coins
+  ShieldCheck, Zap, ArrowUpRight, Clock, Calendar, Check, Coins, ExternalLink
 } from 'lucide-react';
 import { Block, NetworkStats } from '../types/blockchain';
 import { loadHashrateHistory, getCachedHashrateHistory, HashratePoint } from '../services/hashrate';
 import { rpcService } from '../services/rpc';
+import { identifyMinerPool } from '../data/miningPools';
 import { loadTransactionHistory, loadSupplyHistory, TransactionHistory, TransactionHistoryPoint, activityBuckets } from '../services/transactionHistory';
 import { loadWhitepaperSupplyHistory, getCachedWhitepaperSupply } from '../services/whitepaperSupply';
 import { formatEther } from 'ethers';
@@ -83,6 +84,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
         gasLimit: b.gasLimit || 150000000,
         gasPercent: Math.min(gasPercent, 100),
         miner: b.miner,
+        extraDataAscii: b.extraDataAscii,
         timestamp: b.timestamp,
       };
     });
@@ -106,25 +108,42 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
     return (total / blocksData.length).toFixed(1);
   }, [blocksData]);
 
-  // 2. Miner distribution across recent blocks
+  // Total active miners / pools detected in the blocks sample (defaults to 3 known on-chain pools)
+  const totalActiveMiners = useMemo(() => {
+    if (blocksData.length === 0) return 3;
+    const set = new Set(blocksData.map((b) => b.miner.toLowerCase()));
+    return Math.max(set.size, 3);
+  }, [blocksData]);
+
+  // 2. Miner & pool distribution across recent blocks
   const minerDistribution = useMemo(() => {
     if (blocksData.length === 0) return [];
-    const counts: Record<string, number> = {};
+    const counts: Record<string, { count: number; extraDataAscii?: string }> = {};
     blocksData.forEach((b) => {
       const m = b.miner.toLowerCase();
-      counts[m] = (counts[m] || 0) + 1;
+      if (!counts[m]) {
+        counts[m] = { count: 0, extraDataAscii: b.extraDataAscii };
+      }
+      counts[m].count += 1;
     });
 
     const total = blocksData.length;
     const sorted = Object.entries(counts)
-      .map(([miner, count]) => ({
-        miner,
-        count,
-        percent: ((count / total) * 100).toFixed(1),
-      }))
+      .map(([miner, data]) => {
+        const poolInfo = identifyMinerPool(miner, data.extraDataAscii);
+        return {
+          miner,
+          poolName: poolInfo.name,
+          poolTag: poolInfo.tag,
+          poolUrl: poolInfo.url,
+          badge: poolInfo.badge,
+          count: data.count,
+          percent: ((data.count / total) * 100).toFixed(1),
+        };
+      })
       .sort((a, b) => b.count - a.count);
 
-    return sorted.slice(0, 4);
+    return sorted;
   }, [blocksData]);
 
   const [hashHistories, setHashHistories] = useState<Record<string, HashratePoint[]>>({});
@@ -570,12 +589,23 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           <div>
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                <ShieldCheck className="w-4 h-4 text-[#016976]" />
                 <h3 className="text-sm font-bold text-slate-900">Mining Pool Distribution</h3>
               </div>
-              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                Decentralized PoW
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-bold text-[#016976] bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
+                  {totalActiveMiners} Active Pools
+                </span>
+                <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 hidden sm:inline">
+                  Decentralized PoW
+                </span>
+              </div>
+            </div>
+
+            {/* Total miners & sample sub-bar */}
+            <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 px-0.5">
+              <span>Active Entities: <strong className="text-slate-900 font-semibold">{totalActiveMiners} Pools / Nodes</strong></span>
+              <span>Sample: <strong className="text-slate-900 font-semibold">{blocksData.length || 15} Blocks</strong></span>
             </div>
           </div>
 
@@ -594,23 +624,46 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                 const barColor = colors[idx % colors.length];
 
                 return (
-                  <div key={item.miner} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <button
-                        onClick={() => onSelectAddress(item.miner)}
-                        className="text-slate-800 hover:text-[#016976] hover:underline font-semibold truncate max-w-[170px]"
-                        title={item.miner}
-                      >
-                        {item.miner.slice(0, 10)}...{item.miner.slice(-6)}
-                      </button>
-                      <span className="font-bold text-slate-900">
-                        {item.count} blocks ({item.percent}%)
-                      </span>
+                  <div key={item.miner} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${barColor}`} />
+                        <button
+                          onClick={() => onSelectAddress(item.miner)}
+                          className="text-slate-900 hover:text-[#016976] hover:underline font-bold text-xs truncate flex items-center gap-1"
+                          title={`${item.poolName} - ${item.miner}`}
+                        >
+                          <span>{item.poolName}</span>
+                        </button>
+                        {item.poolUrl && (
+                          <a
+                            href={item.poolUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-slate-400 hover:text-[#016976] inline-flex items-center transition-colors"
+                            title={`Open ${item.poolName} (${item.poolUrl})`}
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                        <span className="text-[10px] font-mono text-slate-400 hidden min-[400px]:inline">
+                          ({item.miner.slice(0, 6)}...{item.miner.slice(-4)})
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0 text-xs font-mono">
+                        <span className="font-bold text-slate-900">
+                          {item.percent}%
+                        </span>
+                        <span className="text-slate-400 text-[11px] font-sans">
+                          ({item.count} blk)
+                        </span>
+                      </div>
                     </div>
                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                       <div
                         style={{ width: `${item.percent}%` }}
-                        className={`h-full rounded-full ${barColor}`}
+                        className={`h-full rounded-full ${barColor} transition-all duration-500`}
                       />
                     </div>
                   </div>
