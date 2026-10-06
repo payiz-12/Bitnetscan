@@ -41,7 +41,7 @@ export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
   // 3. Unknown Mining: Solo Miner / Node
   '0x6afcdfec8066a7fbf1295f10c4907924e99e72a4': {
     address: '0x6afcdfec8066a7fbf1295f10c4907924e99e72a4',
-    name: 'Unknown Miner (Solo Node)',
+    name: 'Unknown Solo Node',
     tag: 'Geth Linux Node',
     category: 'unknown',
     categoryLabel: 'Unknown Mining',
@@ -89,7 +89,7 @@ export function identifyMinerPool(address: string, extraDataAscii?: string): Min
     if (lower.includes('geth')) {
       return {
         address: clean,
-        name: 'Unknown Miner (Solo Node)',
+        name: 'Unknown Solo Node',
         tag: 'Geth Node',
         category: 'unknown',
         categoryLabel: 'Unknown Mining',
@@ -102,7 +102,7 @@ export function identifyMinerPool(address: string, extraDataAscii?: string): Min
 
   return {
     address: clean,
-    name: address ? `Unknown Miner (${address.slice(0, 6)}...${address.slice(-4)})` : 'Unknown Miner',
+    name: address ? `Unknown (${address.slice(0, 6)}...${address.slice(-4)})` : 'Unknown Miner',
     tag: 'Unknown Address',
     category: 'unknown',
     categoryLabel: 'Unknown Mining',
