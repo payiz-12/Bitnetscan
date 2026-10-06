@@ -116,7 +116,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {stats ? `#${stats.latestBlock.toLocaleString()}` : '...'}
               </div>
               <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
-                ~{stats?.avgBlockTimeSeconds || 14.6}s block
+                ~{stats?.avgBlockTimeSeconds != null ? Number(stats.avgBlockTimeSeconds).toFixed(2) : '14.60'}s block
               </div>
             </div>
           </div>
@@ -281,7 +281,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 font-medium">
-                    Target: ~{stats?.avgBlockTimeSeconds || 14.6}s block time
+                    Target: ~{stats?.avgBlockTimeSeconds != null ? Number(stats.avgBlockTimeSeconds).toFixed(2) : '14.60'}s block time
                   </p>
                 </div>
               </div>
