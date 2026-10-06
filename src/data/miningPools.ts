@@ -1,82 +1,113 @@
-export interface KnownMiningPool {
+export interface MiningEntityInfo {
   address: string;
   name: string;
   tag: string;
   url?: string;
+  category: 'known' | 'unknown'; // 'known' = Bilinen Madencilik, 'unknown' = Bilinmeyen Madencilik
+  categoryLabel: string;
   badge: string;
   description: string;
+  minersCount: number; // Madenci / worker sayısı
   totalBlocksMinedApprox?: number;
 }
 
-export const KNOWN_MINING_POOLS: Record<string, KnownMiningPool> = {
+export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
+  // 1. Bilinen Madencilik: GTPool
   '0xfad4a236c87880035497043f24ea58d73c3e50de': {
     address: '0xfad4a236c87880035497043f24ea58d73c3e50de',
     name: 'GTPool',
     tag: 'GTPool.io',
     url: 'https://gtpool.io',
-    badge: 'Mining Pool',
-    description: 'Bitnet primary mining pool. Over 4.35M blocks mined.',
+    category: 'known',
+    categoryLabel: 'Bilinen Madencilik',
+    badge: 'Bilinen Havuz',
+    description: 'Bitnet genesis & birincil madencilik havuzu. 4.35M+ blok kazdı.',
+    minersCount: 4,
     totalBlocksMinedApprox: 4354589,
   },
+  // 2. Bilinen Madencilik: CoolPool
   '0x6c0db3ea9eed7ed145f36da461d84a8d02596b08': {
     address: '0x6c0db3ea9eed7ed145f36da461d84a8d02596b08',
     name: 'CoolPool',
     tag: 'CoolPool.Top',
     url: 'https://coolpool.top',
-    badge: 'Mining Pool',
-    description: 'Active public mining pool for Bitnet Ethash PoW.',
+    category: 'known',
+    categoryLabel: 'Bilinen Madencilik',
+    badge: 'Bilinen Havuz',
+    description: 'Bitnet Ethash PoW için aktif genel madencilik havuzu.',
+    minersCount: 4,
     totalBlocksMinedApprox: 493335,
   },
+  // 3. Bilinmeyen Madencilik: Solo Miner / Node
   '0x6afcdfec8066a7fbf1295f10c4907924e99e72a4': {
     address: '0x6afcdfec8066a7fbf1295f10c4907924e99e72a4',
-    name: 'Solo Miner / Node',
+    name: 'Bilinmeyen Madenci (Solo Node)',
     tag: 'Geth Linux Node',
-    badge: 'Solo Node',
-    description: 'Community full node & solo miner running Geth on Linux.',
+    category: 'unknown',
+    categoryLabel: 'Bilinmeyen Madencilik',
+    badge: 'Bilinmeyen Solo',
+    description: 'Topluluk tam düğümü / Linux Geth üzerinde doğrudan madencilik yapan bağımsız madenci.',
+    minersCount: 1,
     totalBlocksMinedApprox: 441101,
   },
 };
 
-export function identifyMinerPool(address: string, extraDataAscii?: string): {
-  name: string;
-  tag: string;
-  url?: string;
-  badge: string;
-  isKnownPool: boolean;
-} {
+export function identifyMinerPool(address: string, extraDataAscii?: string): MiningEntityInfo {
   const clean = (address || '').toLowerCase();
   if (KNOWN_MINING_POOLS[clean]) {
-    const p = KNOWN_MINING_POOLS[clean];
-    return {
-      name: p.name,
-      tag: p.tag,
-      url: p.url,
-      badge: p.badge,
-      isKnownPool: true,
-    };
+    return KNOWN_MINING_POOLS[clean];
   }
 
   if (extraDataAscii) {
     const lower = extraDataAscii.toLowerCase();
     if (lower.includes('gtpool')) {
-      return { name: 'GTPool', tag: 'GTPool.io', url: 'https://gtpool.io', badge: 'Mining Pool', isKnownPool: true };
+      return {
+        address: clean,
+        name: 'GTPool',
+        tag: 'GTPool.io',
+        url: 'https://gtpool.io',
+        category: 'known',
+        categoryLabel: 'Bilinen Madencilik',
+        badge: 'Bilinen Havuz',
+        description: 'Bilinen madencilik havuzu (GTPool)',
+        minersCount: 4,
+      };
     }
     if (lower.includes('coolpool')) {
-      return { name: 'CoolPool', tag: 'CoolPool.Top', url: 'https://coolpool.top', badge: 'Mining Pool', isKnownPool: true };
+      return {
+        address: clean,
+        name: 'CoolPool',
+        tag: 'CoolPool.Top',
+        url: 'https://coolpool.top',
+        category: 'known',
+        categoryLabel: 'Bilinen Madencilik',
+        badge: 'Bilinen Havuz',
+        description: 'Bilinen madencilik havuzu (CoolPool)',
+        minersCount: 4,
+      };
     }
     if (lower.includes('geth')) {
-      return { name: 'Solo Miner / Node', tag: 'Geth Node', badge: 'Solo Node', isKnownPool: true };
-    }
-    const cleanTag = extraDataAscii.replace(/[\x00-\x1F\x7F-\x9F]/g, '').trim();
-    if (cleanTag.length > 0) {
-      return { name: cleanTag, tag: cleanTag, badge: 'Miner', isKnownPool: false };
+      return {
+        address: clean,
+        name: 'Bilinmeyen Madenci (Solo)',
+        tag: 'Geth Node',
+        category: 'unknown',
+        categoryLabel: 'Bilinmeyen Madencilik',
+        badge: 'Bilinmeyen Solo',
+        description: 'Bilinmeyen bağımsız solo madenci',
+        minersCount: 1,
+      };
     }
   }
 
   return {
-    name: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Unknown Miner',
-    tag: 'Miner Address',
-    badge: 'Miner',
-    isKnownPool: false,
+    address: clean,
+    name: address ? `Bilinmeyen Madenci (${address.slice(0, 6)}...${address.slice(-4)})` : 'Bilinmeyen Madenci',
+    tag: 'Bilinmeyen Adres',
+    category: 'unknown',
+    categoryLabel: 'Bilinmeyen Madencilik',
+    badge: 'Bilinmeyen',
+    description: 'Kimliği doğrulanmamış bağımsız madenci',
+    minersCount: 1,
   };
 }

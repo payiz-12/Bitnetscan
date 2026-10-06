@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Activity, BarChart3, TrendingUp, Cpu, Flame, Layers, 
-  ShieldCheck, Zap, ArrowUpRight, Clock, Calendar, Check, Coins, ExternalLink
+  ShieldCheck, Zap, ArrowUpRight, Clock, Calendar, Check, Coins, ExternalLink,
+  Users, Server
 } from 'lucide-react';
 import { Block, NetworkStats } from '../types/blockchain';
 import { loadHashrateHistory, getCachedHashrateHistory, HashratePoint } from '../services/hashrate';
@@ -136,7 +137,10 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           poolName: poolInfo.name,
           poolTag: poolInfo.tag,
           poolUrl: poolInfo.url,
+          category: poolInfo.category, // 'known' | 'unknown'
+          categoryLabel: poolInfo.categoryLabel,
           badge: poolInfo.badge,
+          minersCount: poolInfo.minersCount || 1, // Madenci sayısı (Workers)
           count: data.count,
           percent: ((data.count / total) * 100).toFixed(1),
         };
@@ -145,6 +149,21 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
     return sorted;
   }, [blocksData]);
+
+  // Total active individual miners (workers) across all active pools & solo miners
+  const totalMinersCount = useMemo(() => {
+    if (minerDistribution.length === 0) return 9;
+    return minerDistribution.reduce((acc, item) => acc + (item.minersCount || 1), 0);
+  }, [minerDistribution]);
+
+  // Count of Bilinen Madencilik (Known Pools) vs Bilinmeyen Madencilik (Unknown Miners)
+  const knownPoolsCount = useMemo(() => {
+    return minerDistribution.filter((i) => i.category === 'known').length;
+  }, [minerDistribution]);
+
+  const unknownMinersCount = useMemo(() => {
+    return minerDistribution.filter((i) => i.category === 'unknown').length;
+  }, [minerDistribution]);
 
   const [hashHistories, setHashHistories] = useState<Record<string, HashratePoint[]>>({});
   const hashHistory = hashHistories[timeframe] || getCachedHashrateHistory(timeframe);
@@ -594,18 +613,30 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] font-bold text-[#016976] bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
-                  {totalActiveMiners} Active Pools
+                  ~{totalMinersCount} Madenci
                 </span>
-                <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 hidden sm:inline">
-                  Decentralized PoW
+                <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 hidden sm:inline">
+                  Bilinen & Bilinmeyen
                 </span>
               </div>
             </div>
 
-            {/* Total miners & sample sub-bar */}
-            <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 px-0.5">
-              <span>Active Entities: <strong className="text-slate-900 font-semibold">{totalActiveMiners} Pools / Nodes</strong></span>
-              <span>Sample: <strong className="text-slate-900 font-semibold">{blocksData.length || 15} Blocks</strong></span>
+            {/* Top Stats Summary: Toplam Madenci & Bilinen/Bilinmeyen Dagitimi */}
+            <div className="grid grid-cols-2 gap-2 p-2.5 mt-2 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+              <div>
+                <span className="text-[10px] text-slate-500 font-medium block">Toplam Madenci Sayısı</span>
+                <span className="font-black text-slate-900 flex items-center gap-1.5 mt-0.5">
+                  <Users className="w-3.5 h-3.5 text-[#016976]" />
+                  <span>~{totalMinersCount} Madenci (Workers)</span>
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-500 font-medium block">Madencilik Türü</span>
+                <span className="font-black text-slate-900 flex items-center gap-1.5 mt-0.5">
+                  <Server className="w-3.5 h-3.5 text-[#D97706]" />
+                  <span>{knownPoolsCount} Bilinen • {unknownMinersCount} Bilinmeyen</span>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -647,7 +678,17 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                             <ExternalLink className="w-3 h-3" />
                           </a>
                         )}
-                        <span className="text-[10px] font-mono text-slate-400 hidden min-[400px]:inline">
+                        <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full shrink-0 ${
+                          item.category === 'known'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-slate-100 text-slate-600 border border-slate-300'
+                        }`}>
+                          {item.category === 'known' ? 'Bilinen' : 'Bilinmeyen'}
+                        </span>
+                        <span className="text-[10px] font-bold text-[#016976] bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap">
+                          {item.minersCount} Madenci
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-400 hidden min-[540px]:inline">
                           ({item.miner.slice(0, 6)}...{item.miner.slice(-4)})
                         </span>
                       </div>

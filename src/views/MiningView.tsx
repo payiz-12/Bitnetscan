@@ -183,11 +183,16 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats }) => {
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <Server className="w-5 h-5 text-[#016976]" />
-            <h3 className="text-lg font-bold text-slate-900">Active Bitnet Mining Pools</h3>
+            <h3 className="text-lg font-bold text-slate-900">Bitnet Madencilik Havuzları & Düğümleri</h3>
           </div>
-          <span className="text-xs font-bold text-[#016976] bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
-            3 Active Pools & Nodes
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-[#016976] bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
+              ~9 Aktif Madenci (Workers)
+            </span>
+            <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 hidden sm:inline">
+              Bilinen & Bilinmeyen
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -196,13 +201,16 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats }) => {
             <div>
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-900 text-sm">GTPool</span>
-                <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
-                  Genesis Pool
+                <span className="text-[10px] font-extrabold uppercase text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Bilinen Madencilik
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Bitnet primary mining pool with over 4.35M blocks mined historically.
+                Bitnet genesis & birincil madencilik havuzu. Tarihsel 4.35M+ blok.
               </p>
+              <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
+                <span>~4 Madenci (Workers)</span>
+              </div>
             </div>
             <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
               <span className="text-[10px] font-mono text-slate-400">0xfad4...50de</span>
@@ -223,13 +231,16 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats }) => {
             <div>
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-900 text-sm">CoolPool</span>
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                  Public Pool
+                <span className="text-[10px] font-extrabold uppercase text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Bilinen Madencilik
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Active public mining pool producing ~30% of current Bitnet blocks.
+                Aktif genel madencilik havuzu. Güncel blokların ~%30'unu üretmektedir.
               </p>
+              <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
+                <span>4 Madenci (Workers)</span>
+              </div>
             </div>
             <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
               <span className="text-[10px] font-mono text-slate-400">0x6c0d...6b08</span>
@@ -245,18 +256,21 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats }) => {
             </div>
           </div>
 
-          {/* Solo Node */}
+          {/* Bilinmeyen Madenci (Solo Node) */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
             <div>
               <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-900 text-sm">Solo Miner / Node</span>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  Solo Node
+                <span className="font-bold text-slate-900 text-sm">Bilinmeyen Madenci (Solo Node)</span>
+                <span className="text-[10px] font-extrabold uppercase text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-300">
+                  Bilinmeyen Madencilik
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Community Geth node mining directly on-chain producing ~55-60% of blocks.
+                Geth Linux düğümü üzerinde doğrudan madencilik yapan bağımsız madenci (~%58-%60 hashrate).
               </p>
+              <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
+                <span>1 Madenci (Solo)</span>
+              </div>
             </div>
             <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
               <span className="text-[10px] font-mono text-slate-400">0x6afc...72a4</span>
