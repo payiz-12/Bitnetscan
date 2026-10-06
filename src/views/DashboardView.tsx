@@ -101,40 +101,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        {/* 6 Metric Cards with interactive animated icons on the left */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+        {/* 6 Metric Cards: 3 on top, 3 on bottom on both mobile and desktop */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-6 sm:mt-8">
           {/* Card 01: Latest Block */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-[#016976] hover:shadow-md transition-all shadow-xs flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-100 text-[#016976] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#016976] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
-              <Layers className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
+          <div className="bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-5 border border-slate-200 hover:border-[#016976] hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group">
+            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-teal-50 border border-teal-100 text-[#016976] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#016976] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
+              <Layers className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
             </div>
-            <div className="min-w-0 flex-1">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            <div className="min-w-0 flex-1 w-full">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight sm:tracking-wider block truncate">
                 Latest Block
               </span>
-              <div className="text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
+              <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
                 {stats ? `#${stats.latestBlock.toLocaleString()}` : '...'}
               </div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5">
-                ~{stats?.avgBlockTimeSeconds || 14.6}s block time
+              <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
+                ~{stats?.avgBlockTimeSeconds || 14.6}s block
               </div>
             </div>
           </div>
 
           {/* Card 02: Gas Price */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-[#D97706] hover:shadow-md transition-all shadow-xs flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 text-[#D97706] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#D97706] group-hover:text-white group-hover:-rotate-6 transition-all duration-300">
-              <Flame className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
+          <div className="bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-5 border border-slate-200 hover:border-[#D97706] hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group">
+            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-amber-50 border border-amber-100 text-[#D97706] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#D97706] group-hover:text-white group-hover:-rotate-6 transition-all duration-300">
+              <Flame className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
             </div>
-            <div className="min-w-0 flex-1">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                Gas Price & Base Fee
+            <div className="min-w-0 flex-1 w-full">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight sm:tracking-wider block truncate">
+                Gas Price<span className="hidden sm:inline"> & Fee</span>
               </span>
-              <div className="text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
+              <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
                 {stats?.gasPriceGwei !== null && stats?.gasPriceGwei !== undefined ? `${stats.gasPriceGwei} Gwei` : 'Unknown'}
               </div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5">
-                {stats?.gasPriceGwei !== null && stats?.gasPriceGwei !== undefined ? `Base fee: ~${(Number(stats.gasPriceGwei) / 1e9).toFixed(9)} BTN` : 'Live L1 network rate'}
+              <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
+                {stats?.gasPriceGwei !== null && stats?.gasPriceGwei !== undefined ? `Base: ~${(Number(stats.gasPriceGwei) / 1e9).toFixed(9)}` : 'Live rate'}
               </div>
             </div>
           </div>
@@ -144,18 +144,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             href="https://trade.nestex.one/spot/BTN"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-emerald-600 hover:shadow-md transition-all shadow-xs flex items-center gap-4 group cursor-pointer"
+            className="bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-5 border border-slate-200 hover:border-emerald-600 hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group cursor-pointer"
             title="NestEx BTN/USDT Spot Market"
           >
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 text-[#059669] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#059669] group-hover:text-white group-hover:translate-x-1 transition-all duration-300">
-              <TrendingUp className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
+            <div className="flex items-center justify-between w-full sm:w-auto">
+              <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-emerald-50 border border-emerald-100 text-[#059669] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#059669] group-hover:text-white group-hover:translate-x-1 transition-all duration-300">
+                <TrendingUp className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+              </div>
+              <span className={`text-[9px] font-bold px-1 py-0.2 rounded-full sm:hidden ${
+                priceData.change24h >= 0 
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                  : 'bg-rose-50 text-rose-700 border border-rose-200'
+              }`}>
+                {priceData.change24hFormatted}
+              </span>
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 w-full">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                  BTN Price (NestEx Spot)
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight sm:tracking-wider block truncate">
+                  BTN Price<span className="hidden sm:inline"> (Spot)</span>
                 </span>
-                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
+                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full hidden sm:inline-block ${
                   priceData.change24h >= 0 
                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
                     : 'bg-rose-50 text-rose-700 border border-rose-200'
@@ -163,49 +172,49 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   {priceData.change24hFormatted}
                 </span>
               </div>
-              <div className="text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
+              <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
                 {priceData.priceFormatted}
               </div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5 flex items-center justify-between">
-                <span>24h High: ${priceData.high24h}</span>
-                <span className="text-[10px] text-slate-400">trade.nestex.one ↗</span>
+              <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 flex items-center justify-between truncate">
+                <span>High: ${priceData.high24h}</span>
+                <span className="text-[10px] text-slate-400 hidden sm:inline">NestEx ↗</span>
               </div>
             </div>
           </a>
 
           {/* Card 04: Mining Hashrate */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-[#D68142] hover:shadow-md transition-all shadow-xs flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-100 text-[#D68142] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#D68142] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
-              <Cpu className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
+          <div className="bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-5 border border-slate-200 hover:border-[#D68142] hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group">
+            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-orange-50 border border-orange-100 text-[#D68142] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#D68142] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
+              <Cpu className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
             </div>
-            <div className="min-w-0 flex-1">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                Mining Hashrate
+            <div className="min-w-0 flex-1 w-full">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight sm:tracking-wider block truncate">
+                Hashrate<span className="hidden sm:inline"> (PoW)</span>
               </span>
-              <div className="text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
+              <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
                 {stats?.hashrateEstimate || 'Active (PoW)'}
               </div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5 truncate">
+              <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
                 Diff: {stats?.difficulty || 'N/A'}
               </div>
             </div>
           </div>
 
           {/* Card 05: Block Reward */}
-          <div className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-[#1A2B3F] hover:shadow-md transition-all shadow-xs flex items-center gap-4 group">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 text-[#1A2B3F] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#1A2B3F] group-hover:text-white group-hover:-translate-y-1 transition-all duration-300">
-              <Coins className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
+          <div className="bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-5 border border-slate-200 hover:border-[#1A2B3F] hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group">
+            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-slate-100 border border-slate-200 text-[#1A2B3F] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#1A2B3F] group-hover:text-white group-hover:-translate-y-1 transition-all duration-300">
+              <Coins className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
             </div>
-            <div className="min-w-0 flex-1">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                Block Reward & Emission
+            <div className="min-w-0 flex-1 w-full">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight sm:tracking-wider block truncate">
+                Reward<span className="hidden sm:inline"> & Emission</span>
               </span>
-              <div className="text-2xl font-black font-mono text-slate-900 mt-0.5 flex items-center gap-1.5 truncate">
-                <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-4 h-4" />
+              <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono text-slate-900 mt-0.5 flex items-center gap-1 sm:gap-1.5 truncate">
+                <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
                 <span>1.0 BTN</span>
               </div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5 truncate">
-                {stats?.circulatingEstimate ? `Mined: ~${stats.circulatingEstimate}` : 'PoW Miner Subsidy / Block'}
+              <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
+                {stats?.circulatingEstimate ? `~${stats.circulatingEstimate}` : 'Miner Subsidy'}
               </div>
             </div>
           </div>
@@ -213,23 +222,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Card 06: Rich List */}
           <div 
             onClick={onViewRichList}
-            className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-[#0284C7] hover:shadow-md transition-all shadow-xs flex items-center gap-4 group cursor-pointer"
+            className="bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-5 border border-slate-200 hover:border-[#0284C7] hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group cursor-pointer"
           >
-            <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-100 text-[#0284C7] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#0284C7] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
-              <Trophy className="w-6 h-6 transition-transform duration-300 group-hover:scale-110" />
+            <div className="flex items-center justify-between w-full sm:w-auto">
+              <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-sky-50 border border-sky-100 text-[#0284C7] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#0284C7] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
+                <Trophy className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+              </div>
+              <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#0284C7] sm:hidden" />
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 w-full">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight sm:tracking-wider block truncate">
                   HODL Rich List
                 </span>
-                <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-[#0284C7] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-[#0284C7] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all hidden sm:block" />
               </div>
-              <div className="text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
-                Top 50 Wallets
+              <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
+                Top 50
               </div>
-              <div className="text-xs text-slate-500 font-medium mt-0.5">
-                Largest BTN Holders
+              <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
+                Whale Wallets
               </div>
             </div>
           </div>
