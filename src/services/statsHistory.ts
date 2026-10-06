@@ -75,6 +75,21 @@ class StatsHistoryService {
   }
 
   /**
+   * Returns transaction count for the latest recorded day
+   */
+  public getLatestDailyCount(): number {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayCount = this.dailyMap.get(todayStr);
+    if (todayCount != null && todayCount > 0) return todayCount;
+
+    const entries = Array.from(this.dailyMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    if (entries.length > 0) {
+      return entries[entries.length - 1][1] || 24;
+    }
+    return 24;
+  }
+
+  /**
    * Returns transaction count for a month (YYYY-MM-01)
    */
   public getCountForMonth(monthStr: string): number {

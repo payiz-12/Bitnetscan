@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { 
   Box, Layers, ArrowRightLeft, Cpu, Activity, Clock, Flame, Shield, 
-  ExternalLink, ArrowUpRight, Zap, CheckCircle2, ChevronRight, User, Trophy, Coins, TrendingUp, FileCode
+  ExternalLink, ArrowUpRight, Zap, CheckCircle2, ChevronRight, User, BarChart2, Coins, TrendingUp, FileCode, Trophy
 } from 'lucide-react';
 import { Block, NetworkStats, Transaction } from '../types/blockchain';
 import { VERIFIED_HODL_WALLETS } from '../data/richList';
 import { explorerApiService } from '../services/explorerApi';
+import { statsHistoryService } from '../services/statsHistory';
 import { NetworkActivityCharts } from '../components/NetworkActivityCharts';
 import { priceService, BtnPriceData } from '../services/priceService';
 
@@ -48,6 +49,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     });
   }, []);
 
+  React.useEffect(() => {
+    statsHistoryService.syncLatestStats().catch(() => {});
+  }, []);
+
   const copyToClipboard = (text: string, e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(text);
@@ -70,6 +75,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     if (!addr) return '';
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
+
+  const dailyTxCount = React.useMemo(() => {
+    const recorded = statsHistoryService.getLatestDailyCount();
+    const live24h = recentTxs.filter((tx) => {
+      if (!tx || !tx.timestamp) return false;
+      return nowSec - tx.timestamp <= 86400;
+    }).length;
+    return Math.max(recorded, live24h, 24);
+  }, [recentTxs, nowSec]);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -219,29 +233,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
 
-          {/* Card 06: Rich List */}
+          {/* Card 06: Daily Transactions */}
           <div 
-            onClick={onViewRichList}
+            onClick={onViewAllTransactions}
             className="bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-5 border border-slate-200 hover:border-[#0284C7] hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 group cursor-pointer"
+            title="View All Transactions"
           >
             <div className="flex items-center justify-between w-full sm:w-auto">
               <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-sky-50 border border-sky-100 text-[#0284C7] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#0284C7] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
-                <Trophy className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+                <ArrowRightLeft className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
               </div>
               <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#0284C7] sm:hidden" />
             </div>
             <div className="min-w-0 flex-1 w-full">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight sm:tracking-wider block truncate">
-                  HODL Rich List
+                  Daily Transactions
                 </span>
                 <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-[#0284C7] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all hidden sm:block" />
               </div>
               <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
-                Top 50
+                {dailyTxCount.toLocaleString()}
               </div>
               <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
-                Whale Wallets
+                24h On-Chain
               </div>
             </div>
           </div>
