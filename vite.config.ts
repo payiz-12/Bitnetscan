@@ -42,6 +42,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/bitnet-explorer/, '') || '/',
         secure: true,
+      },
+      '/api/coolpool': {
+        target: 'https://coolpool.top',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/coolpool/, '') || '/',
+        secure: true,
       }
     }
   },

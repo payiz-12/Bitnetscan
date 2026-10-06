@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Cpu, Calculator, Zap, Server, ShieldCheck, Download, Terminal, Flame, TrendingUp, ExternalLink } from 'lucide-react';
 import { NetworkStats } from '../types/blockchain';
 import { priceService, BtnPriceData } from '../services/priceService';
+import { fetchLivePoolStats, getCachedPoolStats, LivePoolStats } from '../services/miningPoolStats';
 
 interface MiningViewProps {
   stats: NetworkStats | null;
@@ -17,6 +18,25 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats }) => {
       setPriceData(data);
     });
   }, []);
+
+  // Live pool stats fetched silently in background (no button)
+  const [poolStats, setPoolStats] = useState<Record<string, LivePoolStats>>(() => getCachedPoolStats());
+
+  React.useEffect(() => {
+    let active = true;
+    fetchLivePoolStats().then((res) => {
+      if (active && res) setPoolStats({ ...res });
+    });
+    return () => { active = false; };
+  }, []);
+
+  const netHashrateGh = stats?.hashrateHps ? stats.hashrateHps / 1e9 : 58.0;
+  const totalNetworkWorkers = Math.max(3, Math.round(netHashrateGh / 7.2) || 8);
+
+  const coolPoolWorkers = poolStats['0x6c0db3ea9eed7ed145f36da461d84a8d02596b08']?.workers || 4;
+  const gtPoolWorkers = poolStats['0xfad4a236c87880035497043f24ea58d73c3e50de']?.workers || 3;
+  const soloWorkers = Math.max(1, totalNetworkWorkers - coolPoolWorkers - gtPoolWorkers);
+  const activeWorkersTotal = coolPoolWorkers + gtPoolWorkers + soloWorkers;
 
   // PoW calculations:
   // Blocks per day = 86400 / 14.6 ≈ 5,918 blocks
@@ -187,7 +207,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats }) => {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-[#016976] bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
-              ~9 Active Workers
+              ~{activeWorkersTotal} Active Workers
             </span>
             <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 hidden sm:inline">
               Known & Unknown
@@ -209,7 +229,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats }) => {
                 Bitnet genesis & primary mining pool with over 4.35M blocks mined historically.
               </p>
               <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
-                <span>~4 Workers</span>
+                <span>~{gtPoolWorkers} Workers</span>
               </div>
             </div>
             <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
@@ -239,7 +259,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats }) => {
                 Active public mining pool producing ~30% of current Bitnet blocks.
               </p>
               <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
-                <span>4 Workers</span>
+                <span>{coolPoolWorkers} Workers</span>
               </div>
             </div>
             <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
@@ -269,7 +289,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats }) => {
                 Community Geth node mining directly on-chain producing ~55-60% of blocks.
               </p>
               <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
-                <span>1 Worker (Solo)</span>
+                <span>{soloWorkers} {soloWorkers === 1 ? 'Worker' : 'Workers'} (Solo)</span>
               </div>
             </div>
             <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">

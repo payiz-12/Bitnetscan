@@ -10,6 +10,7 @@ import { rpcService } from '../services/rpc';
 import { identifyMinerPool } from '../data/miningPools';
 import { loadTransactionHistory, loadSupplyHistory, TransactionHistory, TransactionHistoryPoint, activityBuckets } from '../services/transactionHistory';
 import { loadWhitepaperSupplyHistory, getCachedWhitepaperSupply } from '../services/whitepaperSupply';
+import { calculateDynamicWorkers, fetchLivePoolStats, getCachedPoolStats, LivePoolStats } from '../services/miningPoolStats';
 import { formatEther } from 'ethers';
 
 interface NetworkActivityChartsProps {
@@ -41,6 +42,25 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
     const check = () => setIsMobile(window.innerWidth < 640);
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // Background pool stats sync (updates silently in the background, no button needed)
+  const [poolStats, setPoolStats] = useState<Record<string, LivePoolStats>>(() => getCachedPoolStats());
+
+  useEffect(() => {
+    let active = true;
+    const syncStats = async () => {
+      const res = await fetchLivePoolStats();
+      if (active && res) {
+        setPoolStats({ ...res });
+      }
+    };
+    syncStats();
+    const interval = setInterval(syncStats, 60000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, []);
 
   // 60-second periodic refresh for active chart view without resetting long scans
@@ -132,6 +152,17 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
     const sorted = Object.entries(counts)
       .map(([miner, data]) => {
         const poolInfo = identifyMinerPool(miner, data.extraDataAscii);
+        const liveWorkerCount = poolStats[miner.toLowerCase()]?.workers;
+
+        // Dynamically calculate workers based on actual block counts, share, and hashrate numbers
+        const dynamicWorkers = calculateDynamicWorkers(
+          miner,
+          data.count,
+          total,
+          stats?.hashrateHps,
+          liveWorkerCount
+        );
+
         return {
           miner,
           poolName: poolInfo.name,
@@ -140,7 +171,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           category: poolInfo.category, // 'known' | 'unknown'
           categoryLabel: poolInfo.categoryLabel,
           badge: poolInfo.badge,
-          minersCount: poolInfo.minersCount || 1, // Madenci sayısı (Workers)
+          minersCount: dynamicWorkers, // Dynamically updated according to block count & share
           count: data.count,
           percent: ((data.count / total) * 100).toFixed(1),
         };
@@ -148,13 +179,17 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
       .sort((a, b) => b.count - a.count);
 
     return sorted;
-  }, [blocksData]);
+  }, [blocksData, stats?.hashrateHps, poolStats]);
 
   // Total active individual miners (workers) across all active pools & solo miners
+  // Automatically sums up dynamic worker counts based on actual numbers
   const totalMinersCount = useMemo(() => {
-    if (minerDistribution.length === 0) return 9;
+    if (minerDistribution.length === 0) {
+      const netHashrateGh = stats?.hashrateHps ? stats.hashrateHps / 1e9 : 58;
+      return Math.max(3, Math.round(netHashrateGh / 7.2) || 8);
+    }
     return minerDistribution.reduce((acc, item) => acc + (item.minersCount || 1), 0);
-  }, [minerDistribution]);
+  }, [minerDistribution, stats?.hashrateHps]);
 
   // Count of Bilinen Madencilik (Known Pools) vs Bilinmeyen Madencilik (Unknown Miners)
   const knownPoolsCount = useMemo(() => {
