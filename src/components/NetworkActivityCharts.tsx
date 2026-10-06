@@ -647,6 +647,9 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                 <h3 className="text-sm font-bold text-slate-900">Mining Pool Distribution</h3>
               </div>
               <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                  Last {blocksData.length} Blocks
+                </span>
                 <span className="text-[11px] font-bold text-[#016976] bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
                   ~{totalMinersCount} Workers
                 </span>
@@ -723,8 +726,8 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                         <span className="font-black text-slate-900">
                           {item.percent}%
                         </span>
-                        <span className="text-slate-400 text-[11px] font-sans">
-                          ({item.count} blk)
+                        <span className="text-slate-400 text-[11px] font-sans" title={`${item.count} out of ${blocksData.length} sampled blocks`}>
+                          ({item.count}/{blocksData.length} blk)
                         </span>
                       </div>
                     </div>

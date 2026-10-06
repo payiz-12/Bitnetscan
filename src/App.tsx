@@ -96,7 +96,7 @@ export const App: React.FC = () => {
     try {
       const [netStats, blocks, liveLedgerTxs] = await Promise.all([
         rpcService.getNetworkStats().catch(() => null),
-        rpcService.getRecentBlocks(15).catch(() => []),
+        rpcService.getRecentBlocks(25).catch(() => []),
         explorerApiService.fetchLiveLedgerTransactions().catch(() => []),
       ]);
 
