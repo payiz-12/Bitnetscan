@@ -613,28 +613,28 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] font-bold text-[#016976] bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
-                  ~{totalMinersCount} Madenci
+                  ~{totalMinersCount} Workers
                 </span>
                 <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 hidden sm:inline">
-                  Bilinen & Bilinmeyen
+                  Known & Unknown
                 </span>
               </div>
             </div>
 
-            {/* Top Stats Summary: Toplam Madenci & Bilinen/Bilinmeyen Dagitimi */}
+            {/* Top Stats Summary: Total Workers & Known/Unknown Distribution */}
             <div className="grid grid-cols-2 gap-2 p-2.5 mt-2 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
               <div>
-                <span className="text-[10px] text-slate-500 font-medium block">Toplam Madenci Sayısı</span>
+                <span className="text-[10px] text-slate-500 font-medium block">Total Active Workers</span>
                 <span className="font-black text-slate-900 flex items-center gap-1.5 mt-0.5">
                   <Users className="w-3.5 h-3.5 text-[#016976]" />
-                  <span>~{totalMinersCount} Madenci (Workers)</span>
+                  <span>~{totalMinersCount} Workers</span>
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 font-medium block">Madencilik Türü</span>
+                <span className="text-[10px] text-slate-500 font-medium block">Mining Category</span>
                 <span className="font-black text-slate-900 flex items-center gap-1.5 mt-0.5">
                   <Server className="w-3.5 h-3.5 text-[#D97706]" />
-                  <span>{knownPoolsCount} Bilinen • {unknownMinersCount} Bilinmeyen</span>
+                  <span>{knownPoolsCount} Known Pools • {unknownMinersCount} Unknown</span>
                 </span>
               </div>
             </div>
@@ -683,10 +683,10 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : 'bg-slate-100 text-slate-600 border border-slate-300'
                         }`}>
-                          {item.category === 'known' ? 'Bilinen' : 'Bilinmeyen'}
+                          {item.category === 'known' ? 'Known' : 'Unknown'}
                         </span>
                         <span className="text-[10px] font-bold text-[#016976] bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap">
-                          {item.minersCount} Madenci
+                          {item.minersCount} {item.minersCount === 1 ? 'Worker' : 'Workers'}
                         </span>
                         <span className="text-[10px] font-mono text-slate-400 hidden min-[540px]:inline">
                           ({item.miner.slice(0, 6)}...{item.miner.slice(-4)})

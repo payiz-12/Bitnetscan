@@ -278,7 +278,7 @@ class BitnetRpcService {
 
     // Cache transactions
     if (includeTxs && Array.isArray(rawBlock.transactions)) {
-      const blkTs = parseInt(rawBlock.timestamp, 16);
+      const blkTs = block.timestamp;
       for (const rawTx of rawBlock.transactions) {
         if (typeof rawTx === 'object' && rawTx.hash) {
           const parsedTx = this.parseRawTransaction(rawTx, blkTs);
@@ -529,8 +529,16 @@ class BitnetRpcService {
       // ignore
     }
 
+    const blockNum = parseInt(raw.number, 16);
+    let blockTimestamp = parseInt(raw.timestamp, 16);
+    // Genesis Block (Block #0) on-chain has EVM default timestamp 0x0 (Jan 1, 1970).
+    // Normalize to verified Bitnet L1 Genesis Launch Date: July 14, 2023, 06:54:07 UTC (timestamp 1689317647)
+    if (blockNum <= 0 && blockTimestamp <= 0) {
+      blockTimestamp = 1689317647;
+    }
+
     return {
-      number: parseInt(raw.number, 16),
+      number: blockNum,
       hash: raw.hash,
       parentHash: raw.parentHash,
       nonce: raw.nonce,
@@ -547,9 +555,9 @@ class BitnetRpcService {
       size: parseInt(raw.size, 16),
       gasLimit: parseInt(raw.gasLimit, 16),
       gasUsed: parseInt(raw.gasUsed, 16),
-      timestamp: parseInt(raw.timestamp, 16),
+      timestamp: blockTimestamp,
       transactions: Array.isArray(raw.transactions)
-        ? raw.transactions.map((tx: any) => typeof tx === 'object' ? this.parseRawTransaction(tx, parseInt(raw.timestamp, 16)) : tx)
+        ? raw.transactions.map((tx: any) => typeof tx === 'object' ? this.parseRawTransaction(tx, blockTimestamp) : tx)
         : [],
       uncles: raw.uncles || [],
       baseFeePerGas: raw.baseFeePerGas,

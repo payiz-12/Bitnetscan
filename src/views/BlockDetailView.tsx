@@ -15,6 +15,15 @@ interface BlockDetailViewProps {
   onSelectAddress: (addr: string) => void;
 }
 
+export const BITNET_GENESIS_TIMESTAMP = 1689317647; // July 14, 2023 06:54:07 UTC
+
+const getEffectiveBlockTimestamp = (block: Block): number => {
+  if (block.number <= 0 && (!block.timestamp || block.timestamp <= 0)) {
+    return BITNET_GENESIS_TIMESTAMP;
+  }
+  return block.timestamp;
+};
+
 const formatTimeAgo = (timestampSec: number): string => {
   const diff = Math.max(0, Math.floor(Date.now() / 1000 - timestampSec));
   if (diff < 5) return 'just now';
@@ -24,7 +33,9 @@ const formatTimeAgo = (timestampSec: number): string => {
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours} hr${hours > 1 ? 's' : ''} ago`;
   const days = Math.floor(hours / 24);
-  return `${days} day${days > 1 ? 's' : ''} ago`;
+  if (days < 365) return `${days} day${days > 1 ? 's' : ''} ago`;
+  const years = (days / 365.25).toFixed(1);
+  return `${days} days ago (~${years} yrs ago)`;
 };
 
 const formatExactDate = (timestampSec: number): string => {
@@ -161,6 +172,11 @@ export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
           <div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
               Block <span className="font-mono text-[#016976]">#{block.number}</span>
+              {block.number === 0 && (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Genesis Block
+                </span>
+              )}
             </h2>
             <p className="text-xs text-slate-500 font-mono break-all mt-0.5 font-medium">
               Hash: {block.hash}
@@ -176,8 +192,13 @@ export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
               <Clock className="w-4 h-4 text-[#016976]" />
               Timestamp:
             </span>
-            <div className="sm:col-span-2 text-slate-900 mt-1 sm:mt-0 font-mono text-xs font-semibold">
-              {formatTimeAgo(block.timestamp)} ({formatExactDate(block.timestamp)})
+            <div className="sm:col-span-2 text-slate-900 mt-1 sm:mt-0 font-mono text-xs font-semibold flex items-center gap-2 flex-wrap">
+              <span>{formatTimeAgo(getEffectiveBlockTimestamp(block))} ({formatExactDate(getEffectiveBlockTimestamp(block))})</span>
+              {block.number === 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-[#016976] border border-teal-200">
+                  Bitnet Genesis Launch
+                </span>
+              )}
             </div>
           </div>
 
