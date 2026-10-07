@@ -457,7 +457,11 @@ export const App: React.FC = () => {
           )}
 
           {currentView === 'mining' && (
-            <MiningView stats={stats} />
+            <MiningView
+              stats={stats}
+              recentBlocks={recentBlocks}
+              onSelectAddress={handleSelectAddress}
+            />
           )}
 
           {currentView === 'console' && (

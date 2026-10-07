@@ -22,7 +22,7 @@ export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
     categoryLabel: 'Known Mining',
     badge: 'Known Pool',
     description: 'Bitnet genesis & primary mining pool. Over 4.35M blocks mined.',
-    minersCount: 4,
+    minersCount: 2,
     totalBlocksMinedApprox: 4354589,
   },
   // 2. Known Mining: CoolPool
@@ -35,7 +35,7 @@ export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
     categoryLabel: 'Known Mining',
     badge: 'Known Pool',
     description: 'Active public mining pool for Bitnet Ethash PoW.',
-    minersCount: 4,
+    minersCount: 3,
     totalBlocksMinedApprox: 493335,
   },
   // 3. Unknown Mining: Solo Miner / Node
@@ -47,7 +47,7 @@ export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
     categoryLabel: 'Unknown Mining',
     badge: 'Unknown Solo',
     description: 'Community full node / solo miner running Geth on Linux directly on-chain.',
-    minersCount: 1,
+    minersCount: 5,
     totalBlocksMinedApprox: 441101,
   },
 };

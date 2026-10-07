@@ -10,7 +10,7 @@ import { rpcService } from '../services/rpc';
 import { identifyMinerPool } from '../data/miningPools';
 import { loadTransactionHistory, loadSupplyHistory, TransactionHistory, TransactionHistoryPoint, activityBuckets } from '../services/transactionHistory';
 import { loadWhitepaperSupplyHistory, getCachedWhitepaperSupply } from '../services/whitepaperSupply';
-import { calculateDynamicWorkers, fetchLivePoolStats, getCachedPoolStats, LivePoolStats } from '../services/miningPoolStats';
+import { calculateDynamicWorkers, fetchLivePoolStats, getCachedPoolStats, LivePoolStats, computeLiveMiningSummary } from '../services/miningPoolStats';
 import { formatEther } from 'ethers';
 
 interface NetworkActivityChartsProps {
@@ -137,68 +137,14 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
   }, [blocksData]);
 
   // 2. Miner & pool distribution across recent blocks
-  const minerDistribution = useMemo(() => {
-    if (blocksData.length === 0) return [];
-    const counts: Record<string, { count: number; extraDataAscii?: string }> = {};
-    blocksData.forEach((b) => {
-      const m = b.miner.toLowerCase();
-      if (!counts[m]) {
-        counts[m] = { count: 0, extraDataAscii: b.extraDataAscii };
-      }
-      counts[m].count += 1;
-    });
+  const miningSummary = useMemo(() => {
+    return computeLiveMiningSummary(recentBlocks, stats?.hashrateHps, poolStats);
+  }, [recentBlocks, stats?.hashrateHps, poolStats]);
 
-    const total = blocksData.length;
-    const sorted = Object.entries(counts)
-      .map(([miner, data]) => {
-        const poolInfo = identifyMinerPool(miner, data.extraDataAscii);
-        const liveWorkerCount = poolStats[miner.toLowerCase()]?.workers;
-
-        // Dynamically calculate workers based on actual block counts, share, and hashrate numbers
-        const dynamicWorkers = calculateDynamicWorkers(
-          miner,
-          data.count,
-          total,
-          stats?.hashrateHps,
-          liveWorkerCount
-        );
-
-        return {
-          miner,
-          poolName: poolInfo.name,
-          poolTag: poolInfo.tag,
-          poolUrl: poolInfo.url,
-          category: poolInfo.category, // 'known' | 'unknown'
-          categoryLabel: poolInfo.categoryLabel,
-          badge: poolInfo.badge,
-          minersCount: dynamicWorkers, // Dynamically updated according to block count & share
-          count: data.count,
-          percent: ((data.count / total) * 100).toFixed(1),
-        };
-      })
-      .sort((a, b) => b.count - a.count);
-
-    return sorted;
-  }, [blocksData, stats?.hashrateHps, poolStats]);
-
-  // Total active individual miners (workers) across all active pools & solo miners
-  // Automatically sums up dynamic worker counts based on actual numbers
-  const totalMinersCount = useMemo(() => {
-    if (minerDistribution.length === 0) {
-      const netHashrateGh = stats?.hashrateHps ? stats.hashrateHps / 1e9 : 58;
-      return Math.max(3, Math.round(netHashrateGh / 7.2) || 8);
-    }
-    return minerDistribution.reduce((acc, item) => acc + (item.minersCount || 1), 0);
-  }, [minerDistribution, stats?.hashrateHps]);
-
-  // Count of Bilinen Madencilik (Known Pools) vs Bilinmeyen Madencilik (Unknown Miners)
-  const knownPoolsCount = useMemo(() => {
-    return minerDistribution.filter((i) => i.category === 'known').length;
-  }, [minerDistribution]);
-
-  const unknownMinersCount = useMemo(() => {
-    return minerDistribution.filter((i) => i.category === 'unknown').length;
-  }, [minerDistribution]);
+  const minerDistribution = miningSummary.miners;
+  const totalMinersCount = miningSummary.totalActiveWorkers;
+  const knownPoolsCount = miningSummary.knownPoolsCount;
+  const unknownMinersCount = miningSummary.unknownMinersCount;
 
   const [hashHistories, setHashHistories] = useState<Record<string, HashratePoint[]>>({});
   const hashHistory = hashHistories[timeframe] || getCachedHashrateHistory(timeframe);
