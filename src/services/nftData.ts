@@ -3,9 +3,18 @@ import { NftHolder, NftItem, NftTransfer } from '../data/nftCollections';
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 export const PUBLIC_IPFS_GATEWAYS = [
   'https://ipfs.filebase.io/ipfs/',
-  'https://w3s.link/ipfs/', 'https://ipfs.io/ipfs/',
-  'https://gateway.pinata.cloud/ipfs/', 'https://dweb.link/ipfs/',
+  'https://gateway.pinata.cloud/ipfs/',
 ];
+
+// These public gateways now return a service-worker page/HTTP 429 to hotlinked
+// images and JSON. An <img> cannot install their service worker.
+export function isRetiredIpfsGateway(uri: string): boolean {
+  try {
+    const host = new URL(uri).hostname;
+    return ['w3s.link', 'ipfs.io', 'dweb.link', 'nftstorage.link', 'storacha.link']
+      .some(domain => host === domain || host.endsWith('.' + domain));
+  } catch { return false; }
+}
 
 export function tokenIdString(value: unknown): string {
   if (typeof value === 'number' && (!Number.isSafeInteger(value) || value < 0)) throw new Error('Unsafe NFT token ID');
@@ -45,8 +54,8 @@ export function resourceUrls(value: unknown, image = false): string[] {
   const path = ipfsPath(uri);
   if (path) {
     const gateways = PUBLIC_IPFS_GATEWAYS.map(gateway => gateway + path);
-    // A working creator-supplied gateway remains the first choice.
-    return /^https?:\/\//i.test(uri) ? [...new Set([uri, ...gateways])] : gateways;
+    // Preserve the creator's CID/path, but do not retry retired hotlink gateways.
+    return /^https?:\/\//i.test(uri) && !isRetiredIpfsGateway(uri) ? [...new Set([uri, ...gateways])] : gateways;
   }
   if (/^ipns:\/\//i.test(uri)) return ['https://ipfs.io/ipns/' + uri.slice(7)];
   try {

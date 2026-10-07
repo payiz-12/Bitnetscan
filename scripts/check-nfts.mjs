@@ -9,8 +9,9 @@ import { ethers } from 'ethers';
 const temp = await mkdtemp(join(tmpdir(), 'bitnet-nfts-'));
 try {
   await build({
-    entryPoints: ['src/services/nftSyncService.ts', 'src/services/nftData.ts', 'src/data/nftCollections.ts'],
+    entryPoints: ['src/services/nftSyncService.ts', 'src/services/nftData.ts', 'src/services/ipfsResources.ts', 'src/data/nftCollections.ts'],
     bundle: true, platform: 'node', format: 'esm', outdir: temp,
+    external: ['@helia/verified-fetch'],
     banner: { js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);" },
     plugins: [{ name: 'isolated-rpc', setup(build) {
       build.onResolve({ filter: /^\.\/rpc$/ }, () => ({ path: 'rpc', namespace: 'mock' }));
@@ -19,6 +20,7 @@ try {
   });
   const { NftSyncService, ipfsGatewayManager } = await import(pathToFileURL(join(temp, 'services/nftSyncService.js')));
   const data = await import(pathToFileURL(join(temp, 'services/nftData.js')));
+  const { IpfsImageStore, canonicalIpfsUri } = await import(pathToFileURL(join(temp, 'services/ipfsResources.js')));
   const { BITNET_NFT_COLLECTIONS } = await import(pathToFileURL(join(temp, 'data/nftCollections.js')));
   const { tokenIdString, resourceUrls, decodeInlineMetadata, metadataFields, buildHolders, fetchAllPages, ZERO_ADDRESS } = data;
   const coder = ethers.AbiCoder.defaultAbiCoder();
@@ -36,8 +38,35 @@ try {
   assert.equal(decodeInlineMetadata('data:application/json;base64,' + Buffer.from(JSON.stringify(inline)).toString('base64')).name, inline.name);
   assert.equal(decodeInlineMetadata('data:application/json,' + encodeURIComponent(JSON.stringify(inline))).name, inline.name);
   for (const uri of ['ipfs://ipfs/bafyexample/art/0.png', 'ipfs://bafyexample/art/0.png', 'https://bafyexample.ipfs.w3s.link/art/0.png']) {
-    assert.ok(resourceUrls(uri).includes('https://w3s.link/ipfs/bafyexample/art/0.png'));
+    assert.ok(resourceUrls(uri).includes('https://ipfs.filebase.io/ipfs/bafyexample/art/0.png'));
+    assert.equal(canonicalIpfsUri(uri), 'ipfs://bafyexample/art/0.png');
+    assert.ok(resourceUrls(uri).every(url => !/w3s\.link|ipfs\.io|dweb\.link/.test(url)), 'retired gateways must not receive hotlink requests');
   }
+  assert.equal(resourceUrls('https://creator.test/ipfs/bafyexample/art/0.png')[0], 'https://creator.test/ipfs/bafyexample/art/0.png');
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/HvsAAAAASUVORK5CYII=', 'base64');
+  let imageRequests = 0;
+  const images = new IpfsImageStore(async uri => {
+    imageRequests++;
+    assert.equal(uri, 'ipfs://bafyexample/art/0.png');
+    return new Response(png, { headers: { 'Content-Type': 'application/octet-stream' } });
+  });
+  const [imageA, imageB] = await Promise.all([images.get('https://bafyexample.ipfs.w3s.link/art/0.png'), images.get('ipfs://bafyexample/art/0.png')]);
+  assert.equal(imageRequests, 1, 'icon and gallery requests must share the same CID/path retrieval');
+  assert.equal(imageA, imageB);
+  assert.equal(imageA.type, 'image/png');
+  assert.equal(await images.get('ipfs://bafyexample/art/0.png'), imageA);
+  assert.equal(imageRequests, 1, 'immutable image bytes must remain cached across index refreshes');
+  const invalidImage = new IpfsImageStore(async () => new Response('<html>Service worker gateway</html>'));
+  await assert.rejects(invalidImage.get('ipfs://bafyexample/error.png'), /supported image/);
+  const offlineImage = new IpfsImageStore(async () => new Response(png, { status: 429 }));
+  await assert.rejects(offlineImage.get('ipfs://bafyexample/429.png'), /HTTP 429/);
+  let cancelledLargeImage = false;
+  const oversizedImage = new IpfsImageStore(async () => new Response(new ReadableStream({
+    pull(controller) { controller.enqueue(new Uint8Array(1024 * 1024)); },
+    cancel() { cancelledLargeImage = true; },
+  })));
+  await assert.rejects(oversizedImage.get('ipfs://bafyexample/large.png'), /too large/);
+  assert.ok(cancelledLargeImage, 'oversized downloads must stop before reading the entire response');
   assert.deepEqual(resourceUrls('javascript:alert(1)', true), []);
   assert.deepEqual(resourceUrls('data:text/html;base64,AAA', true), []);
   ipfsGatewayManager.markWorkingUrl('ipfs://bafyexample/0.png', 'https://evil.test/wrong.png');
@@ -139,7 +168,7 @@ try {
   const staleMetadata = new NftSyncService([], { ...rpc, call: async (address, input, block) => {
     if (input.startsWith('0xc87b56dd')) return coder.encode(['string'], ['ipfs://bafyexample/unreachable.json']);
     return rpc.call(address, input, block);
-  } }, async () => { throw new Error('gateway unavailable'); }, null);
+  } }, async () => { throw new Error('gateway unavailable'); }, null, async () => { throw new Error('IPFS provider unavailable'); });
   const fallback = await staleMetadata.getNftDetails(contract, punk.items[0].id, punk.items[0]);
   assert.equal(fallback.image, punk.items[0].image);
   assert.equal(fallback.metadataSource, 'indexer');
@@ -147,7 +176,19 @@ try {
   const differentId = await staleMetadata.getNftDetails(contract, '0', punk.items[0]);
   assert.equal(differentId.image, '');
   assert.equal(differentId.mintDate, '', 'dates and images must not cross token IDs');
-  console.log(`PASS: complete collection/instance/transfer pagination, 714 NFTs and 705-holder regression, exact uint256 IDs, metadata URIs, zero/false traits, multi-event transactions, RPC block consistency, cache failures and wallet coverage (${requests} fixture requests).`);
+  let verifiedMetadataUri;
+  const verifiedMetadata = new NftSyncService([], { ...rpc, call: async (address, input, block) => {
+    if (input.startsWith('0xc87b56dd')) return coder.encode(['string'], ['https://bafyexample.ipfs.w3s.link/metadata/714.json']);
+    return rpc.call(address, input, block);
+  } }, async () => ({ ok: false, status: 429 }), null, async uri => {
+    verifiedMetadataUri = uri;
+    return Response.json({ name: 'Verified original #714', image: '../images/714.png' });
+  });
+  const resolved = await verifiedMetadata.getNftDetails(contract, '714');
+  assert.equal(verifiedMetadataUri, 'ipfs://bafyexample/metadata/714.json');
+  assert.equal(resolved.image, 'ipfs://bafyexample/images/714.png');
+  assert.equal(resolved.metadataSource, 'tokenURI', 'verified retrieval must work when HTTP gateways return 429');
+  console.log(`PASS: IPFS image deduplication/cache/content types, metadata with HTTP 429, retired gateway exclusion, complete collection/instance/transfer pagination, 714 NFTs and 705-holder regression, exact uint256 IDs, metadata URIs, zero/false traits, multi-event transactions, RPC block consistency, cache failures and wallet coverage (${requests} fixture requests).`);
 
   if (process.argv.includes('--live')) {
     const endpoint = 'https://explorer.bitnetmoney.org/api/v2';
@@ -169,30 +210,35 @@ try {
       async getBlockNumber() { return Number(BigInt(await this.request('eth_blockNumber', []))); },
       call(address, input, block) { return this.request('eth_call', [{ to: address, data: input }, block]); },
     };
-    const live = new NftSyncService([endpoint], liveRpc, fetch, null);
-    const indexed = await live.syncOnChainCollections();
-    console.log('LIVE coverage:', JSON.stringify(indexed.collections.map(collection => ({ name: collection.name, supply: collection.totalSupply, holders: collection.holdersCount, mints: collection.minted, status: collection.dataStatus }))));
-    assert.equal(indexed.status, 'live', JSON.stringify(indexed.collections.map(collection => ({ name: collection.name, status: collection.dataStatus, error: collection.error }))));
-    for (const collection of indexed.collections) {
-      const response = await fetch(`${endpoint}/tokens/${collection.contract}/holders`, { signal: AbortSignal.timeout(15000) });
-      const holders = await response.json();
-      if (holders.next_page_params === null) {
-        assert.equal(collection.totalSupply, holders.items.reduce((sum, holder) => sum + Number(holder.value), 0));
-        assert.equal(collection.holdersCount, holders.items.length);
-        for (const holder of holders.items) assert.equal(collection.holders.find(item => item.address.toLowerCase() === holder.address.hash.toLowerCase())?.quantity, Number(holder.value));
-      }
-      if (collection.items.length) {
-        const item = collection.items[0];
-        const checked = await live.getNftDetails(collection.contract, item.id, item);
-        assert.equal(checked.owner.toLowerCase(), item.owner.toLowerCase(), 'indexed and RPC owner must match');
-        assert.ok(checked.tokenUri, `${collection.name}: contract tokenURI unavailable`);
-        if (checked.metadataSource !== 'tokenURI') {
-          assert.ok(checked.metadataError, 'gateway failure must be disclosed');
-          assert.equal(checked.image, item.metadataSource === 'indexer' ? item.image : '', 'fallback must belong to the same NFT');
+    // The service bundles live in a temp directory; resolve the SDK from this project.
+    const { createVerifiedFetch } = await import('@helia/verified-fetch');
+    const verifiedFetch = await createVerifiedFetch();
+    const live = new NftSyncService([endpoint], liveRpc, fetch, null, (uri, signal) => verifiedFetch(uri, { signal }));
+    try {
+      const indexed = await live.syncOnChainCollections();
+      console.log('LIVE coverage:', JSON.stringify(indexed.collections.map(collection => ({ name: collection.name, supply: collection.totalSupply, holders: collection.holdersCount, mints: collection.minted, status: collection.dataStatus }))));
+      assert.equal(indexed.status, 'live', JSON.stringify(indexed.collections.map(collection => ({ name: collection.name, status: collection.dataStatus, error: collection.error }))));
+      for (const collection of indexed.collections) {
+        const response = await fetch(`${endpoint}/tokens/${collection.contract}/holders`, { signal: AbortSignal.timeout(15000) });
+        const holders = await response.json();
+        if (holders.next_page_params === null) {
+          assert.equal(collection.totalSupply, holders.items.reduce((sum, holder) => sum + Number(holder.value), 0));
+          assert.equal(collection.holdersCount, holders.items.length);
+          for (const holder of holders.items) assert.equal(collection.holders.find(item => item.address.toLowerCase() === holder.address.hash.toLowerCase())?.quantity, Number(holder.value));
         }
-        console.log(`LIVE ${collection.name} (${collection.contract}): ${collection.totalSupply} NFTs, ${collection.holdersCount} holders, ${collection.minted} mint events; #${item.id} RPC owner matched, tokenURI read; metadata source: ${checked.metadataSource}.`);
+        if (collection.items.length) {
+          const item = collection.items[0];
+          const checked = await live.getNftDetails(collection.contract, item.id, item);
+          assert.equal(checked.owner.toLowerCase(), item.owner.toLowerCase(), 'indexed and RPC owner must match');
+          assert.ok(checked.tokenUri, `${collection.name}: contract tokenURI unavailable`);
+          if (checked.metadataSource !== 'tokenURI') {
+            assert.ok(checked.metadataError, 'gateway failure must be disclosed');
+            assert.equal(checked.image, item.metadataSource === 'indexer' ? item.image : '', 'fallback must belong to the same NFT');
+          }
+          console.log(`LIVE ${collection.name} (${collection.contract}): ${collection.totalSupply} NFTs, ${collection.holdersCount} holders, ${collection.minted} mint events; #${item.id} RPC owner matched, tokenURI read; metadata source: ${checked.metadataSource}.`);
+        }
       }
-    }
-    console.log('PASS: live NFT collection coverage, full holder quantities and one RPC/metadata verification per collection.');
+      console.log('PASS: live NFT collection coverage, full holder quantities and one RPC/metadata verification per collection.');
+    } finally { await verifiedFetch.stop(); }
   }
 } finally { await rm(temp, { recursive: true, force: true }); }

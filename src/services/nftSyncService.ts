@@ -7,6 +7,7 @@ import {
   tokenIdString, compareTokenIds, addressString, mapInstance, mapTransfer, transferKey,
   buildHolders, applyMintDates, fetchAllPages,
 } from './nftData';
+import { canonicalIpfsUri, fetchVerifiedIpfs, IpfsFetch } from './ipfsResources';
 export { PUBLIC_IPFS_GATEWAYS } from './nftData';
 
 export interface AddressNftTransfer {
@@ -117,6 +118,7 @@ export class NftSyncService {
     private rpc: NftRpc = rpcService,
     private fetcher: typeof fetch = (input, init) => fetch(input, init),
     private storage: Storage | null = typeof localStorage === 'undefined' ? null : localStorage,
+    private ipfsFetch: IpfsFetch = fetchVerifiedIpfs,
   ) {}
 
   private async fetchJson(url: string, signal?: AbortSignal): Promise<any> {
@@ -272,14 +274,25 @@ export class NftSyncService {
     if (!urls.length) throw new Error('Unsupported tokenURI');
     const controller = new AbortController();
     try {
-      return await firstSuccessful(urls.map(async url => {
-        const metadata = await this.fetchJson(url, controller.signal);
+      const read = async (url: string, metadataPromise: Promise<any>) => {
+        const metadata = await metadataPromise;
         if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) throw new Error('Invalid metadata');
         // Resolve relative images against the metadata document, not another token's image.
         const image = metadata.image ?? metadata.image_url;
         if (typeof image === 'string' && image && !/^[a-z][a-z\d+.-]*:/i.test(image)) metadata.image = new URL(image, url).href;
         return metadata;
-      }));
+      };
+      const requests = urls.map(url => read(url, this.fetchJson(url, controller.signal)));
+      const ipfsUri = canonicalIpfsUri(uri);
+      if (ipfsUri) requests.push(read(ipfsUri, (async () => {
+        const timer = setTimeout(() => controller.abort(), 40000);
+        try {
+          const response = await this.ipfsFetch(ipfsUri, controller.signal);
+          if (!response.ok) throw new Error('IPFS metadata unavailable');
+          return await response.json();
+        } finally { clearTimeout(timer); }
+      })()));
+      return await firstSuccessful(requests);
     } catch { throw new Error('Metadata could not be loaded from the contract tokenURI'); }
     finally { controller.abort(); }
   }
