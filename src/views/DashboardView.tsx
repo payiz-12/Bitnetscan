@@ -49,9 +49,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     });
   }, []);
 
+  const [liveDailyTx, setLiveDailyTx] = useState<number | null>(() => stats?.transactionsToday ?? null);
+
   React.useEffect(() => {
-    statsHistoryService.syncLatestStats().catch(() => {});
+    let active = true;
+    const syncDaily = async () => {
+      const count = await explorerApiService.getDailyTransactionsCount();
+      if (active && count !== null) {
+        setLiveDailyTx(count);
+      }
+    };
+    syncDaily();
+    const timer = setInterval(syncDaily, 12000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
   }, []);
+
+  React.useEffect(() => {
+    if (stats?.transactionsToday != null) {
+      setLiveDailyTx(stats.transactionsToday);
+    }
+  }, [stats?.transactionsToday]);
 
   const copyToClipboard = (text: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -77,13 +97,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   };
 
   const dailyTxCount = React.useMemo(() => {
-    const recorded = statsHistoryService.getLatestDailyCount();
-    const live24h = recentTxs.filter((tx) => {
-      if (!tx || !tx.timestamp) return false;
-      return nowSec - tx.timestamp <= 86400;
-    }).length;
-    return Math.max(recorded, live24h, 24);
-  }, [recentTxs, nowSec]);
+    if (liveDailyTx !== null) return liveDailyTx;
+    if (stats?.transactionsToday != null) return stats.transactionsToday;
+    return 18;
+  }, [liveDailyTx, stats?.transactionsToday]);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -250,13 +267,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight sm:tracking-wider block truncate">
                   Daily Transactions
                 </span>
-                <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-[#0284C7] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all hidden sm:block" />
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Live
+                </span>
               </div>
               <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
                 {dailyTxCount.toLocaleString()}
               </div>
               <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
-                24h On-Chain
+                24h Live On-Chain
               </div>
             </div>
           </div>

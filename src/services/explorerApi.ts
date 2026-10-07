@@ -133,15 +133,97 @@ class ExplorerApiService {
 
   public async fetchLiveTransactionsFromExplorer(address: string): Promise<AddressTransaction[] | null> {
     const cleanAddr = address.toLowerCase();
-    const urls = [
-      `/api/explorer/api?module=account&action=txlist&address=${address}&page=1&offset=50&sort=desc`,
-      `https://explorer.bitnetmoney.com/api?module=account&action=txlist&address=${address}&page=1&offset=50&sort=desc`
+
+    // 1. Try modern Blockscout API v2 endpoints (returns complete IN & OUT transactions)
+    const v2Urls = [
+      `/api/explorer/api/v2/addresses/${cleanAddr}/transactions`,
+      `https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/transactions`,
+      `/api/bitnet-explorer/api/v2/addresses/${cleanAddr}/transactions`
     ];
 
-    for (const url of urls) {
+    for (const url of v2Urls) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2500);
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) continue;
+        const json = await res.json();
+        if (json && Array.isArray(json.items) && json.items.length > 0) {
+          const mapped: AddressTransaction[] = json.items.map((item: any) => {
+            const fromAddr = (item.from && typeof item.from === 'object' ? item.from.hash : item.from || '').toLowerCase();
+            const toAddr = (item.to && typeof item.to === 'object' ? item.to.hash : item.to || '').toLowerCase();
+
+            let valWeiStr = '0';
+            try {
+              if (item.value) {
+                valWeiStr = typeof item.value === 'string' && item.value.startsWith('0x')
+                  ? BigInt(item.value).toString()
+                  : BigInt(String(item.value)).toString();
+              }
+            } catch {}
+            const valEth = ethers.formatEther(valWeiStr);
+
+            let feeStr: string | undefined = undefined;
+            let feeWeiStr: string | undefined = undefined;
+            if (item.fee?.value) {
+              try {
+                feeWeiStr = String(item.fee.value);
+                feeStr = `${ethers.formatEther(feeWeiStr)} BTN`;
+              } catch {}
+            } else if (item.gas_used && item.gas_price) {
+              try {
+                const feeWei = BigInt(item.gas_used) * BigInt(item.gas_price);
+                feeWeiStr = feeWei.toString();
+                feeStr = `${ethers.formatEther(feeWei)} BTN`;
+              } catch {}
+            }
+
+            let ts = 0;
+            if (typeof item.timestamp === 'string') {
+              ts = Math.floor(new Date(item.timestamp).getTime() / 1000);
+            } else if (item.timestamp) {
+              ts = parseInt(String(item.timestamp), 10) || 0;
+            }
+
+            const isOut = fromAddr === cleanAddr;
+            const statusOk = item.status === 'ok' || item.result === 'success' || item.isError === '0';
+
+            return {
+              hash: item.hash,
+              blockNumber: parseInt(String(item.block_number || item.blockNumber || 0), 10),
+              timestamp: ts,
+              from: fromAddr,
+              to: toAddr,
+              value: valEth,
+              valueWei: valWeiStr,
+              valueNum: Number(valEth),
+              fee: feeStr,
+              feeWei: feeWeiStr,
+              status: statusOk ? 'success' : 'failed',
+              type: isOut ? 'OUT' : 'IN',
+              nonce: item.nonce !== undefined ? parseInt(String(item.nonce), 10) : undefined,
+            };
+          });
+
+          return mapped;
+        }
+      } catch {
+        // try next v2 endpoint
+      }
+    }
+
+    // 2. Fallback to legacy Etherscan-compatible txlist endpoint
+    const legacyUrls = [
+      `/api/explorer/api?module=account&action=txlist&address=${cleanAddr}&page=1&offset=50&sort=desc`,
+      `https://explorer.bitnetmoney.com/api?module=account&action=txlist&address=${cleanAddr}&page=1&offset=50&sort=desc`
+    ];
+
+    for (const url of legacyUrls) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
         const res = await fetch(url, { signal: controller.signal });
         clearTimeout(timeoutId);
 
@@ -149,7 +231,9 @@ class ExplorerApiService {
         const json = await res.json();
         if (json.status === '1' && Array.isArray(json.result) && json.result.length > 0) {
           const mapped: AddressTransaction[] = json.result.map((item: any) => {
-            const valWeiStr = item.value ? (typeof item.value === 'string' && item.value.startsWith('0x') ? BigInt(item.value).toString() : BigInt(item.value).toString()) : '0';
+            const fromAddr = (item.from || '').toLowerCase();
+            const toAddr = (item.to || '').toLowerCase();
+            const valWeiStr = item.value ? BigInt(String(item.value)).toString() : '0';
             const valEth = ethers.formatEther(valWeiStr);
 
             let feeStr: string | undefined = undefined;
@@ -166,29 +250,26 @@ class ExplorerApiService {
               hash: item.hash,
               blockNumber: parseInt(item.blockNumber, 10),
               timestamp: parseInt(item.timeStamp, 10),
-              from: item.from,
-              to: item.to || '',
+              from: fromAddr,
+              to: toAddr,
               value: valEth,
               valueWei: valWeiStr,
               valueNum: Number(valEth),
               fee: feeStr,
               feeWei: feeWeiStr,
               status: item.isError === '0' ? 'success' : 'failed',
-              type: item.from.toLowerCase() === cleanAddr ? 'OUT' : 'IN',
+              type: fromAddr === cleanAddr ? 'OUT' : 'IN',
               nonce: item.nonce !== undefined ? parseInt(item.nonce, 10) : undefined,
             };
           });
 
-          this.txCache.set(cleanAddr, mapped);
-          for (const tx of mapped) {
-            this.txByHash.set(tx.hash.toLowerCase(), tx);
-          }
           return mapped;
         }
       } catch {
         // try next endpoint
       }
     }
+
     return null;
   }
 
@@ -205,22 +286,48 @@ class ExplorerApiService {
       return cached;
     }
 
-    // 2. Check all on-chain transactions collected from blocks
+    // 2. Fetch live transactions from indexer API v2 (retrieves all IN and OUT transactions!)
+    const live = await this.fetchLiveTransactionsFromExplorer(cleanAddr);
+
+    // 3. Find any transactions recorded in the local snapshot/ledger
     const fromLedger = this.allLedgerTransactions.filter(
       (tx) => tx.from.toLowerCase() === cleanAddr || tx.to.toLowerCase() === cleanAddr
     );
-    if (fromLedger.length > 0) {
-      this.txCache.set(cleanAddr, fromLedger);
-      return fromLedger;
-    }
 
-    // 3. Fallback query to indexer endpoint if available
-    const live = await this.fetchLiveTransactionsFromExplorer(address);
+    // 4. Merge live indexer transactions with local ledger transactions (deduplicating by tx.hash)
+    const seen = new Set<string>();
+    const merged: AddressTransaction[] = [];
+
     if (live && live.length > 0) {
-      return live;
+      for (const tx of live) {
+        const h = tx.hash.toLowerCase();
+        if (!seen.has(h)) {
+          seen.add(h);
+          merged.push(tx);
+        }
+      }
     }
 
-    // 4. Address has no recorded transactions on chain
+    for (const tx of fromLedger) {
+      const h = tx.hash.toLowerCase();
+      if (!seen.has(h)) {
+        seen.add(h);
+        merged.push(tx);
+      }
+    }
+
+    // Sort by block number descending (newest first)
+    merged.sort((a, b) => b.blockNumber - a.blockNumber);
+
+    if (merged.length > 0) {
+      this.txCache.set(cleanAddr, merged);
+      for (const tx of merged) {
+        this.txByHash.set(tx.hash.toLowerCase(), tx);
+      }
+      return merged;
+    }
+
+    // 5. Address has no recorded transactions on chain
     return [];
   }
 
@@ -646,6 +753,69 @@ class ExplorerApiService {
   public getOldestLedgerTransactions(count = 15): AddressTransaction[] {
     const sorted = [...this.allLedgerTransactions].sort((a, b) => a.blockNumber - b.blockNumber);
     return sorted.slice(0, count);
+  }
+
+  /**
+   * Fetches real-time live daily transactions and overall network metrics
+   * directly from the official Bitnet Blockscout indexer API v2.
+   */
+  public async getDailyTransactionsCount(): Promise<number | null> {
+    const urls = [
+      '/api/explorer/api/v2/stats',
+      'https://explorer.bitnetmoney.com/api/v2/stats',
+      '/api/bitnet-explorer/api/v2/stats',
+    ];
+    for (const url of urls) {
+      try {
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 3500);
+        const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: 'application/json' } });
+        clearTimeout(tid);
+        if (res.ok) {
+          const data = await res.json();
+          const today = data.transactions_today != null ? parseInt(String(data.transactions_today), 10) : null;
+          if (today !== null && !isNaN(today)) {
+            return today;
+          }
+        }
+      } catch {}
+    }
+    return null;
+  }
+
+  public async getOfficialNetworkStats(): Promise<{
+    transactionsToday: number | null;
+    totalTransactions: number | null;
+    totalBlocks: number | null;
+    totalAddresses: number | null;
+  } | null> {
+    const urls = [
+      '/api/explorer/api/v2/stats',
+      'https://explorer.bitnetmoney.com/api/v2/stats',
+      '/api/bitnet-explorer/api/v2/stats',
+    ];
+    for (const url of urls) {
+      try {
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 3500);
+        const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: 'application/json' } });
+        clearTimeout(tid);
+        if (res.ok) {
+          const data = await res.json();
+          const today = data.transactions_today != null ? parseInt(String(data.transactions_today), 10) : null;
+          const total = data.total_transactions != null ? parseInt(String(data.total_transactions), 10) : null;
+          const blocks = data.total_blocks != null ? parseInt(String(data.total_blocks), 10) : null;
+          const addrs = data.total_addresses != null ? parseInt(String(data.total_addresses), 10) : null;
+          return {
+            transactionsToday: today !== null && !isNaN(today) ? today : null,
+            totalTransactions: total !== null && !isNaN(total) ? total : null,
+            totalBlocks: blocks !== null && !isNaN(blocks) ? blocks : null,
+            totalAddresses: addrs !== null && !isNaN(addrs) ? addrs : null,
+          };
+        }
+      } catch {}
+    }
+    return null;
   }
 }
 

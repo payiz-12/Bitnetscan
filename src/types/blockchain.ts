@@ -64,6 +64,8 @@ export interface NetworkStats {
   avgBlockTimeSeconds: number;
   blockReward: string;
   circulatingEstimate?: string;
+  transactionsToday?: number;
+  totalTransactions?: number;
 }
 
 export interface TokenInfo {

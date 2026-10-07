@@ -94,13 +94,19 @@ export const App: React.FC = () => {
   // Fetch latest blocks, transactions, and stats
   const refreshData = useCallback(async () => {
     try {
-      const [netStats, blocks, liveLedgerTxs] = await Promise.all([
+      const [netStats, blocks, liveLedgerTxs, dailyTxCount] = await Promise.all([
         rpcService.getNetworkStats().catch(() => null),
         rpcService.getRecentBlocks(15).catch(() => []),
         explorerApiService.fetchLiveLedgerTransactions().catch(() => []),
+        explorerApiService.getDailyTransactionsCount().catch(() => null),
       ]);
 
-      if (netStats) setStats(netStats);
+      if (netStats) {
+        if (dailyTxCount !== null) {
+          netStats.transactionsToday = dailyTxCount;
+        }
+        setStats(netStats);
+      }
       // Collect all transactions from these blocks
       const rpcTxs: Transaction[] = [];
       if (blocks.length > 0) {
