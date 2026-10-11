@@ -2,6 +2,7 @@ import preloadedData from '../data/preloaded_activity.json';
 import { Block, Transaction } from '../types/blockchain';
 import { ethers } from 'ethers';
 import { rpcService } from './rpc';
+import { indexedTransactions } from './indexedTransactions';
 
 export interface AddressTokenBalance {
   address: string;
@@ -553,7 +554,8 @@ class ExplorerApiService {
         txStatus = 'pending';
       } else if (raw.status !== undefined && raw.status !== null) {
         const s = String(raw.status).toLowerCase();
-        txStatus = (s === '1' || s === '0x1' || s === 'true' || s === 'success') ? 'success' : 'failed';
+        txStatus = ['1', '0x1', 'true', 'success'].includes(s) ? 'success'
+          : ['0', '0x0', 'false', 'failed', 'error'].includes(s) ? 'failed' : 'unknown';
       }
 
       const txTimestamp = raw.timestamp ? raw.timestamp : Math.floor(Date.now() / 1000);
@@ -610,60 +612,11 @@ class ExplorerApiService {
    * Fetches latest live transactions from Blockscout indexer
    */
   public async fetchLiveLedgerTransactions(): Promise<AddressTransaction[]> {
-    const urls = [
-      '/api/explorer/api/v2/transactions',
-      'https://explorer.bitnetmoney.com/api/v2/transactions',
-    ];
-
-    for (const url of urls) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2500);
-        const res = await fetch(url, {
-          headers: { Accept: 'application/json' },
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data && Array.isArray(data.items) && data.items.length > 0) {
-            const mapped = data.items.map((item: any) => {
-              const valWeiStr = item.value ? BigInt(item.value).toString() : '0';
-              const valBtn = ethers.formatEther(valWeiStr);
-              let feeStr: string | undefined = undefined;
-              let feeWeiStr: string | undefined = undefined;
-              if (item.fee?.value) {
-                try {
-                  const fw = BigInt(item.fee.value);
-                  feeWeiStr = fw.toString();
-                  feeStr = `${ethers.formatEther(fw)} BTN`;
-                } catch {}
-              }
-              return {
-                hash: item.hash,
-                blockNumber: item.block_number || item.block || 0,
-                timestamp: parseTimestampToSeconds(item.timestamp),
-                from: item.from?.hash || item.from || '',
-                to: item.to?.hash || item.to || null,
-                value: valBtn,
-                valueWei: valWeiStr,
-                gasPrice: item.gas_price,
-                fee: feeStr,
-                feeWei: feeWeiStr,
-                status: item.status === 'ok' || item.result === 'success' ? 'success' : 'failed',
-                nonce: item.nonce !== undefined ? item.nonce : undefined,
-              };
-            });
-            this.registerLiveTransactions(mapped);
-            return this.allLedgerTransactions;
-          }
-        }
-      } catch {
-        // try next endpoint
-      }
-    }
-    return this.allLedgerTransactions;
+    try {
+      const page = await indexedTransactions.page();
+      this.registerLiveTransactions(page.transactions);
+      return page.transactions;
+    } catch { return []; }
   }
 
   public async getAddressCounters(address: string): Promise<{ transactionsCount: number | null; validationsCount: number | null }> {
@@ -760,27 +713,7 @@ class ExplorerApiService {
    * directly from the official Bitnet Blockscout indexer API v2.
    */
   public async getDailyTransactionsCount(): Promise<number | null> {
-    const urls = [
-      '/api/explorer/api/v2/stats',
-      'https://explorer.bitnetmoney.com/api/v2/stats',
-      '/api/bitnet-explorer/api/v2/stats',
-    ];
-    for (const url of urls) {
-      try {
-        const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 3500);
-        const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: 'application/json' } });
-        clearTimeout(tid);
-        if (res.ok) {
-          const data = await res.json();
-          const today = data.transactions_today != null ? parseInt(String(data.transactions_today), 10) : null;
-          if (today !== null && !isNaN(today)) {
-            return today;
-          }
-        }
-      } catch {}
-    }
-    return null;
+    return indexedTransactions.today();
   }
 
   public async getOfficialNetworkStats(): Promise<{

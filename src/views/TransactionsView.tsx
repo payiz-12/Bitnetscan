@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   ArrowLeft, ArrowRightLeft, Search, RefreshCw, ChevronLeft, ChevronRight, 
   Copy, Check, Clock, ShieldCheck, Flame, Filter, ExternalLink, Sparkles,
   Layers, Landmark, ArrowUpRight, CheckCircle2, FileCode
 } from 'lucide-react';
-import { AddressTransaction, explorerApiService } from '../services/explorerApi';
+import { explorerApiService } from '../services/explorerApi';
+import { indexedTransactions, IndexedTransactionPage, TransactionCursor } from '../services/indexedTransactions';
 
 interface TransactionsViewProps {
   onBack: () => void;
@@ -26,35 +27,43 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const pageSize = 25;
+  const pageSize = 50;
+  const [remotePage, setRemotePage] = useState<IndexedTransactionPage | null>(null);
+  const [pageLoading, setPageLoading] = useState(false);
+  const [pageError, setPageError] = useState('');
+  const cursors = useRef<(TransactionCursor | undefined)[]>([undefined]);
+  const source = useRef<string>();
+  const snapshot = useMemo(() => explorerApiService.getLedgerTransactions({
+    sort: 'oldest', query: searchQuery, page: currentPage, pageSize,
+  }), [searchQuery, currentPage, refreshTrigger]);
+  const query = searchQuery.trim().toLowerCase();
+  const transactions = sortOrder === 'oldest' ? snapshot.transactions : (remotePage?.transactions || []).filter(tx =>
+    !query || [tx.hash, tx.from, tx.to, String(tx.blockNumber)].some(value => value.toLowerCase().includes(query)));
+  const total = sortOrder === 'oldest' ? snapshot.total : remotePage?.transactions.length || 0;
+  const totalPages = sortOrder === 'oldest' ? snapshot.totalPages : currentPage + (remotePage?.next ? 1 : 0);
 
-  const { transactions, total, totalPages } = useMemo(() => {
-    return explorerApiService.getLedgerTransactions({
-      sort: sortOrder,
-      query: searchQuery,
-      page: currentPage,
-      pageSize,
-    });
-    // refreshTrigger is used to force re-render when refreshed
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortOrder, searchQuery, currentPage, refreshTrigger]);
-
-  // Fetch live network transactions on mount and auto-refresh every 2.5 seconds
   useEffect(() => {
-    explorerApiService.fetchLiveLedgerTransactions().then(() => {
-      setRefreshTrigger((prev) => prev + 1);
-    });
-    const interval = setInterval(() => {
-      explorerApiService.fetchLiveLedgerTransactions().then(() => {
-        setRefreshTrigger((prev) => prev + 1);
-      });
-    }, 2500);
-    return () => clearInterval(interval);
-  }, []);
+    if (sortOrder !== 'latest') { setPageLoading(false); setPageError(''); return; }
+    let active = true;
+    setPageLoading(true);
+    setPageError('');
+    setRemotePage(null);
+    indexedTransactions.page(cursors.current[currentPage - 1], source.current)
+      .then(page => {
+        if (!active) return;
+        source.current = page.source;
+        if (page.next) cursors.current[currentPage] = page.next;
+        cursors.current.length = page.next ? currentPage + 1 : currentPage;
+        setRemotePage(page);
+      })
+      .catch(() => { if (active) setPageError('Indexer unavailable. Retry to load this page.'); })
+      .finally(() => { if (active) setPageLoading(false); });
+    return () => { active = false; };
+  }, [sortOrder, currentPage, refreshTrigger]);
 
   // Reset page to 1 when search or sort order changes
   useEffect(() => {
-    setCurrentPage(1);
+    if (sortOrder === 'oldest') setCurrentPage(1);
   }, [sortOrder, searchQuery]);
 
   const handleCopy = (text: string, e: React.MouseEvent) => {
@@ -65,7 +74,6 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
   };
 
   const handleRefresh = async () => {
-    await explorerApiService.fetchLiveLedgerTransactions();
     setRefreshTrigger((prev) => prev + 1);
   };
 
@@ -119,11 +127,11 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
               <span>Bitnet Blockchain Transactions</span>
               <span className="text-xs font-bold font-mono px-2 py-0.5 rounded-full bg-teal-50 text-[#016976] border border-teal-200/80">
-                {total.toLocaleString()} Indexed Transactions
+                {sortOrder === 'oldest' ? `${total.toLocaleString()} Snapshot Records` : 'Indexer Archive'}
               </span>
             </h1>
             <p className="text-xs text-slate-500 font-medium">
-              Live on-chain transactions and recent blocks
+              Browse indexed transaction pages; historical snapshots are listed separately.
             </p>
           </div>
         </div>
@@ -168,11 +176,11 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
               Ledger Depth
             </span>
             <div className="text-sm font-bold font-mono text-slate-900 truncate">
-              Block 1 → Current Block
+              {sortOrder === 'latest' ? 'Cursor-paginated archive' : 'Historical snapshot only'}
             </div>
             <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              Live On-Chain Ledger
+              Indexer coverage varies by source
             </div>
           </div>
         </div>
@@ -183,13 +191,13 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
           </div>
           <div className="min-w-0">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Average Tx Fee
+              Fee Data
             </span>
             <div className="text-sm font-bold font-mono text-slate-900 truncate">
-              0.000021 BTN
+              Per transaction
             </div>
             <div className="text-[10px] text-slate-500">
-              ~2 Gwei Base Gas
+              Actual indexed fee shown below
             </div>
           </div>
         </div>
@@ -200,7 +208,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
         {/* Sort Tabs: Latest vs Oldest */}
         <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-full md:w-auto">
           <button
-            onClick={() => setSortOrder('latest')}
+            onClick={() => { setCurrentPage(1); setSortOrder('latest'); }}
             className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               sortOrder === 'latest'
                 ? 'bg-white text-[#016976] shadow-xs'
@@ -212,7 +220,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
           </button>
 
           <button
-            onClick={() => setSortOrder('oldest')}
+            onClick={() => { setCurrentPage(1); setSortOrder('oldest'); }}
             className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               sortOrder === 'oldest'
                 ? 'bg-[#016976] text-white shadow-xs'
@@ -220,7 +228,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             }`}
           >
             <Landmark className="w-3.5 h-3.5" />
-            <span>Oldest Verified Transactions</span>
+            <span>Historical Snapshot</span>
           </button>
         </div>
 
@@ -231,7 +239,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by Hash, Address or Block #..."
+            placeholder="Filter this page by hash, address or block..."
             className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#016976] rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-all"
           />
           {searchQuery && (
@@ -245,6 +253,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
         </div>
       </div>
 
+      <p className="text-xs text-slate-500" role="status">{pageLoading && sortOrder === 'latest' ? 'Loading indexer page…' : pageError || (sortOrder === 'latest' ? 'Next loads older transactions from the indexer. Search filters the current page.' : 'Historical cached records; this snapshot does not contain the full chain.')}</p>
       {/* Main Ledger Table */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
@@ -269,7 +278,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                       <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
                         <ArrowRightLeft className="w-6 h-6" />
                       </div>
-                      <p className="font-bold text-slate-700">No transactions found</p>
+                      <p className="font-bold text-slate-700">{pageLoading ? 'Loading…' : pageError || 'No matching transactions'}</p>
                       <p className="text-xs text-slate-400">Try a different search query or reset filters.</p>
                     </div>
                   </td>
@@ -440,7 +449,9 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
         {/* Pagination Footer */}
         <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
           <div>
-            Showing transactions <span className="font-bold text-slate-900">{total > 0 ? (currentPage - 1) * pageSize + 1 : 0} - {Math.min(total, currentPage * pageSize)}</span> of <span className="font-bold text-slate-900">{total.toLocaleString()}</span> (Page {currentPage} of {totalPages})
+            {sortOrder === 'latest' ? `Page ${currentPage} · ${transactions.length} records shown` :
+              `Snapshot page ${currentPage} of ${totalPages} · ${total.toLocaleString()} cached records`}
+
           </div>
 
           <div className="flex items-center gap-2">
@@ -449,7 +460,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 setCurrentPage(1);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              disabled={currentPage <= 1}
+              disabled={pageLoading || currentPage <= 1}
               className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer"
             >
               First
@@ -460,7 +471,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 setCurrentPage((p) => Math.max(1, p - 1));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              disabled={currentPage <= 1}
+              disabled={pageLoading || currentPage <= 1}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -476,23 +487,23 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 setCurrentPage((p) => Math.min(totalPages, p + 1));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              disabled={currentPage >= totalPages}
+              disabled={pageLoading || currentPage >= totalPages}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer"
             >
               <span>Next</span>
               <ChevronRight className="w-4 h-4" />
             </button>
 
-            <button
+            {sortOrder === 'oldest' && <button
               onClick={() => {
                 setCurrentPage(totalPages);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              disabled={currentPage >= totalPages}
+              disabled={pageLoading || currentPage >= totalPages}
               className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer"
             >
               Last
-            </button>
+            </button>}
           </div>
         </div>
       </div>

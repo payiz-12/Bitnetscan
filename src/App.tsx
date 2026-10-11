@@ -82,6 +82,7 @@ export const App: React.FC = () => {
 
   const latestKnownBlockRef = React.useRef<number>(0);
   const isPollingRef = React.useRef<boolean>(false);
+  const refreshingRef = React.useRef(false);
 
   // 1-second live clock ticker so block timeagos change dynamically every second
   useEffect(() => {
@@ -93,6 +94,8 @@ export const App: React.FC = () => {
 
   // Fetch latest blocks, transactions, and stats
   const refreshData = useCallback(async () => {
+    if (refreshingRef.current) return;
+    refreshingRef.current = true;
     try {
       const [netStats, blocks, liveLedgerTxs, dailyTxCount] = await Promise.all([
         rpcService.getNetworkStats().catch(() => null),
@@ -102,9 +105,7 @@ export const App: React.FC = () => {
       ]);
 
       if (netStats) {
-        if (dailyTxCount !== null) {
-          netStats.transactionsToday = dailyTxCount;
-        }
+        netStats.transactionsToday = dailyTxCount;
         setStats(netStats);
       }
       // Collect all transactions from these blocks
@@ -171,18 +172,19 @@ export const App: React.FC = () => {
     } catch (err) {
       console.error('Error refreshing blockchain data:', err);
     } finally {
+      refreshingRef.current = false;
       setLoading(false);
     }
   }, []);
 
-  // Initial full load + general stats refresh every 2.5 seconds (ultra-fast live refresh)
+  // Initial full load + general stats refresh every 15 seconds
   useEffect(() => {
     refreshData();
-    const interval = setInterval(refreshData, 2500);
+    const interval = setInterval(refreshData, 15000);
     return () => clearInterval(interval);
   }, [refreshData]);
 
-  // 150ms ultra-fast block detection interval (new block mined detection)
+  // Poll for newly mined blocks every 3 seconds
   useEffect(() => {
     let isMounted = true;
 
@@ -230,13 +232,13 @@ export const App: React.FC = () => {
           }
         }
       } catch {
-        // Silently tolerate single network hiccups during 150ms polling
+        // Silently tolerate single network hiccups during block polling
       } finally {
         isPollingRef.current = false;
       }
     };
 
-    const poller = setInterval(fastPoll, 150);
+    const poller = setInterval(fastPoll, 3000);
     return () => {
       isMounted = false;
       clearInterval(poller);

@@ -84,6 +84,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
         balanceFormatted: balNum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
         percentage: `${pct}%`,
         txCount,
+        balanceLive: true,
       };
 
       setAccounts((prev) => {
@@ -197,6 +198,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
         </div>
       </div>
 
+      <p className="text-xs text-slate-500">Ranking covers the watched wallets only. Balances marked snapshot could not be refreshed.</p>
       {/* Check Any Address Rank Tool */}
       <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
         <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -312,7 +314,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                     </span>
                     <div className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5 truncate">
                       <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{acc.balanceFormatted} BTN</span>
+                      <span className="truncate">{acc.balanceFormatted} BTN{!acc.balanceLive && ' (snapshot)'}</span>
                     </div>
                     <div className="text-[11px] text-slate-500 font-sans font-medium mt-0.5 truncate">
                       ≈ ${(acc.balance * priceData.priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
@@ -324,7 +326,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                       {acc.percentage} of Supply
                     </div>
                     <div className="text-[10px] text-slate-500 font-sans font-medium mt-1">
-                      {acc.txCount.toLocaleString()} txns
+                      {acc.txCount.toLocaleString()} outgoing txns
                     </div>
                   </div>
                 </div>
@@ -415,7 +417,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                     <td className="py-4 px-4 text-right">
                       <div className="font-bold text-slate-900 flex items-center justify-end gap-1.5">
                         <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
-                        <span>{acc.balanceFormatted} BTN</span>
+                        <span>{acc.balanceFormatted} BTN{!acc.balanceLive && ' (snapshot)'}</span>
                       </div>
                       <div className="text-[11px] text-slate-500 font-sans font-medium mt-0.5">
                         ≈ ${(acc.balance * priceData.priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
@@ -429,7 +431,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
 
                     {/* Tx count */}
                     <td className="py-4 px-4 text-right text-slate-800 font-semibold">
-                      {acc.txCount.toLocaleString()} txns
+                      {acc.txCount.toLocaleString()} outgoing txns
                     </td>
 
                     {/* Action */}

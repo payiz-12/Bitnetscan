@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/coolpool/:path*", "destination": "https://coolpool.top/:path*" },
     {
       "source": "/api/rpc2/:path*",
       "destination": "https://rpc.bitnetmoney.com/:path*"

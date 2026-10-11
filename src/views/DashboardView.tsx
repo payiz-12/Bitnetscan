@@ -4,7 +4,7 @@ import {
   ExternalLink, ArrowUpRight, Zap, CheckCircle2, ChevronRight, User, BarChart2, Coins, TrendingUp, FileCode, Trophy
 } from 'lucide-react';
 import { Block, NetworkStats, Transaction } from '../types/blockchain';
-import { VERIFIED_HODL_WALLETS } from '../data/richList';
+import { VERIFIED_HODL_WALLETS, RichAccount, fetchLiveRichList } from '../data/richList';
 import { explorerApiService } from '../services/explorerApi';
 import { statsHistoryService } from '../services/statsHistory';
 import { NetworkActivityCharts } from '../components/NetworkActivityCharts';
@@ -55,7 +55,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     let active = true;
     const syncDaily = async () => {
       const count = await explorerApiService.getDailyTransactionsCount();
-      if (active && count !== null) {
+      if (active) {
         setLiveDailyTx(count);
       }
     };
@@ -68,9 +68,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }, []);
 
   React.useEffect(() => {
-    if (stats?.transactionsToday != null) {
-      setLiveDailyTx(stats.transactionsToday);
-    }
+    setLiveDailyTx(stats?.transactionsToday ?? null);
   }, [stats?.transactionsToday]);
 
   const copyToClipboard = (text: string, e: React.MouseEvent) => {
@@ -96,11 +94,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
-  const dailyTxCount = React.useMemo(() => {
-    if (liveDailyTx !== null) return liveDailyTx;
-    if (stats?.transactionsToday != null) return stats.transactionsToday;
-    return 18;
-  }, [liveDailyTx, stats?.transactionsToday]);
+  const dailyTxCount = liveDailyTx;
+  const [richAccounts, setRichAccounts] = useState<RichAccount[]>([]);
+  const [richStatus, setRichStatus] = useState('Loading watched wallet balances…');
+  React.useEffect(() => {
+    if (!stats?.latestBlock) return;
+    let active = true, busy = false;
+    const refresh = async () => {
+      if (busy) return;
+      busy = true;
+      try {
+        const accounts = await fetchLiveRichList(stats.latestBlock);
+        if (active) {
+          setRichAccounts(accounts);
+          setRichStatus(accounts.every(a => a.balanceLive) ? 'Live balances · 50 watched wallets' : 'Some balances are historical snapshots');
+        }
+      } finally { busy = false; }
+    };
+    refresh();
+    const timer = setInterval(refresh, 60000);
+    return () => { active = false; clearInterval(timer); };
+  }, [!!stats?.latestBlock]);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -269,14 +283,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </span>
                 <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Live
+                  {dailyTxCount !== null ? 'Indexed' : 'Unavailable'}
                 </span>
               </div>
               <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono text-slate-900 mt-0.5 truncate">
-                {dailyTxCount.toLocaleString()}
+                {dailyTxCount !== null ? dailyTxCount.toLocaleString() : 'Unknown'}
               </div>
               <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
-                24h Live On-Chain
+                Today (UTC) · Confirmed transactions
               </div>
             </div>
           </div>
@@ -659,7 +673,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="flex items-center gap-2">
                 <h3 className="text-base sm:text-lg font-bold text-slate-900">Bitnet HODL Rich List</h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-[#016976] border border-teal-200">
-                  Top Balance Ranking
+                  Watched Wallet Ranking
                 </span>
               </div>
             </div>
@@ -676,9 +690,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           )}
         </div>
 
+        <p className="text-xs text-slate-500">{richStatus}</p>
         {/* Mobile View: Dedicated cards with zero horizontal scroll (sm:hidden) */}
         <div className="sm:hidden divide-y divide-slate-100 font-mono">
-          {VERIFIED_HODL_WALLETS.slice(0, 5).map((acc) => (
+          {richAccounts.slice(0, 5).map((acc) => (
             <div
               key={acc.address}
               onClick={() => onSelectAddress(acc.address)}
@@ -707,7 +722,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     {truncateAddress(acc.address)}
                   </span>
                   <span className="text-[10px] text-slate-500 font-sans block mt-0.5">
-                    {acc.percentage} share • {acc.txCount.toLocaleString()} txns
+                    {acc.balanceLive ? 'Live balance' : 'Historical snapshot'} • {acc.txCount.toLocaleString()} outgoing txns
                   </span>
                 </div>
               </div>
@@ -715,7 +730,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="text-right shrink-0">
                 <div className="flex items-center justify-end gap-1 text-xs font-bold text-slate-900">
                   <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
-                  <span>{acc.balanceFormatted} BTN</span>
+                  <span>{acc.balanceFormatted} BTN{!acc.balanceLive && ' (snapshot)'}</span>
                 </div>
                 <div className="text-[10px] text-[#016976] font-bold mt-0.5 flex items-center justify-end gap-0.5">
                   <span>View</span>
@@ -734,13 +749,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <th className="py-3 px-3">Rank</th>
                 <th className="py-3 px-3">Wallet Address</th>
                 <th className="py-3 px-3 text-right">Balance (BTN)</th>
-                <th className="py-3 px-3 text-right hidden md:table-cell">% Circulating Share</th>
-                <th className="py-3 px-3 text-right">Transactions</th>
+                <th className="py-3 px-3 text-right hidden md:table-cell">% Base Issuance (est.)</th>
+                <th className="py-3 px-3 text-right">Outgoing Txns</th>
                 <th className="py-3 px-3 text-center">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {VERIFIED_HODL_WALLETS.slice(0, 5).map((acc) => (
+              {richAccounts.slice(0, 5).map((acc) => (
                 <tr
                   key={acc.address}
                   onClick={() => onSelectAddress(acc.address)}
@@ -771,14 +786,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <td className="py-3 px-3 text-right font-bold text-slate-900 whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5">
                       <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
-                      <span>{acc.balanceFormatted} BTN</span>
+                      <span>{acc.balanceFormatted} BTN{!acc.balanceLive && ' (snapshot)'}</span>
                     </div>
                   </td>
                   <td className="py-3 px-3 text-right hidden md:table-cell text-slate-600 font-medium">
                     {acc.percentage}
                   </td>
                   <td className="py-3 px-3 text-right text-slate-800 font-semibold whitespace-nowrap">
-                    {acc.txCount.toLocaleString()} txns
+                    {acc.txCount.toLocaleString()} outgoing txns
                   </td>
                   <td className="py-3 px-3 text-center text-[#016976]">
                     <span className="inline-flex items-center gap-1 group-hover:underline text-xs font-bold">
