@@ -1,5 +1,5 @@
 import { rpcService } from '../services/rpc';
-import { decodeStringOrBytes32 } from '../services/nftSyncService';
+import { decodeStringOrBytes32 } from '../services/abiText';
 import { ethers } from 'ethers';
 
 export interface VerifiedContractItem {

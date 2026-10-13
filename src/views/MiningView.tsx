@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Cpu, Calculator, Zap, Server, ShieldCheck, Download, Terminal, Flame, TrendingUp, ExternalLink, Users } from 'lucide-react';
+import { Calculator, Server, Terminal, ExternalLink } from 'lucide-react';
 import { Block, NetworkStats } from '../types/blockchain';
 import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
-import { fetchLivePoolStats, getCachedPoolStats, LivePoolStats, computeLiveMiningSummary } from '../services/miningPoolStats';
+import { fetchLivePoolStats, getCachedPoolStats, LivePoolStats, computeLiveMiningSummary, ComputedMinerStats } from '../services/miningPoolStats';
+import { KNOWN_MINING_POOLS } from '../data/miningPools';
+import { isPageHidden } from '../services/pageVisibility';
 
 interface MiningViewProps {
   stats: NetworkStats | null;
@@ -30,6 +32,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       if (active && res) setPoolStats({ ...res });
     });
     const interval = setInterval(() => {
+      if (isPageHidden()) return;
       fetchLivePoolStats().then((res) => {
         if (active && res) setPoolStats({ ...res });
       });
@@ -42,16 +45,34 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
     return computeLiveMiningSummary(recentBlocks || [], stats?.hashrateHps, poolStats);
   }, [recentBlocks, stats?.hashrateHps, poolStats]);
 
-  const activeWorkersTotal = miningSummary.totalActiveWorkers;
-  const coolPoolWorkers = miningSummary.coolPoolWorkers;
-  const gtPoolWorkers = miningSummary.gtPoolWorkers;
-  const soloWorkers = miningSummary.soloWorkers;
+  const reportedWorkers = miningSummary.reportedWorkers;
 
-  // PoW calculations:
-  // Blocks per day = 86400 / 14.6 ≈ 5,918 blocks
-  // Daily BTN rewards = 5,918 * 1.0 ≈ 5,918 BTN
-  const blocksPerDay = Math.round(86400 / (stats?.avgBlockTimeSeconds || 14.6));
-  const dailyTotalReward = blocksPerDay * 1.0;
+  // Miners seen in the recent block sample, plus known pools that did not mine any of those blocks.
+  const minerRows: ComputedMinerStats[] = React.useMemo(() => {
+    const seen = new Set(miningSummary.miners.map((m) => m.miner));
+    const idle = Object.values(KNOWN_MINING_POOLS)
+      .filter((p) => !seen.has(p.address))
+      .map((p): ComputedMinerStats => ({
+        miner: p.address,
+        poolName: p.name,
+        poolTag: p.tag,
+        poolUrl: p.url,
+        category: p.category,
+        categoryLabel: p.categoryLabel,
+        badge: p.badge,
+        minersCount: poolStats[p.address]?.workers ?? null,
+        workersSource: poolStats[p.address]?.source,
+        count: 0,
+        percent: '0.0',
+        estimatedHashrateGh: null,
+      }));
+    return [...miningSummary.miners, ...idle];
+  }, [miningSummary, poolStats]);
+
+  // PoW calculations from the measured average block time (1 BTN base subsidy per block).
+  const avgBlockTime = stats?.avgBlockTimeSeconds && stats.avgBlockTimeSeconds > 0 ? stats.avgBlockTimeSeconds : null;
+  const blocksPerDay = avgBlockTime ? Math.round(86400 / avgBlockTime) : null;
+  const dailyTotalReward = (blocksPerDay ?? 0) * 1.0;
 
   // Estimate user share:
   const numericHashrate = Math.max(0, parseFloat(userHashrate) || 0);
@@ -60,38 +81,39 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
   // Network hashrate in H/s (Difficulty / BlockTime):
   const netRateInH = stats?.hashrateHps ?? 0;
   const userShare = netRateInH > 0 ? userRateInH / (netRateInH + userRateInH) : 0;
-  const estimatedDailyBtn = netRateInH > 0 ? (userShare * dailyTotalReward).toFixed(2) : '—';
-  const estimatedWeeklyBtn = netRateInH > 0 ? (userShare * dailyTotalReward * 7).toFixed(2) : '—';
-  const estimatedMonthlyBtn = netRateInH > 0 ? (userShare * dailyTotalReward * 30).toFixed(2) : '—';
+  const canEstimate = netRateInH > 0 && blocksPerDay !== null;
+  const estimatedDailyBtn = canEstimate ? (userShare * dailyTotalReward).toFixed(2) : '—';
+  const estimatedWeeklyBtn = canEstimate ? (userShare * dailyTotalReward * 7).toFixed(2) : '—';
+  const estimatedMonthlyBtn = canEstimate ? (userShare * dailyTotalReward * 30).toFixed(2) : '—';
 
   return (
-    <div className="space-y-8 w-full animate-fade-in">
+    <div className="space-y-5 sm:space-y-8 w-full animate-fade-in">
       {/* Header Banner */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm">
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-100 p-2 flex items-center justify-center text-[#016976] shadow-xs">
             <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900">Bitnet PoW & Mining Analytics</h1>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">Bitnet PoW & Mining Analytics</h1>
           </div>
         </div>
 
         {/* 6 Mining Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mt-5 sm:mt-6">
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
             <span className="text-xs text-slate-500 block mb-1 font-medium">Estimated Hashrate</span>
             <span className="text-xl font-black font-mono text-[#D68142]">
-              {stats?.hashrateEstimate || 'Active'}
+              {stats?.hashrateEstimate || 'Unknown'}
             </span>
           </div>
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-            <span className="text-xs text-slate-500 block mb-1 font-medium flex items-center justify-between">
-              <span>Active Workers</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            </span>
+            <span className="text-xs text-slate-500 block mb-1 font-medium">Pool-Reported Workers</span>
             <span className="text-xl font-black font-mono text-slate-900">
-              ~{activeWorkersTotal} Workers
+              {reportedWorkers !== null ? reportedWorkers : 'Unknown'}
+            </span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">
+              {reportedWorkers !== null ? miningSummary.reportedWorkerSources.join(', ') : 'No pool API reachable'}
             </span>
           </div>
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
@@ -102,8 +124,13 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
             </div>
           </div>
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-            <span className="text-xs text-slate-500 block mb-1 font-medium">Daily Emission</span>
-            <span className="text-xl font-black font-mono text-slate-900">~5,918 BTN</span>
+            <span className="text-xs text-slate-500 block mb-1 font-medium">Daily Base Emission</span>
+            <span className="text-xl font-black font-mono text-slate-900">
+              {blocksPerDay !== null ? `~${blocksPerDay.toLocaleString()} BTN` : 'Unknown'}
+            </span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">
+              {avgBlockTime ? `1 BTN × blocks at ${avgBlockTime.toFixed(2)}s` : 'Block time unavailable'}
+            </span>
           </div>
           <a
             href="https://trade.nestex.one/spot/BTN"
@@ -125,7 +152,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       </div>
 
       {/* Interactive Mining Profitability Calculator */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-6 shadow-sm">
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-6 shadow-sm">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
           <Calculator className="w-5 h-5 text-[#016976]" />
           <h3 className="text-lg font-bold text-slate-900">Mining Profitability Calculator</h3>
@@ -196,7 +223,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       </div>
 
       {/* How to Mine Quickstart Guide */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-4 shadow-sm">
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm">
         <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
           <Terminal className="w-5 h-5 text-[#D68142]" />
           <span>How to Mine Bitnet (BTN)</span>
@@ -217,123 +244,77 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       </div>
 
       {/* Active Mining Pools Section */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 space-y-4 shadow-sm">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <Server className="w-5 h-5 text-[#016976]" />
-            <h3 className="text-lg font-bold text-slate-900">Active Bitnet Mining Pools & Nodes</h3>
+            <h3 className="text-lg font-bold text-slate-900">Bitnet Miners & Pools</h3>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-[#016976] bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
-              ~{activeWorkersTotal} Active Workers
-            </span>
-            <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 hidden sm:inline">
-              Known & Unknown
-            </span>
-          </div>
+          <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+            Share of last {miningSummary.totalBlocksSampled} blocks
+          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Unknown Miner (Solo Node) */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-900 text-sm">Unknown Miner (Solo Node)</span>
-                <span className="text-[10px] font-extrabold uppercase text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-300">
-                  Unknown Mining
-                </span>
+          {minerRows.map((m) => (
+            <div key={m.miner} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-slate-900 text-sm truncate">{m.poolName}</span>
+                  <span className={`shrink-0 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
+                    m.category === 'known'
+                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                      : 'text-slate-600 bg-slate-100 border-slate-300'
+                  }`}>
+                    {m.categoryLabel}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  {m.count > 0
+                    ? `Mined ${m.count} of the last ${miningSummary.totalBlocksSampled} blocks (${m.percent}%).`
+                    : `No blocks in the last ${miningSummary.totalBlocksSampled} sampled blocks.`}
+                  {m.estimatedHashrateGh !== null && m.count > 0 && ` ≈ ${m.estimatedHashrateGh} GH/s by block share.`}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-bold">
+                  {m.minersCount !== null ? (
+                    <span className="inline-flex items-center gap-1.5 text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md" title={`Reported by ${m.workersSource}`}>
+                      {m.minersCount} {m.minersCount === 1 ? 'Worker' : 'Workers'} · {m.workersSource}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-md">
+                      Worker count not published
+                    </span>
+                  )}
+                </div>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Community Geth node mining directly on-chain producing ~{miningSummary.soloSharePercent}% of current blocks.
-              </p>
-              <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
-                <span>{soloWorkers} {soloWorkers === 1 ? 'Worker' : 'Workers'} (Solo)</span>
-              </div>
-            </div>
-            <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-              <button
-                onClick={() => onSelectAddress?.('0x6afcdfec8066a7fbf1295f10c4907924e99e72a4')}
-                className="text-[10px] font-mono text-slate-400 hover:text-[#016976] hover:underline cursor-pointer"
-                title="View address 0x6afcdfec8066a7fbf1295f10c4907924e99e72a4"
-              >
-                0x6afc...72a4
-              </button>
-              <span className="text-[11px] font-bold text-slate-600">Geth Linux Node</span>
-            </div>
-          </div>
-
-          {/* CoolPool */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-900 text-sm">CoolPool</span>
-                <span className="text-[10px] font-extrabold uppercase text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  Known Mining
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Active public mining pool producing ~{miningSummary.coolPoolSharePercent}% of current blocks.
-              </p>
-              <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
-                <span>{coolPoolWorkers} {coolPoolWorkers === 1 ? 'Worker' : 'Workers'}</span>
-              </div>
-            </div>
-            <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-              <button
-                onClick={() => onSelectAddress?.('0x6c0db3ea9eed7ed145f36da461d84a8d02596b08')}
-                className="text-[10px] font-mono text-slate-400 hover:text-[#016976] hover:underline cursor-pointer"
-                title="View address 0x6c0db3ea9eed7ed145f36da461d84a8d02596b08"
-              >
-                0x6c0d...6b08
-              </button>
-              <a
-                href="https://coolpool.top"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-bold text-[#016976] hover:underline flex items-center gap-1"
-              >
-                <span>coolpool.top</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-
-          {/* GTPool */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-900 text-sm">GTPool</span>
-                <span className="text-[10px] font-extrabold uppercase text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  Known Mining
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Bitnet genesis & primary mining pool producing ~{miningSummary.gtPoolSharePercent}% of current blocks.
-              </p>
-              <div className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md">
-                <span>~{gtPoolWorkers} {gtPoolWorkers === 1 ? 'Worker' : 'Workers'}</span>
+              <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                <button
+                  onClick={() => onSelectAddress?.(m.miner)}
+                  className="text-[10px] font-mono text-slate-400 hover:text-[#016976] hover:underline cursor-pointer"
+                  title={`View address ${m.miner}`}
+                >
+                  {m.miner.slice(0, 6)}...{m.miner.slice(-4)}
+                </button>
+                {m.poolUrl ? (
+                  <a
+                    href={m.poolUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-bold text-[#016976] hover:underline flex items-center gap-1"
+                  >
+                    <span>{m.poolUrl.replace(/^https?:\/\//, '')}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                ) : (
+                  <span className="text-[11px] font-bold text-slate-600 truncate">{m.poolTag}</span>
+                )}
               </div>
             </div>
-            <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-              <button
-                onClick={() => onSelectAddress?.('0xfad4a236c87880035497043f24ea58d73c3e50de')}
-                className="text-[10px] font-mono text-slate-400 hover:text-[#016976] hover:underline cursor-pointer"
-                title="View address 0xfad4a236c87880035497043f24ea58d73c3e50de"
-              >
-                0xfad4...50de
-              </button>
-              <a
-                href="https://gtpool.io"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-bold text-[#016976] hover:underline flex items-center gap-1"
-              >
-                <span>gtpool.io</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
+          ))}
         </div>
+        <p className="text-[11px] text-slate-500">
+          Worker counts are shown only when a pool publishes them. Block share does not reveal how many machines a miner runs.
+        </p>
       </div>
     </div>
   );

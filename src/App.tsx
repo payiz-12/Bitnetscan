@@ -1,23 +1,33 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, Suspense, lazy } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { DashboardView } from './views/DashboardView';
-import { BlockDetailView } from './views/BlockDetailView';
-import { BlocksView } from './views/BlocksView';
-import { TransactionsView } from './views/TransactionsView';
-import { TxDetailView } from './views/TxDetailView';
-import { AddressDetailView } from './views/AddressDetailView';
-import { TokensView } from './views/TokensView';
-import { NftsView } from './views/NftsView';
-import { MiningView } from './views/MiningView';
-import { ConsoleView } from './views/ConsoleView';
-import { RpcStatusView } from './views/RpcStatusView';
-import { RichListView } from './views/RichListView';
-import { ContractsView } from './views/ContractsView';
 import { ErrorBoundary } from './components/ErrorBoundary';
+
+// Secondary pages load on first visit so the dashboard bundle stays small.
+const BlockDetailView = lazy(() => import('./views/BlockDetailView').then((m) => ({ default: m.BlockDetailView })));
+const BlocksView = lazy(() => import('./views/BlocksView').then((m) => ({ default: m.BlocksView })));
+const TransactionsView = lazy(() => import('./views/TransactionsView').then((m) => ({ default: m.TransactionsView })));
+const TxDetailView = lazy(() => import('./views/TxDetailView').then((m) => ({ default: m.TxDetailView })));
+const AddressDetailView = lazy(() => import('./views/AddressDetailView').then((m) => ({ default: m.AddressDetailView })));
+const TokensView = lazy(() => import('./views/TokensView').then((m) => ({ default: m.TokensView })));
+const NftsView = lazy(() => import('./views/NftsView').then((m) => ({ default: m.NftsView })));
+const MiningView = lazy(() => import('./views/MiningView').then((m) => ({ default: m.MiningView })));
+const ConsoleView = lazy(() => import('./views/ConsoleView').then((m) => ({ default: m.ConsoleView })));
+const RpcStatusView = lazy(() => import('./views/RpcStatusView').then((m) => ({ default: m.RpcStatusView })));
+const RichListView = lazy(() => import('./views/RichListView').then((m) => ({ default: m.RichListView })));
+const ContractsView = lazy(() => import('./views/ContractsView').then((m) => ({ default: m.ContractsView })));
+
+const PageFallback: React.FC = () => (
+  <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-500" role="status">
+    <div className="w-8 h-8 rounded-full border-2 border-[#016976] border-t-transparent animate-spin" />
+    <span className="text-xs font-semibold">Loading…</span>
+  </div>
+);
 import { Block, NetworkStats, Transaction } from './types/blockchain';
 import { rpcService } from './services/rpc';
 import { explorerApiService } from './services/explorerApi';
+import { isPageHidden, onPageVisible } from './services/pageVisibility';
 
 // URL hash route parser for browser history & back/forward support
 const parseHash = (): { view: string; param?: string | number } => {
@@ -84,13 +94,16 @@ export const App: React.FC = () => {
   const isPollingRef = React.useRef<boolean>(false);
   const refreshingRef = React.useRef(false);
 
-  // 1-second live clock ticker so block timeagos change dynamically every second
+  // 1-second clock for the dashboard's "time ago" labels. It re-renders the app, so it only
+  // runs while the dashboard is shown and the tab is visible.
   useEffect(() => {
+    if (currentView !== 'dashboard') return;
+    setCurrentSeconds(Math.floor(Date.now() / 1000));
     const clock = setInterval(() => {
-      setCurrentSeconds(Math.floor(Date.now() / 1000));
+      if (!isPageHidden()) setCurrentSeconds(Math.floor(Date.now() / 1000));
     }, 1000);
     return () => clearInterval(clock);
-  }, []);
+  }, [currentView]);
 
   // Fetch latest blocks, transactions, and stats
   const refreshData = useCallback(async () => {
@@ -177,11 +190,18 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Initial full load + general stats refresh every 15 seconds
+  // Initial full load. New blocks trigger refreshes; this interval is only a safety net
+  // (e.g. gas price or indexer changes without a new block). Paused in background tabs.
   useEffect(() => {
     refreshData();
-    const interval = setInterval(refreshData, 15000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      if (!isPageHidden()) refreshData();
+    }, 30000);
+    const stopVisible = onPageVisible(refreshData);
+    return () => {
+      clearInterval(interval);
+      stopVisible();
+    };
   }, [refreshData]);
 
   // Poll for newly mined blocks every 3 seconds
@@ -189,7 +209,7 @@ export const App: React.FC = () => {
     let isMounted = true;
 
     const fastPoll = async () => {
-      if (isPollingRef.current) return;
+      if (isPollingRef.current || isPageHidden()) return;
       isPollingRef.current = true;
       try {
         const latestNum = await rpcService.getBlockNumber();
@@ -372,7 +392,9 @@ export const App: React.FC = () => {
       />
 
       <main className="flex-1 max-w-[1440px] w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8">
-        <ErrorBoundary fallbackTitle="An error occurred while loading this page">
+        {/* Keyed by route so an error on one page does not block navigating to another */}
+        <ErrorBoundary key={routeKey} fallbackTitle="An error occurred while loading this page">
+          <Suspense fallback={<PageFallback />}>
           {currentView === 'dashboard' && (
             <DashboardView
               stats={stats}
@@ -480,6 +502,7 @@ export const App: React.FC = () => {
           {currentView === 'nodes' && (
             <RpcStatusView />
           )}
+          </Suspense>
         </ErrorBoundary>
       </main>
 

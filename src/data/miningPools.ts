@@ -7,8 +7,6 @@ export interface MiningEntityInfo {
   categoryLabel: string;
   badge: string;
   description: string;
-  minersCount: number; // Worker / Miner count
-  totalBlocksMinedApprox?: number;
 }
 
 export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
@@ -21,9 +19,7 @@ export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
     category: 'known',
     categoryLabel: 'Known Mining',
     badge: 'Known Pool',
-    description: 'Bitnet genesis & primary mining pool. Over 4.35M blocks mined.',
-    minersCount: 2,
-    totalBlocksMinedApprox: 4354589,
+    description: 'Bitnet genesis & primary mining pool.',
   },
   // 2. Known Mining: CoolPool
   '0x6c0db3ea9eed7ed145f36da461d84a8d02596b08': {
@@ -35,8 +31,6 @@ export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
     categoryLabel: 'Known Mining',
     badge: 'Known Pool',
     description: 'Active public mining pool for Bitnet Ethash PoW.',
-    minersCount: 3,
-    totalBlocksMinedApprox: 493335,
   },
   // 3. Unknown Mining: Solo Miner / Node
   '0x6afcdfec8066a7fbf1295f10c4907924e99e72a4': {
@@ -47,8 +41,6 @@ export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
     categoryLabel: 'Unknown Mining',
     badge: 'Unknown Solo',
     description: 'Community full node / solo miner running Geth on Linux directly on-chain.',
-    minersCount: 5,
-    totalBlocksMinedApprox: 441101,
   },
 };
 
@@ -70,7 +62,6 @@ export function identifyMinerPool(address: string, extraDataAscii?: string): Min
         categoryLabel: 'Known Mining',
         badge: 'Known Pool',
         description: 'Known mining pool (GTPool)',
-        minersCount: 4,
       };
     }
     if (lower.includes('coolpool')) {
@@ -83,7 +74,6 @@ export function identifyMinerPool(address: string, extraDataAscii?: string): Min
         categoryLabel: 'Known Mining',
         badge: 'Known Pool',
         description: 'Known mining pool (CoolPool)',
-        minersCount: 4,
       };
     }
     if (lower.includes('geth')) {
@@ -95,7 +85,6 @@ export function identifyMinerPool(address: string, extraDataAscii?: string): Min
         categoryLabel: 'Unknown Mining',
         badge: 'Unknown Solo',
         description: 'Unknown independent solo miner',
-        minersCount: 1,
       };
     }
   }
@@ -108,6 +97,5 @@ export function identifyMinerPool(address: string, extraDataAscii?: string): Min
     categoryLabel: 'Unknown Mining',
     badge: 'Unknown',
     description: 'Unverified independent miner',
-    minersCount: 1,
   };
 }

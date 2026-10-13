@@ -9,6 +9,7 @@ import { explorerApiService } from '../services/explorerApi';
 import { statsHistoryService } from '../services/statsHistory';
 import { NetworkActivityCharts } from '../components/NetworkActivityCharts';
 import { priceService, BtnPriceData } from '../services/priceService';
+import { isPageHidden } from '../services/pageVisibility';
 
 interface DashboardViewProps {
   stats: NetworkStats | null;
@@ -54,6 +55,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [priceData, setPriceData] = useState<BtnPriceData>(priceService.getCachedPrice());
   const [txFeedTab, setTxFeedTab] = useState<'latest' | 'oldest'>('latest');
+  const [snapshotReady, setSnapshotReady] = useState(explorerApiService.snapshotLoaded);
+
+  // The "Oldest" feed (and the empty-feed fallback) reads the on-demand historical snapshot.
+  React.useEffect(() => {
+    if (snapshotReady || (txFeedTab !== 'oldest' && (loading || recentTxs.length > 0))) return;
+    let active = true;
+    explorerApiService.ensureSnapshot().then(() => {
+      if (active) setSnapshotReady(explorerApiService.snapshotLoaded);
+    });
+    return () => { active = false; };
+  }, [txFeedTab, recentTxs.length, loading, snapshotReady]);
 
   React.useEffect(() => {
     return priceService.subscribe((data) => {
@@ -61,27 +73,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     });
   }, []);
 
-  const [liveDailyTx, setLiveDailyTx] = useState<number | null>(() => stats?.transactionsToday ?? null);
-
-  React.useEffect(() => {
-    let active = true;
-    const syncDaily = async () => {
-      const count = await explorerApiService.getDailyTransactionsCount();
-      if (active) {
-        setLiveDailyTx(count);
-      }
-    };
-    syncDaily();
-    const timer = setInterval(syncDaily, 12000);
-    return () => {
-      active = false;
-      clearInterval(timer);
-    };
-  }, []);
-
-  React.useEffect(() => {
-    setLiveDailyTx(stats?.transactionsToday ?? null);
-  }, [stats?.transactionsToday]);
 
   const copyToClipboard = (text: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -106,7 +97,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
-  const dailyTxCount = liveDailyTx;
+  // Refreshed by the app-level poll (the indexer scan itself is cached for 30 s).
+  const dailyTxCount = stats?.transactionsToday ?? null;
   const [richAccounts, setRichAccounts] = useState<RichAccount[]>([]);
   const [richStatus, setRichStatus] = useState('Loading watched wallet balances…');
   React.useEffect(() => {
@@ -124,7 +116,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       } finally { busy = false; }
     };
     refresh();
-    const timer = setInterval(refresh, 60000);
+    // 50 wallets × 2 RPC calls per refresh; balances of large holders change slowly.
+    const timer = setInterval(() => {
+      if (!isPageHidden()) refresh();
+    }, 300000);
     return () => { active = false; clearInterval(timer); };
   }, [!!stats?.latestBlock]);
 

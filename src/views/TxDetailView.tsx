@@ -42,7 +42,8 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
       .then(async ([txData, receiptData]) => {
         if (!isMounted) return;
         if (!txData) {
-          const fallbackTx = explorerApiService.getTransaction(txHash);
+          const fallbackTx = await explorerApiService.findTransaction(txHash);
+          if (!isMounted) return;
           if (fallbackTx) {
             setTx({
               hash: fallbackTx.hash,
@@ -78,9 +79,10 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
         }
         setLoading(false);
       })
-      .catch((err) => {
+      .catch(async (err) => {
         if (isMounted) {
-          const fallbackTx = explorerApiService.getTransaction(txHash);
+          const fallbackTx = await explorerApiService.findTransaction(txHash).catch(() => null);
+          if (!isMounted) return;
           if (fallbackTx) {
             setTx({
               hash: fallbackTx.hash,

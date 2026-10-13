@@ -23,23 +23,24 @@ export const BITNET_SUBSIDY_WEI = 1000000000000000000n; // 1 BTN = 10^18 Wei
 export const BURN_ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 export const BURN_ADDRESS_DEAD = '0x000000000000000000000000000000000000dead';
 
-const STORAGE_KEY = 'btn-chain210-onchain-supply-v2:';
+// v3: base issuance only (earlier versions mixed in one sampled block's uncles)
+const STORAGE_KEY = 'btn-chain210-onchain-supply-v3:';
 const supplyCache = new Map<string, TransactionHistoryPoint[]>();
 
 export interface SupplySnapshot {
   blockNumber: number;
   timestamp: number;
   baseSubsidyBtn: number;
-  unclesCount?: number;
   totalEstimatedSupplyBtn: number;
   supplyText: string;
 }
 
 /**
- * Calculates authentic Bitnet circulating supply for a given block height
- * according to the Whitepaper PoW emission model.
+ * Base issuance at a block height: 1 BTN subsidy per block, no premine.
+ * This is an estimate, not a verified circulating supply: it excludes cumulative
+ * uncle/nephew rewards (they would require scanning every block) and burned coins.
  */
-export function calculateWhitepaperSupply(blockNumber: number, uncleCount = 0): SupplySnapshot {
+export function calculateWhitepaperSupply(blockNumber: number): SupplySnapshot {
   const safeBlock = Math.max(0, Math.floor(blockNumber));
   if (safeBlock === 0) {
     return {
@@ -53,16 +54,12 @@ export function calculateWhitepaperSupply(blockNumber: number, uncleCount = 0): 
 
   // Base subsidy: 1.0 BTN per block
   const baseSubsidyBtn = safeBlock * BITNET_BLOCK_SUBSIDY_BTN;
-  
-  // Uncle subsidy based on whitepaper 1st/2nd gen uncle specifications
-  const uncleRewardBtn = uncleCount * 0.90625;
-  const totalEstimatedSupplyBtn = baseSubsidyBtn + uncleRewardBtn;
+  const totalEstimatedSupplyBtn = baseSubsidyBtn;
 
   return {
     blockNumber: safeBlock,
     timestamp: 0,
     baseSubsidyBtn,
-    unclesCount: uncleCount,
     totalEstimatedSupplyBtn,
     supplyText: `${totalEstimatedSupplyBtn.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
   };
@@ -182,6 +179,9 @@ export async function loadWhitepaperSupplyHistory(
     let lo: { number: number; timestamp: number } = genesisBlock;
     let hi: { number: number; timestamp: number } = latestBlock;
     let attempts = 0;
+    // If a lookup fails mid-search, use the time-interpolated height instead of falling back to
+    // genesis (which would silently turn a 30-day chart into an all-time one).
+    let interpolatedStart: number | null = null;
 
     while (hi.number - lo.number > 1 && attempts < 8) {
       if (signal?.aborted) throw new Error('Operation aborted');
@@ -191,10 +191,13 @@ export async function loadWhitepaperSupplyHistory(
         : 0.5;
       const n = Math.max(lo.number + 1, Math.min(hi.number - 1, Math.floor(lo.number + fraction * (hi.number - lo.number))));
       const block = await fetchBlockSafe(n);
-      if (!block) break;
+      if (!block) {
+        interpolatedStart = n;
+        break;
+      }
       if (block.timestamp <= startTime) lo = block; else hi = block;
     }
-    startBlockNum = lo.number;
+    startBlockNum = interpolatedStart ?? lo.number;
   }
 
   // 2. Generate target sample block numbers
@@ -223,7 +226,9 @@ export async function loadWhitepaperSupplyHistory(
     const blockNum = sampleNumbers[i];
     const actualBlock = blockMap.get(blockNum);
 
+    // Blocks that could not be fetched get an interpolated date, which is marked as such.
     let pointTimestamp: number;
+    const dateEstimated = !actualBlock;
     if (actualBlock) {
       pointTimestamp = actualBlock.timestamp;
     } else {
@@ -231,8 +236,7 @@ export async function loadWhitepaperSupplyHistory(
       pointTimestamp = Math.round(startTime + frac * (latestTime - startTime));
     }
 
-    const uncleCount = actualBlock?.uncles?.length || 0;
-    const snapshot = calculateWhitepaperSupply(blockNum, uncleCount);
+    const snapshot = calculateWhitepaperSupply(blockNum);
     const dateObj = new Date(pointTimestamp * 1000);
 
     let dateLabel = '';
@@ -244,7 +248,7 @@ export async function loadWhitepaperSupplyHistory(
       dateLabel = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
     }
 
-    const fullDate = `${dateObj.toISOString().slice(0, 10)} (UTC) · Block #${blockNum.toLocaleString()} · On-Chain PoW Issuance (1.0 BTN/block)`;
+    const fullDate = `${dateObj.toISOString().slice(0, 10)} (UTC${dateEstimated ? ', date estimated' : ''}) · Block #${blockNum.toLocaleString()}`;
 
     points.push({
       date: dateLabel,
@@ -255,7 +259,7 @@ export async function loadWhitepaperSupplyHistory(
       hashrate: 0,
       supply: snapshot.totalEstimatedSupplyBtn,
       supplyText: snapshot.supplyText,
-      provisional: false,
+      provisional: dateEstimated,
     });
   }
 
