@@ -50,6 +50,16 @@ const formatExactDate = (timestampSec: number): string => {
   });
 };
 
+/** RPC returns quantities as hex strings; show them as grouped decimals. */
+const formatBigNumber = (value?: string | null) => {
+  if (value == null || value === '') return 'Unknown';
+  try {
+    return BigInt(value).toLocaleString('en-US');
+  } catch {
+    return String(value);
+  }
+};
+
 export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
   blockNumberOrHash,
   onBack,
@@ -260,7 +270,7 @@ export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
               Difficulty:
             </span>
             <div className="sm:col-span-2 text-slate-900 mt-1 sm:mt-0 font-mono text-xs font-bold">
-              {block.difficulty} <span className="text-slate-500 font-normal">(Total Difficulty: {block.totalDifficulty})</span>
+              {formatBigNumber(block.difficulty)} <span className="text-slate-500 font-normal break-all">(Total Difficulty: {formatBigNumber(block.totalDifficulty)})</span>
             </div>
           </div>
 

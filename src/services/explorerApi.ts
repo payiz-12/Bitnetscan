@@ -74,11 +74,24 @@ export interface AddressOverviewData {
 
 
 
+// Active BTS-20 contracts on Bitnet, used for RPC balance fallbacks and search suggestions.
+export const KNOWN_BTS20_TOKENS = [
+  { address: '0xcf2a260d542ea809e0044369aA0CC11d0c14C715', name: 'BitPepe', symbol: 'BPEPE', decimals: 18, type: 'ERC-20' },
+  { address: '0x738F255b9D3386e49E1c4392A9C7d850C6C7C86D', name: 'Stratus', symbol: 'STRAT', decimals: 18, type: 'ERC-20' },
+  { address: '0xd9B4225B1872a008870Bae4797ec6eBabf5e2e2f', name: 'Restratagem USDT', symbol: 'reUSDT', decimals: 6, type: 'ERC-20' },
+  { address: '0x8148b71232162EA7a0b1c8bFE2b8F023934BFb58', name: 'Wrapped Bitnet', symbol: 'WBTN', decimals: 18, type: 'ERC-20' },
+  { address: '0xac351d0e22Aa06cD99051D4d84Cfba7A7dBF487a', name: 'Bcroc', symbol: 'croc', decimals: 18, type: 'ERC-20' },
+  { address: '0x66562574f9aE380A530757A7703061B11BCCDa94', name: 'Nick', symbol: 'NICK', decimals: 18, type: 'ERC-20' },
+  { address: '0x9Da212dD295bA072517cD4F769b675Fb4e8fb49A', name: 'Bitnetboyz', symbol: 'Bbz', decimals: 18, type: 'ERC-20' },
+];
+
 class ExplorerApiService {
   private txCache = new Map<string, AddressTransaction[]>();
   private blocksCache = new Map<string, MinedBlock[]>();
   private txByHash = new Map<string, AddressTransaction>();
   private allLedgerTransactions: AddressTransaction[] = [];
+  /** When each address' history was last read from the indexer (ms). */
+  private liveFetchedAt = new Map<string, number>();
 
   constructor() {
     // Seed in-memory cache strictly with verified pre-generated wallet activities from real chain history
@@ -89,7 +102,11 @@ class ExplorerApiService {
           const addr = key.replace('_blocks', '');
           this.blocksCache.set(addr.toLowerCase(), val as MinedBlock[]);
         } else if (Array.isArray(val)) {
-          const txs = val as AddressTransaction[];
+          // Snapshot records store values as "12.34 BTN"; views append the unit themselves.
+          const txs = (val as AddressTransaction[]).map((tx) => ({
+            ...tx,
+            value: String(tx.value ?? '0').replace(/\s*BTN\s*$/i, ''),
+          }));
           this.txCache.set(key.toLowerCase(), txs);
           for (const tx of txs) {
             const h = tx.hash.toLowerCase();
@@ -281,19 +298,30 @@ class ExplorerApiService {
   ): Promise<AddressTransaction[]> {
     const cleanAddr = address.toLowerCase();
 
-    // 1. Check memory cache first
+    // 1. The memory cache only holds snapshot records and transactions seen in recent blocks,
+    //    so it is reused only shortly after a full indexer read for this address.
     const cached = this.txCache.get(cleanAddr);
-    if (cached && cached.length > 0) {
+    const fetchedAt = this.liveFetchedAt.get(cleanAddr);
+    if (cached && cached.length > 0 && fetchedAt && Date.now() - fetchedAt < 30000) {
       return cached;
     }
 
     // 2. Fetch live transactions from indexer API v2 (retrieves all IN and OUT transactions!)
     const live = await this.fetchLiveTransactionsFromExplorer(cleanAddr);
+    if (live && live.length > 0) this.liveFetchedAt.set(cleanAddr, Date.now());
 
-    // 3. Find any transactions recorded in the local snapshot/ledger
-    const fromLedger = this.allLedgerTransactions.filter(
-      (tx) => tx.from.toLowerCase() === cleanAddr || tx.to.toLowerCase() === cleanAddr
-    );
+    // 3. Find any transactions recorded in the local snapshot/ledger or seen in live blocks
+    const fromLedger = [
+      ...(cached || []),
+      ...this.allLedgerTransactions.filter(
+        (tx) => tx.from.toLowerCase() === cleanAddr || (tx.to || '').toLowerCase() === cleanAddr
+      ),
+    ].map((tx) => ({
+      ...tx,
+      type: (tx.from.toLowerCase() === cleanAddr
+        ? ((tx.to || '').toLowerCase() === cleanAddr ? 'SELF' : 'OUT')
+        : 'IN') as AddressTransaction['type'],
+    }));
 
     // 4. Merge live indexer transactions with local ledger transactions (deduplicating by tx.hash)
     const seen = new Set<string>();
@@ -439,15 +467,7 @@ class ExplorerApiService {
     }
 
     // 2. On-chain fallback: verify real balances for active BTS-20 contracts on Bitnet
-    const activeTokens = [
-      { address: '0xcf2a260d542ea809e0044369aA0CC11d0c14C715', name: 'BitPepe', symbol: 'BPEPE', decimals: 18, type: 'ERC-20' },
-      { address: '0x738F255b9D3386e49E1c4392A9C7d850C6C7C86D', name: 'Stratus', symbol: 'STRAT', decimals: 18, type: 'ERC-20' },
-      { address: '0xd9B4225B1872a008870Bae4797ec6eBabf5e2e2f', name: 'Restratagem USDT', symbol: 'reUSDT', decimals: 6, type: 'ERC-20' },
-      { address: '0x8148b71232162EA7a0b1c8bFE2b8F023934BFb58', name: 'Wrapped Bitnet', symbol: 'WBTN', decimals: 18, type: 'ERC-20' },
-      { address: '0xac351d0e22Aa06cD99051D4d84Cfba7A7dBF487a', name: 'Bcroc', symbol: 'croc', decimals: 18, type: 'ERC-20' },
-      { address: '0x66562574f9aE380A530757A7703061B11BCCDa94', name: 'Nick', symbol: 'NICK', decimals: 18, type: 'ERC-20' },
-      { address: '0x9Da212dD295bA072517cD4F769b675Fb4e8fb49A', name: 'Bitnetboyz', symbol: 'Bbz', decimals: 18, type: 'ERC-20' },
-    ];
+    const activeTokens = KNOWN_BTS20_TOKENS;
 
     const found: AddressTokenBalance[] = [];
     const addrPadded = cleanAddr.replace('0x', '').padStart(64, '0');

@@ -21,6 +21,8 @@ class BitnetRpcService {
   private inFlightRequests = new Map<string, Promise<any>>();
   private latencyMap = new Map<string, number>();
   private healthListeners = new Set<(status: { activeRpc: string; latencyMs: number }) => void>();
+  // Direct node URLs usually lack CORS headers in browsers; stop pinging them after a failure.
+  private unreachableDirect = new Set<string>();
 
   constructor() {
     this.activeRpc = this.endpoints[0];
@@ -36,7 +38,7 @@ class BitnetRpcService {
 
   public async measureLatencies(): Promise<void> {
     await Promise.all(
-      this.endpoints.map(async (url) => {
+      this.endpoints.filter((url) => !this.unreachableDirect.has(url)).map(async (url) => {
         try {
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), 2000);
@@ -59,6 +61,7 @@ class BitnetRpcService {
           }
         } catch {
           this.latencyMap.set(url, 9999);
+          if (/^https?:/i.test(url)) this.unreachableDirect.add(url);
         }
       })
     );

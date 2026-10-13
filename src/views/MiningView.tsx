@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Cpu, Calculator, Zap, Server, ShieldCheck, Download, Terminal, Flame, TrendingUp, ExternalLink, Users } from 'lucide-react';
 import { Block, NetworkStats } from '../types/blockchain';
-import { priceService, BtnPriceData } from '../services/priceService';
+import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
 import { fetchLivePoolStats, getCachedPoolStats, LivePoolStats, computeLiveMiningSummary } from '../services/miningPoolStats';
 
 interface MiningViewProps {
@@ -171,7 +171,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
               {estimatedDailyBtn} <span className="text-xs font-bold text-emerald-800">BTN / day</span>
             </span>
             <span className="text-xs text-emerald-600 block mt-1 font-medium font-sans">
-              ≈ ${(parseFloat(estimatedDailyBtn) * priceData.priceUsd).toFixed(2)} USD
+              ≈ {formatBtnInUsd(parseFloat(estimatedDailyBtn), priceData)} USD
             </span>
           </div>
           <div className="p-5 rounded-2xl bg-sky-50/70 border border-sky-200 text-center">
@@ -180,7 +180,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
               {estimatedWeeklyBtn} <span className="text-xs font-bold text-sky-800">BTN / week</span>
             </span>
             <span className="text-xs text-sky-600 block mt-1 font-medium font-sans">
-              ≈ ${(parseFloat(estimatedWeeklyBtn) * priceData.priceUsd).toFixed(2)} USD
+              ≈ {formatBtnInUsd(parseFloat(estimatedWeeklyBtn), priceData)} USD
             </span>
           </div>
           <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200 text-center">
@@ -189,7 +189,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
               {estimatedMonthlyBtn} <span className="text-xs font-bold text-amber-900">BTN / month</span>
             </span>
             <span className="text-xs text-amber-700 block mt-1 font-medium font-sans">
-              ≈ ${(parseFloat(estimatedMonthlyBtn) * priceData.priceUsd).toFixed(2)} USD
+              ≈ {formatBtnInUsd(parseFloat(estimatedMonthlyBtn), priceData)} USD
             </span>
           </div>
         </div>

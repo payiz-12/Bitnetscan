@@ -6,7 +6,7 @@ import {
 import { rpcService } from '../services/rpc';
 import { explorerApiService } from '../services/explorerApi';
 import { VERIFIED_HODL_WALLETS, RichAccount, fetchLiveRichList } from '../data/richList';
-import { priceService, BtnPriceData } from '../services/priceService';
+import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
 
 interface RichListViewProps {
   onSelectAddress: (address: string) => void;
@@ -157,7 +157,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
               <span>{(estimatedTotalSupply / 1e6).toFixed(2)}M BTN</span>
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
-              ≈ ${(estimatedTotalSupply * priceData.priceUsd).toLocaleString('en-US', { maximumFractionDigits: 0 })} USD (NestEx Spot)
+              ≈ {formatBtnInUsd(estimatedTotalSupply, priceData, 0)} USD (NestEx Spot)
             </span>
           </div>
 
@@ -168,7 +168,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
               <span>{accounts[0]?.balanceFormatted || '1,042,986.96'} BTN</span>
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
-              ≈ ${((accounts[0]?.balance || 1042986.96) * priceData.priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+              ≈ {formatBtnInUsd(accounts[0]?.balance ?? NaN, priceData)} USD
             </span>
           </div>
 
@@ -182,7 +182,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-500 font-semibold block mb-1">BTN Price (NestEx Spot)</span>
               <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
-                priceData.change24h >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                !priceData.available ? 'bg-slate-100 text-slate-500' : priceData.change24h >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
               }`}>
                 {priceData.change24hFormatted}
               </span>
@@ -191,7 +191,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
               {priceData.priceFormatted}
             </div>
             <span className="text-[11px] text-slate-500 mt-1 flex items-center justify-between">
-              <span>24h Vol: ${priceData.volumeUsd.toFixed(2)} USD</span>
+              <span>24h Vol: {priceData.available ? `$${priceData.volumeUsd.toFixed(2)}` : '—'} USD</span>
               <span className="text-[10px] text-slate-400">trade.nestex.one ↗</span>
             </span>
           </a>
@@ -317,7 +317,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                       <span className="truncate">{acc.balanceFormatted} BTN{!acc.balanceLive && ' (snapshot)'}</span>
                     </div>
                     <div className="text-[11px] text-slate-500 font-sans font-medium mt-0.5 truncate">
-                      ≈ ${(acc.balance * priceData.priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                      ≈ {formatBtnInUsd(acc.balance, priceData)} USD
                     </div>
                   </div>
 
@@ -420,7 +420,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                         <span>{acc.balanceFormatted} BTN{!acc.balanceLive && ' (snapshot)'}</span>
                       </div>
                       <div className="text-[11px] text-slate-500 font-sans font-medium mt-0.5">
-                        ≈ ${(acc.balance * priceData.priceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                        ≈ {formatBtnInUsd(acc.balance, priceData)} USD
                       </div>
                     </td>
 

@@ -111,7 +111,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 w-full animate-fade-in pb-16">
+    <div className="space-y-5 sm:space-y-6 w-full animate-fade-in pb-8 sm:pb-16">
       {/* Top Navigation & Breadcrumb */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -124,7 +124,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
           </button>
           <div className="h-4 w-px bg-slate-300 hidden sm:block" />
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex flex-wrap items-center gap-x-2.5 gap-y-1">
               <span>Bitnet Blockchain Transactions</span>
               <span className="text-xs font-bold font-mono px-2 py-0.5 rounded-full bg-teal-50 text-[#016976] border border-teal-200/80">
                 {sortOrder === 'oldest' ? `${total.toLocaleString()} Snapshot Records` : 'Indexer Archive'}
@@ -136,7 +136,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-end sm:self-auto">
           <button
             onClick={handleRefresh}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition-all shadow-2xs cursor-pointer"
@@ -167,7 +167,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex items-center gap-3.5">
+        <div className="hidden sm:flex bg-white rounded-2xl p-4 border border-slate-200 shadow-xs items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-sky-50 flex items-center justify-center text-[#0284C7] flex-shrink-0 border border-sky-100">
             <ArrowRightLeft className="w-6 h-6" />
           </div>
@@ -185,7 +185,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex items-center gap-3.5">
+        <div className="hidden sm:flex bg-white rounded-2xl p-4 border border-slate-200 shadow-xs items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 flex-shrink-0 border border-amber-100">
             <Flame className="w-6 h-6" />
           </div>
@@ -204,7 +204,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
       </div>
 
       {/* Filter and Tab Controls */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
         {/* Sort Tabs: Latest vs Oldest */}
         <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-full md:w-auto">
           <button
@@ -215,8 +215,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Latest Transactions</span>
+            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+            <span>Latest<span className="hidden min-[400px]:inline"> Transactions</span></span>
           </button>
 
           <button
@@ -227,8 +227,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Landmark className="w-3.5 h-3.5" />
-            <span>Historical Snapshot</span>
+            <Landmark className="w-3.5 h-3.5 shrink-0" />
+            <span><span className="hidden min-[400px]:inline">Historical </span>Snapshot</span>
           </button>
         </div>
 
@@ -256,7 +256,91 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
       <p className="text-xs text-slate-500" role="status">{pageLoading && sortOrder === 'latest' ? 'Loading indexer page…' : pageError || (sortOrder === 'latest' ? 'Next loads older transactions from the indexer. Search filters the current page.' : 'Historical cached records; this snapshot does not contain the full chain.')}</p>
       {/* Main Ledger Table */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
+        {/* Mobile card list */}
+        <div className="sm:hidden divide-y divide-slate-100">
+          {transactions.length === 0 ? (
+            <div className="py-12 px-4 text-center text-slate-500 space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
+                {pageLoading ? <RefreshCw className="w-6 h-6 animate-spin text-[#016976]" /> : <ArrowRightLeft className="w-6 h-6" />}
+              </div>
+              <p className="font-bold text-sm text-slate-700">{pageLoading ? 'Loading…' : pageError || 'No matching transactions'}</p>
+            </div>
+          ) : (
+            transactions.map((tx) => (
+              <div
+                key={tx.hash}
+                onClick={() => onSelectTx(tx.hash)}
+                className="px-4 py-3 active:bg-slate-50 cursor-pointer space-y-1.5"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="font-mono font-bold text-xs text-[#0284C7] block">{truncate(tx.hash, 10, 6)}</span>
+                    <span className="text-[11px] text-slate-500 font-mono">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectBlock(tx.blockNumber);
+                        }}
+                        className="font-semibold text-slate-700 cursor-pointer"
+                      >
+                        #{tx.blockNumber.toLocaleString()}
+                      </button>
+                      {' · '}{formatTimeAgo(tx.timestamp)}
+                    </span>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-xs font-mono font-bold text-emerald-700 whitespace-nowrap">
+                      {tx.valueNum > 0 && tx.valueNum < 0.0001
+                        ? '< 0.0001 BTN'
+                        : `${tx.valueNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} BTN`}
+                    </div>
+                    {tx.status !== 'success' && (
+                      <span className={`text-[10px] font-bold ${tx.status === 'failed' ? 'text-rose-600' : 'text-amber-600'}`}>
+                        {tx.status === 'failed' ? 'Failed' : tx.status === 'pending' ? 'Pending' : 'Unknown status'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-mono flex-wrap">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectAddress(tx.from);
+                    }}
+                    className="font-semibold text-slate-700 cursor-pointer"
+                  >
+                    {truncate(tx.from, 6, 4)}
+                  </button>
+                  <span className="text-slate-400" aria-hidden="true">→</span>
+                  {tx.to ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectAddress(tx.to);
+                      }}
+                      className="font-semibold text-slate-700 cursor-pointer"
+                    >
+                      {truncate(tx.to, 6, 4)}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-px rounded text-[10px] font-bold bg-amber-50 text-[#D97706] border border-amber-200 font-sans">
+                      <FileCode className="w-3 h-3" />
+                      Contract Creation
+                    </span>
+                  )}
+                  {tx.fee && (
+                    <span className="ml-auto text-[10px] text-slate-400">Fee {String(tx.fee).replace(/\s*BTN$/, '')}</span>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider font-sans">
@@ -472,10 +556,11 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               disabled={pageLoading || currentPage <= 1}
+              aria-label="Previous page"
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
-              <span>Previous</span>
+              <span className="hidden min-[400px]:inline">Previous</span>
             </button>
 
             <span className="px-3 py-1.5 bg-[#016976] text-white font-bold rounded-lg shadow-2xs">
@@ -488,9 +573,10 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               disabled={pageLoading || currentPage >= totalPages}
+              aria-label="Next page"
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer"
             >
-              <span>Next</span>
+              <span className="hidden min-[400px]:inline">Next</span>
               <ChevronRight className="w-4 h-4" />
             </button>
 
