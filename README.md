@@ -116,3 +116,10 @@ The SDK is a separate lazy chunk (about 494 KB gzip). Its transitive Node-only `
 BitnetPunks' indexed image directory is `bafybeihtkm7laawttavonnpqkc3ihqrtcejhhfwmirnisfafa2wndt6kem`; its sampled contract tokenURI points to metadata directory `bafybeigid6ra5ehwariynf5fxpytq7t2unuszul6m5hz76et4p2plya4sm`. Retrieval improvements cannot restore content if no reachable provider serves it. In that case the UI reports `IPFS image unavailable`. Recovery requires the original directory/CAR to be re-pinned under the same CID by its creator or another holder of the files; changing gateways or generating replacement artwork would not recover the original NFT images.
 
 Vite `/api/*` proxies apply only to development. Production must configure equivalent HTTPS reverse proxies for `/api/rpc`, `/api/rpc2`, `/api/explorer`, `/api/bitnet-explorer`, `/api/nestex`, or allow the listed direct endpoints through CORS. No production deployment is performed by this change.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please check out the [Contributing Guidelines](CONTRIBUTING.md) to get started with development, bug reports, and pull requests.
+
