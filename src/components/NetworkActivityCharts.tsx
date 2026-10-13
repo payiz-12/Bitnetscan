@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Activity, BarChart3, TrendingUp, Cpu, Flame, Layers, 
   ShieldCheck, Zap, ArrowUpRight, Clock, Calendar, Check, Coins, ExternalLink,
@@ -10,7 +10,8 @@ import { rpcService } from '../services/rpc';
 import { identifyMinerPool } from '../data/miningPools';
 import { loadTransactionHistory, loadSupplyHistory, TransactionHistory, TransactionHistoryPoint, activityBuckets } from '../services/transactionHistory';
 import { loadWhitepaperSupplyHistory, getCachedWhitepaperSupply } from '../services/whitepaperSupply';
-import { calculateDynamicWorkers, fetchLivePoolStats, getCachedPoolStats, LivePoolStats, computeLiveMiningSummary } from '../services/miningPoolStats';
+import { fetchLivePoolStats, getCachedPoolStats, LivePoolStats, computeLiveMiningSummary } from '../services/miningPoolStats';
+import { isPageHidden } from '../services/pageVisibility';
 import { formatEther } from 'ethers';
 
 interface NetworkActivityChartsProps {
@@ -56,7 +57,9 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
       }
     };
     syncStats();
-    const interval = setInterval(syncStats, 60000);
+    const interval = setInterval(() => {
+      if (!isPageHidden()) syncStats();
+    }, 60000);
     return () => {
       active = false;
       clearInterval(interval);
@@ -66,7 +69,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
   // 60-second periodic refresh for active chart view without resetting long scans
   useEffect(() => {
     const timer = setInterval(() => {
-      setRefreshTick((t) => t + 1);
+      if (!isPageHidden()) setRefreshTick((t) => t + 1);
     }, 60000);
     return () => clearInterval(timer);
   }, []);
@@ -129,20 +132,16 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
     return (total / blocksData.length).toFixed(1);
   }, [blocksData]);
 
-  // Total active miners / pools detected in the blocks sample (defaults to 3 known on-chain pools)
-  const totalActiveMiners = useMemo(() => {
-    if (blocksData.length === 0) return 3;
-    const set = new Set(blocksData.map((b) => b.miner.toLowerCase()));
-    return Math.max(set.size, 3);
-  }, [blocksData]);
-
   // 2. Miner & pool distribution across recent blocks
   const miningSummary = useMemo(() => {
     return computeLiveMiningSummary(recentBlocks, stats?.hashrateHps, poolStats);
   }, [recentBlocks, stats?.hashrateHps, poolStats]);
 
   const minerDistribution = miningSummary.miners;
-  const totalMinersCount = miningSummary.totalActiveWorkers;
+  const reportedWorkers = miningSummary.reportedWorkers;
+  const reportedWorkersLabel = reportedWorkers !== null
+    ? `${reportedWorkers} reported`
+    : 'Unknown';
   const knownPoolsCount = miningSummary.knownPoolsCount;
   const unknownMinersCount = miningSummary.unknownMinersCount;
 
@@ -163,7 +162,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
     setHashState(cached.length ? 'Showing cached curve; refreshing on-chain…' : 'Scanning on-chain blocks…');
 
     (async () => {
-      const latest = latestForHash || (await rpcService.getBlock('latest', false));
+      const latest = latestBlockRef.current || (await rpcService.getBlock('latest', false));
       if (!latest) throw new Error('Block data could not be fetched');
       return loadHashrateHistory(timeframe, latest, (n) => rpcService.getBlock(n, false), controller.signal);
     })()
@@ -184,7 +183,15 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
     return () => controller.abort();
   }, [timeframe, hashRefresh, !!latestForHash]);
 
+  // Read the newest block through a ref so a new block does not restart a supply load in progress
+  // (loading takes longer than one block interval); the 60 s refresh tick picks up new heights.
+  const latestBlockRef = useRef<Block | null>(null);
+  latestBlockRef.current = latestForHash;
+  const hasLatestBlock = !!latestForHash;
+
   const [supplyHistories, setSupplyHistories] = useState<Record<string, TransactionHistoryPoint[]>>({});
+  // 'indexer' = official circulatingSupply series; 'estimate' = block height × 1 BTN base issuance.
+  const [supplySources, setSupplySources] = useState<Record<string, 'indexer' | 'estimate'>>({});
   const [supplyState, setSupplyState] = useState('');
 
   useEffect(() => {
@@ -194,32 +201,35 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
     const cached = getCachedWhitepaperSupply(timeframe);
     if (cached.length > 0) {
       setSupplyHistories((prev) => (prev[timeframe]?.length ? prev : { ...prev, [timeframe]: cached }));
+      setSupplySources((prev) => (prev[timeframe] ? prev : { ...prev, [timeframe]: 'estimate' }));
     }
-    setSupplyState(cached.length ? 'Showing cached on-chain curve; refreshing…' : 'Pulling on-chain supply data from RPC…');
+    setSupplyState(cached.length ? 'Showing cached estimate; refreshing…' : 'Loading supply data…');
 
     (async () => {
       // 1. Try official indexer first if available
       try {
         const indexerPoints = await loadSupplyHistory(timeframe, controller.signal);
         if (indexerPoints.some(p => p.supply !== null)) {
-          return { points: indexerPoints, source: 'indexer' };
+          return { points: indexerPoints, source: 'indexer' as const };
         }
       } catch {}
 
-      // 2. Pull directly on-chain from blockchain RPC nodes
-      const latest = latestForHash || (await rpcService.getBlock('latest', false));
+      // 2. Estimate base issuance from block heights via RPC
+      const latest = latestBlockRef.current || (await rpcService.getBlock('latest', false));
+      if (!latest) throw new Error('Latest block unavailable');
       const onChainPoints = await loadWhitepaperSupplyHistory(
         timeframe,
-        latest || { number: stats?.latestBlock || 7721500, timestamp: Math.floor(Date.now() / 1000) },
+        latest,
         (n) => rpcService.getBlock(n, false),
         controller.signal
       );
-      return { points: onChainPoints, source: 'onchain' };
+      return { points: onChainPoints, source: 'estimate' as const };
     })()
       .then(({ points, source }) => {
         if (!controller.signal.aborted && points.length > 0) {
           setSupplyHistories((prev) => ({ ...prev, [timeframe]: points }));
-          setSupplyState(source === 'onchain' ? 'On-Chain PoW Issuance (1.0 BTN/block subsidy, 0 premine)' : '');
+          setSupplySources((prev) => ({ ...prev, [timeframe]: source }));
+          setSupplyState('');
         }
       })
       .catch((err) => {
@@ -227,15 +237,17 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           console.warn('Supply fetch error:', err);
           const hasCached = getCachedWhitepaperSupply(timeframe).length > 0;
           if (!hasCached) {
-            setSupplyState('Failed to query on-chain supply data.');
+            setSupplyState('Failed to load supply data.');
           }
         }
       });
 
     return () => controller.abort();
-  }, [metric, timeframe, refreshTick, latestForHash?.number]);
+  }, [metric, timeframe, refreshTick, hasLatestBlock]);
 
   const supplyData = supplyHistories[timeframe] || [];
+  const supplyIsEstimate = supplySources[timeframe] !== 'indexer';
+  const supplyLabel = supplyIsEstimate ? 'Base issuance (est.)' : 'Circulating supply';
   const latestSupply = [...supplyData].reverse().find(p => p.supply !== null && Number.isFinite(p.supply));
 
   const timeframeData = metric === 'hashrate'
@@ -251,8 +263,13 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
       txs: known.reduce((sum, d) => sum + (d.txs ?? 0), 0),
       volFormatted: known.length ? `${formatEther(totalWei)} BTN` : 'Unavailable',
       covered: known.length,
+      total: timeframeData.length,
+      partial: known.length > 0 && known.length < timeframeData.length,
+      firstCovered: known[0]?.date,
+      lastCovered: known[known.length - 1]?.date,
     };
   }, [timeframeData, metric]);
+  const coverageSuffix = timeframeSummary.partial ? ` · ${timeframeSummary.covered}/${timeframeSummary.total} periods` : '';
 
   // 4. SVG Dimensions & Grid Scale (Clear Left & Bottom Axes)
   const svgWidth = isMobile ? 360 : 740;
@@ -594,10 +611,10 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-[11px] font-bold text-[#016976] bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
-                  ~{totalMinersCount} Workers
+                  {miningSummary.totalBlocksSampled} blocks
                 </span>
                 <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 hidden sm:inline">
-                  Known & Unknown
+                  Block share
                 </span>
               </div>
             </div>
@@ -605,10 +622,15 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
             {/* Top Stats Summary: Total Workers & Known/Unknown Distribution */}
             <div className="grid grid-cols-2 gap-2 p-2.5 mt-2 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
               <div className="min-w-0">
-                <span className="text-[10px] text-slate-500 font-medium block truncate">Total Active Workers</span>
-                <span className="font-black text-slate-900 flex items-center gap-1.5 mt-0.5 text-xs">
+                <span className="text-[10px] text-slate-500 font-medium block truncate">Pool-Reported Workers</span>
+                <span
+                  className="font-black text-slate-900 flex items-center gap-1.5 mt-0.5 text-xs"
+                  title={reportedWorkers !== null
+                    ? `Reported by ${miningSummary.reportedWorkerSources.join(', ')}. ${miningSummary.minersWithoutWorkerData} miner(s) in this sample do not publish worker counts.`
+                    : 'No pool API reported a worker count.'}
+                >
                   <Users className="w-3.5 h-3.5 text-[#016976] shrink-0" />
-                  <span className="truncate">~{totalMinersCount} Workers</span>
+                  <span className="truncate">{reportedWorkersLabel}</span>
                 </span>
               </div>
               <div className="min-w-0">
@@ -695,9 +717,21 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                         >
                           {item.category === 'known' ? 'Known' : 'Unknown'}
                         </span>
-                        <span className="text-[9px] font-bold text-[#016976] bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap">
-                          {item.minersCount} {item.minersCount === 1 ? 'Worker' : 'Workers'}
-                        </span>
+                        {item.minersCount !== null ? (
+                          <span
+                            className="text-[9px] font-bold text-[#016976] bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap"
+                            title={`Reported by ${item.workersSource}`}
+                          >
+                            {item.minersCount} {item.minersCount === 1 ? 'Worker' : 'Workers'}
+                          </span>
+                        ) : (
+                          <span
+                            className="text-[9px] font-bold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap"
+                            title="This miner does not publish a worker count"
+                          >
+                            Workers n/a
+                          </span>
+                        )}
                       </div>
 
                       <button
@@ -740,7 +774,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                   : 'All-Time'}
               </span>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-[#D68142] border border-amber-200 font-mono">
-                {metric === 'volume' ? `${timeframeSummary.volFormatted}` : metric === 'txs' ? (timeframeSummary.covered ? `${timeframeSummary.txs.toLocaleString()} tx` : 'Transactions') : metric === 'supply' ? (latestSupply ? `${latestSupply.supplyText} BTN` : 'Circulating Supply') : 'PoW Hashrate'}
+                {metric === 'volume' ? `${timeframeSummary.volFormatted}${coverageSuffix}` : metric === 'txs' ? (timeframeSummary.covered ? `${timeframeSummary.txs.toLocaleString()} tx${coverageSuffix}` : 'Transactions') : metric === 'supply' ? (latestSupply ? `${latestSupply.supplyText} BTN${supplyIsEstimate ? ' (est.)' : ''}` : supplyLabel) : 'PoW Hashrate'}
               </span>
               {(metric === 'volume' || metric === 'txs') && activityState && <span
                 className="text-[11px] text-slate-500 font-medium" role="status" title={activityState}
@@ -793,7 +827,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                 }`}
               >
                 <TrendingUp className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate"><span className="hidden sm:inline">Circulating </span>Supply</span>
+                <span className="truncate">Supply</span>
               </button>
             </div>
 
@@ -823,6 +857,13 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           </div>
         </div>
 
+        {(metric === 'volume' || metric === 'txs') && timeframeSummary.partial && (
+          <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+            Partial data: the total covers {timeframeSummary.covered} of {timeframeSummary.total} periods
+            ({timeframeSummary.firstCovered} – {timeframeSummary.lastCovered}). Periods that could not be verified are excluded, so this is not a complete total for the selected range.
+          </p>
+        )}
+
         {metric === 'hashrate' && (
           <p className="text-xs text-slate-500">
             On-chain estimated network hashrate: work delta / time elapsed. Each data point is the average for its period.{' '}
@@ -833,8 +874,11 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
         {metric === 'supply' && (
           <p className="text-xs text-slate-500">
-            {supplyState && <span className="font-semibold text-[#016976]">{supplyState}</span>}
-            {latestSupply && ` · Current Mined: ${latestSupply.supplyText} BTN`}
+            {supplyState && <span className="font-semibold text-[#016976]">{supplyState} </span>}
+            {supplyIsEstimate
+              ? 'Base issuance estimate: block height × 1 BTN subsidy, no premine. Excludes uncle rewards and burned coins, so it is not a verified circulating supply.'
+              : 'Circulating supply reported by the Bitnet explorer indexer.'}
+            {latestSupply && ` Latest: ${latestSupply.supplyText} BTN.`}
           </p>
         )}
 
@@ -1136,7 +1180,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                         ? `${points[hoveredPointIndex]?.val?.toLocaleString()} transactions`
                         : metric === 'hashrate'
                         ? `${points[hoveredPointIndex]?.val >= 1000 ? (points[hoveredPointIndex]?.val / 1000).toFixed(2) + ' TH/s' : points[hoveredPointIndex]?.val.toFixed(2) + ' GH/s'} (on-chain avg)`
-                        : `${(points[hoveredPointIndex]?.item as TransactionHistoryPoint).supplyText ?? 'Unavailable'} BTN · Circulating Supply`}
+                        : `${(points[hoveredPointIndex]?.item as TransactionHistoryPoint).supplyText ?? 'Unavailable'} BTN · ${supplyLabel}`}
                     </span>
                   </div>
                 ) : (

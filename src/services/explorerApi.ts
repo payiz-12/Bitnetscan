@@ -1,4 +1,3 @@
-import preloadedData from '../data/preloaded_activity.json';
 import { Block, Transaction } from '../types/blockchain';
 import { ethers } from 'ethers';
 import { rpcService } from './rpc';
@@ -93,36 +92,71 @@ class ExplorerApiService {
   /** When each address' history was last read from the indexer (ms). */
   private liveFetchedAt = new Map<string, number>();
 
-  constructor() {
-    // Seed in-memory cache strictly with verified pre-generated wallet activities from real chain history
-    try {
-      const data = preloadedData as Record<string, any>;
-      for (const [key, val] of Object.entries(data)) {
-        if (key.endsWith('_blocks')) {
-          const addr = key.replace('_blocks', '');
-          this.blocksCache.set(addr.toLowerCase(), val as MinedBlock[]);
-        } else if (Array.isArray(val)) {
-          // Snapshot records store values as "12.34 BTN"; views append the unit themselves.
-          const txs = (val as AddressTransaction[]).map((tx) => ({
-            ...tx,
-            value: String(tx.value ?? '0').replace(/\s*BTN\s*$/i, ''),
-          }));
-          this.txCache.set(key.toLowerCase(), txs);
-          for (const tx of txs) {
-            const h = tx.hash.toLowerCase();
-            if (!this.txByHash.has(h)) {
-              this.txByHash.set(h, tx);
-              this.allLedgerTransactions.push(tx);
-            }
+  private snapshotLoad: Promise<void> | null = null;
+  private snapshotListeners = new Set<() => void>();
+  public snapshotLoaded = false;
+
+  /**
+   * Loads the historical wallet snapshot (~0.5 MB) on first use instead of shipping it
+   * in the initial bundle. Records already seen live are kept; snapshot rows only fill gaps.
+   */
+  public ensureSnapshot(): Promise<void> {
+    if (!this.snapshotLoad) {
+      this.snapshotLoad = import('../data/preloaded_activity.json')
+        .then((mod) => {
+          this.seedSnapshot((mod.default || mod) as Record<string, any>);
+          this.snapshotLoaded = true;
+          this.snapshotListeners.forEach((cb) => {
+            try { cb(); } catch {}
+          });
+        })
+        .catch((e) => {
+          console.error('Failed to load historical activity snapshot:', e);
+          this.snapshotLoad = null;
+        });
+    }
+    return this.snapshotLoad;
+  }
+
+  public onSnapshotLoaded(cb: () => void): () => void {
+    this.snapshotListeners.add(cb);
+    return () => this.snapshotListeners.delete(cb);
+  }
+
+  private seedSnapshot(data: Record<string, any>) {
+    for (const [key, val] of Object.entries(data)) {
+      if (key.endsWith('_blocks')) {
+        const addr = key.replace('_blocks', '').toLowerCase();
+        if (!this.blocksCache.has(addr)) this.blocksCache.set(addr, val as MinedBlock[]);
+      } else if (Array.isArray(val)) {
+        // Snapshot records store values as "12.34 BTN"; views append the unit themselves.
+        const txs = (val as AddressTransaction[]).map((tx) => ({
+          ...tx,
+          value: String(tx.value ?? '0').replace(/\s*BTN\s*$/i, ''),
+        }));
+        const addr = key.toLowerCase();
+        const existing = this.txCache.get(addr) || [];
+        const known = new Set(existing.map((t) => t.hash.toLowerCase()));
+        this.txCache.set(addr, [...existing, ...txs.filter((t) => !known.has(t.hash.toLowerCase()))]
+          .sort((a, b) => b.blockNumber - a.blockNumber));
+        for (const tx of txs) {
+          const h = tx.hash.toLowerCase();
+          if (!this.txByHash.has(h)) {
+            this.txByHash.set(h, tx);
+            this.allLedgerTransactions.push(tx);
           }
         }
       }
-    } catch (e) {
-      console.error('Failed to seed preloaded activity cache:', e);
     }
-
-    // Sort real ledger transactions by blockNumber descending
     this.allLedgerTransactions.sort((a, b) => b.blockNumber - a.blockNumber);
+  }
+
+  /** Looks up a transaction in live records, then in the historical snapshot. */
+  public async findTransaction(txHash: string): Promise<AddressTransaction | null> {
+    const found = this.getTransaction(txHash);
+    if (found || this.snapshotLoaded) return found;
+    await this.ensureSnapshot();
+    return this.getTransaction(txHash);
   }
 
   public getCachedTransactions(address: string): AddressTransaction[] | null {
@@ -307,12 +341,16 @@ class ExplorerApiService {
     }
 
     // 2. Fetch live transactions from indexer API v2 (retrieves all IN and OUT transactions!)
-    const live = await this.fetchLiveTransactionsFromExplorer(cleanAddr);
+    //    while the historical snapshot loads in parallel.
+    const [live] = await Promise.all([
+      this.fetchLiveTransactionsFromExplorer(cleanAddr),
+      this.ensureSnapshot(),
+    ]);
     if (live && live.length > 0) this.liveFetchedAt.set(cleanAddr, Date.now());
 
     // 3. Find any transactions recorded in the local snapshot/ledger or seen in live blocks
     const fromLedger = [
-      ...(cached || []),
+      ...(this.txCache.get(cleanAddr) || []),
       ...this.allLedgerTransactions.filter(
         (tx) => tx.from.toLowerCase() === cleanAddr || (tx.to || '').toLowerCase() === cleanAddr
       ),
@@ -408,6 +446,7 @@ class ExplorerApiService {
     }
 
     // 2. Fallback to cached blocks
+    await this.ensureSnapshot();
     const cached = this.blocksCache.get(cleanAddr);
     if (cached && cached.length > 0) {
       const knownTotals: Record<string, number> = {

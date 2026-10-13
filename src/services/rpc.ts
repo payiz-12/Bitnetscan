@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { calculateHashrate, formatHashrate } from './hashrate';
+import { isPageHidden } from './pageVisibility';
 import { Block, NetworkStats, Transaction, RpcEndpointStatus } from '../types/blockchain';
 
 export const BITNET_CHAIN_ID = 210;
@@ -31,8 +32,8 @@ class BitnetRpcService {
     this.measureLatencies().catch(() => {});
     if (typeof window !== 'undefined') {
       setInterval(() => {
-        this.measureLatencies().catch(() => {});
-      }, 15000);
+        if (!isPageHidden()) this.measureLatencies().catch(() => {});
+      }, 30000);
     }
   }
 

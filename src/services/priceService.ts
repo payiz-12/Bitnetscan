@@ -1,3 +1,5 @@
+import { isPageHidden, onPageVisible } from './pageVisibility';
+
 /**
  * Bitnet (BTN) Live Price Service
  * Fetches real-time spot price and 24h market metrics from NestEx (trade.nestex.one),
@@ -58,11 +60,14 @@ class PriceService {
     // Initial fetch
     this.fetchPrice().catch(() => {});
 
-    // Polling interval every 12 seconds
+    // Poll every 15 seconds while the tab is visible; catch up when it becomes visible again
     if (typeof window !== 'undefined') {
       setInterval(() => {
-        this.fetchPrice().catch(() => {});
-      }, 12000);
+        if (!isPageHidden()) this.fetchPrice().catch(() => {});
+      }, 15000);
+      onPageVisible(() => {
+        if (Date.now() - this.lastFetchTime > 15000) this.fetchPrice().catch(() => {});
+      });
     }
   }
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Coins, Search, ExternalLink, ShieldCheck, Code, ArrowUpRight } from 'lucide-react';
 import { ethers } from 'ethers';
 import { rpcService } from '../services/rpc';
-import { decodeStringOrBytes32 } from '../services/nftSyncService';
+import { decodeStringOrBytes32 } from '../services/abiText';
 
 interface TokensViewProps {
   onSelectAddress: (addr: string) => void;

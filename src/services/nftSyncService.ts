@@ -9,6 +9,8 @@ import {
 } from './nftData';
 import { canonicalIpfsUri, fetchVerifiedIpfs, IpfsFetch } from './ipfsResources';
 export { PUBLIC_IPFS_GATEWAYS } from './nftData';
+import { decodeStringOrBytes32 } from './abiText';
+export { decodeStringOrBytes32 };
 
 export interface AddressNftTransfer {
   hash: string;
@@ -78,11 +80,6 @@ class IpfsGatewayManager {
 }
 export const ipfsGatewayManager = new IpfsGatewayManager();
 
-export function decodeStringOrBytes32(hex: string): string {
-  if (!hex || hex === '0x') return '';
-  try { return String(ethers.AbiCoder.defaultAbiCoder().decode(['string'], hex)[0]).trim(); } catch {}
-  try { return ethers.decodeBytes32String(hex).trim(); } catch { return ''; }
-}
 
 async function mapConcurrent<T, R>(rows: T[], concurrency: number, task: (row: T) => Promise<R>): Promise<R[]> {
   const results: R[] = new Array(rows.length);

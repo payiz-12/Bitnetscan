@@ -7,6 +7,7 @@ import {
 import { BITNET_NFT_COLLECTIONS, NftCollection, NftItem } from '../data/nftCollections';
 import { NftImage } from '../components/NftImage';
 import { nftSyncService, NftSyncResult } from '../services/nftSyncService';
+import { isPageHidden } from '../services/pageVisibility';
 import { ZERO_ADDRESS } from '../services/nftData';
 
 interface NftsViewProps { 
@@ -64,7 +65,9 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
   useEffect(() => {
     mounted.current = true;
     refresh();
-    const interval = setInterval(refresh, 60000);
+    const interval = setInterval(() => {
+      if (!isPageHidden()) refresh();
+    }, 60000);
     return () => { mounted.current = false; inspection.current++; clearInterval(interval); };
   }, [refresh]);
 
@@ -232,7 +235,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] text-slate-500 font-bold uppercase">Hodl Sayısı</span>
+              <span className="text-[11px] text-slate-500 font-bold uppercase">Holders</span>
               <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
                 <Shield className="w-3.5 h-3.5" />
               </div>

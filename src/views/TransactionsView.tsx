@@ -61,6 +61,20 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
     return () => { active = false; };
   }, [sortOrder, currentPage, refreshTrigger]);
 
+  // The historical snapshot is downloaded on demand; re-read it once it arrives.
+  const [snapshotReady, setSnapshotReady] = useState(explorerApiService.snapshotLoaded);
+  useEffect(() => {
+    if (sortOrder !== 'oldest' || snapshotReady) return;
+    let active = true;
+    explorerApiService.ensureSnapshot().then(() => {
+      if (active) {
+        setSnapshotReady(explorerApiService.snapshotLoaded);
+        setRefreshTrigger((prev) => prev + 1);
+      }
+    });
+    return () => { active = false; };
+  }, [sortOrder, snapshotReady]);
+
   // Reset page to 1 when search or sort order changes
   useEffect(() => {
     if (sortOrder === 'oldest') setCurrentPage(1);
@@ -253,7 +267,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
         </div>
       </div>
 
-      <p className="text-xs text-slate-500" role="status">{pageLoading && sortOrder === 'latest' ? 'Loading indexer page…' : pageError || (sortOrder === 'latest' ? 'Next loads older transactions from the indexer. Search filters the current page.' : 'Historical cached records; this snapshot does not contain the full chain.')}</p>
+      <p className="text-xs text-slate-500" role="status">{pageLoading && sortOrder === 'latest' ? 'Loading indexer page…' : sortOrder === 'oldest' && !snapshotReady ? 'Loading historical snapshot…' : pageError || (sortOrder === 'latest' ? 'Next loads older transactions from the indexer. Search filters the current page.' : 'Historical cached records; this snapshot does not contain the full chain.')}</p>
       {/* Main Ledger Table */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
         {/* Mobile card list */}
