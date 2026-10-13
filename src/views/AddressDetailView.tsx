@@ -7,7 +7,7 @@ import {
 import { Block } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
 import { explorerApiService, AddressTransaction, MinedBlock, AddressTokenBalance } from '../services/explorerApi';
-import { priceService, BtnPriceData } from '../services/priceService';
+import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
 import { 
   nftSyncService, 
   AddressNftTransfer, 
@@ -640,7 +640,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     ? 'Verified 0.0000 on-chain'
                     : balanceStatus === 'cached'
                     ? `Cached (${cachedSnapshotDate})`
-                    : `≈ $${(parseFloat(balance) * priceData.priceUsd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`}
+                    : `≈ ${formatBtnInUsd(parseFloat(balance), priceData)} USD`}
                 </span>
                 {balance !== null && balanceStatus !== 'zero' && (
                   <span className="text-[10px] text-[#016976] bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200 font-bold">
@@ -653,10 +653,10 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
         </div>
 
         {/* 4 Metric Summary Boxes with Real Data */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div className="col-span-2 md:col-span-1 p-4 rounded-2xl bg-slate-50 border border-slate-200 min-w-0">
             <span className="text-xs text-slate-500 font-semibold block mb-1">Total Balance</span>
-            <div className="text-lg font-bold font-mono text-slate-900 flex items-center gap-1">
+            <div className="text-lg font-bold font-mono text-slate-900 flex items-center gap-1 min-w-0 break-all">
               <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
               <span>
                 {balance === null
@@ -675,9 +675,9 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             </span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 min-w-0">
             <span className="text-xs text-slate-500 font-semibold block mb-1">Total Transactions</span>
-            <div className="text-lg font-bold font-mono text-slate-900">
+            <div className="text-base sm:text-lg font-bold font-mono text-slate-900 break-words">
               {totalTransactions !== null
                 ? `${totalTransactions.toLocaleString()} txns`
                 : `Total unknown`}
@@ -689,9 +689,9 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             </span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 min-w-0">
             <span className="text-xs text-slate-500 font-semibold block mb-1">Nonce (Outgoing Index)</span>
-            <div className="text-lg font-bold font-mono text-slate-900">
+            <div className="text-base sm:text-lg font-bold font-mono text-slate-900 break-all">
               {nonce === null ? (loading ? 'Loading…' : 'Unable to fetch data') : `#${nonce}`}
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">

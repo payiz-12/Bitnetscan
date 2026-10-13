@@ -17,7 +17,19 @@ export interface BtnPriceData {
   exchange: string;
   pair: string;
   lastUpdated: Date;
+  /** false until a NestEx quote has been received; numeric fields are then placeholders. */
+  available: boolean;
 }
+
+/** Formats a BTN amount in USD, or an em dash when no live quote is available. */
+export const formatBtnInUsd = (
+  btn: number,
+  price: BtnPriceData,
+  digits = 2
+): string => {
+  if (!price.available || !Number.isFinite(btn)) return '—';
+  return `$${(btn * price.priceUsd).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+};
 
 class PriceService {
   private cachedData: BtnPriceData | null = null;
@@ -25,20 +37,21 @@ class PriceService {
   private isFetching = false;
   private subscribers: Array<(data: BtnPriceData) => void> = [];
 
-  // Default fallback anchored to current NestEx live market data
+  // Shown until the first successful NestEx response. Never present a fixed price as live data.
   private fallbackData: BtnPriceData = {
-    priceUsd: 0.0175,
-    priceFormatted: '$0.0175',
-    change24h: -12.5,
-    change24hFormatted: '-12.50%',
-    isPositiveChange: false,
-    high24h: 0.018,
-    low24h: 0.0175,
-    volumeUsd: 0.495,
-    volumeBtn: 27.67,
+    priceUsd: 0,
+    priceFormatted: '—',
+    change24h: 0,
+    change24hFormatted: '—',
+    isPositiveChange: true,
+    high24h: 0,
+    low24h: 0,
+    volumeUsd: 0,
+    volumeBtn: 0,
     exchange: 'NestEx',
     pair: 'BTN/USDT',
-    lastUpdated: new Date(),
+    lastUpdated: new Date(0),
+    available: false,
   };
 
   constructor() {
@@ -102,7 +115,8 @@ class PriceService {
 
         const data = await res.json();
         if (data && data.last_price) {
-          const price = parseFloat(data.last_price) || 0.0175;
+          const price = parseFloat(data.last_price);
+          if (!Number.isFinite(price) || price <= 0) continue;
           const oldPrice = parseFloat(data.oldltp24h) || price;
           const high = parseFloat(data.high) || price;
           const low = parseFloat(data.low) || price;
@@ -127,6 +141,7 @@ class PriceService {
             exchange: 'NestEx Spot',
             pair: 'BTN/USDT',
             lastUpdated: new Date(),
+            available: true,
           };
 
           this.cachedData = parsed;

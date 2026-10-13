@@ -355,16 +355,23 @@ export const App: React.FC = () => {
     navigateTo('address-detail', addr);
   };
 
+  const routeKey =
+    currentView === 'block-detail' ? `block:${selectedBlock}`
+    : currentView === 'tx-detail' ? `tx:${selectedTx}`
+    : currentView === 'address-detail' ? `address:${selectedAddress}`
+    : currentView;
+
   return (
     <div className="min-h-screen flex flex-col bg-canvas-warm text-slate-900 font-sans selection:bg-teal-100 selection:text-teal-900">
       <Header
         currentView={currentView}
-        onNavigate={(view) => navigateTo(view)}
+        routeKey={routeKey}
+        onNavigate={(view, param) => navigateTo(view, param)}
         stats={stats}
         onSearch={handleSearch}
       />
 
-      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8">
         <ErrorBoundary fallbackTitle="An error occurred while loading this page">
           {currentView === 'dashboard' && (
             <DashboardView

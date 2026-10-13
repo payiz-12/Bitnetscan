@@ -23,11 +23,14 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [currentHead, setCurrentHead] = useState<number>(latestBlockNumber || 0);
   const [page, setPage] = useState<number>(1);
+  // Page 1 follows the chain head unless the user jumped to a specific height.
+  const [followHead, setFollowHead] = useState<boolean>(true);
   const [jumpBlockInput, setJumpBlockInput] = useState<string>('');
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const pageSize = 25;
 
   const fetchBlocks = async (startBlock: number) => {
+    // Keep the current rows visible while new head blocks load; only show the spinner on empty pages.
     setLoading(true);
     try {
       let head = startBlock;
@@ -50,10 +53,10 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
 
   // Synchronize new mined blocks in real-time when viewing page 1
   useEffect(() => {
-    if (page === 1 && latestBlockNumber > currentHead && latestBlockNumber > 0) {
+    if (followHead && page === 1 && latestBlockNumber > currentHead && latestBlockNumber > 0) {
       setCurrentHead(latestBlockNumber);
     }
-  }, [latestBlockNumber, page, currentHead]);
+  }, [latestBlockNumber, page, currentHead, followHead]);
 
   const handleNextPage = () => {
     if (blocks.length === 0) return;
@@ -67,7 +70,8 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
   const handlePrevPage = () => {
     if (page <= 1) return;
     const newestInCurrent = blocks[0].number;
-    const prevStart = newestInCurrent + pageSize;
+    const head = Math.max(latestBlockNumber, currentHead);
+    const prevStart = Math.min(newestInCurrent + pageSize, head);
     setPage((prev) => Math.max(1, prev - 1));
     setCurrentHead(prevStart);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -76,16 +80,19 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
   const handleRefresh = async () => {
     const latest = await rpcService.getBlockNumber();
     setPage(1);
-    setCurrentHead(latest);
-    fetchBlocks(latest);
+    setFollowHead(true);
+    if (latest === currentHead) fetchBlocks(latest);
+    else setCurrentHead(latest);
   };
 
   const handleJumpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const target = parseInt(jumpBlockInput.trim(), 10);
     if (!isNaN(target) && target >= 0) {
+      const head = Math.max(latestBlockNumber, currentHead);
       setPage(1);
-      setCurrentHead(target);
+      setFollowHead(head > 0 && target >= head);
+      setCurrentHead(head > 0 ? Math.min(target, head) : target);
       setJumpBlockInput('');
     }
   };
@@ -112,8 +119,13 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
     return `${addr.slice(0, 8)}...${addr.slice(-6)}`;
   };
 
+  const avgBlockTime = blocks.length > 1
+    ? (blocks[0].timestamp - blocks[blocks.length - 1].timestamp) / (blocks.length - 1)
+    : null;
+  const showSpinner = loading && blocks.length === 0;
+
   return (
-    <div className="space-y-6 w-full animate-fade-in">
+    <div className="space-y-5 sm:space-y-6 w-full animate-fade-in">
       {/* Top Navigation & Breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -130,7 +142,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
               <span className="text-xs text-slate-300">/</span>
               <span className="text-xs font-bold text-[#016976]">Blocks</span>
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5 mt-0.5">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-0.5">
               <span>Bitnet L1 Blocks</span>
               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-teal-50 text-[#016976] border border-teal-200/80">
                 PoW Mainnet
@@ -139,15 +151,19 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 self-end sm:self-auto">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           {/* Jump to Block */}
-          <form onSubmit={handleJumpSubmit} className="flex items-center">
+          <form onSubmit={handleJumpSubmit} className="flex items-center flex-1 sm:flex-initial">
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              enterKeyHint="go"
               value={jumpBlockInput}
-              onChange={(e) => setJumpBlockInput(e.target.value)}
-              placeholder="Block Height (#)..."
-              className="w-32 sm:w-36 px-3 py-1.5 bg-white border border-slate-300 rounded-l-xl text-xs font-mono font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#016976]"
+              onChange={(e) => setJumpBlockInput(e.target.value.replace(/[^0-9]/g, ''))}
+              placeholder="Jump to block #"
+              aria-label="Jump to block number"
+              className="w-full sm:w-36 min-w-0 px-3 py-1.5 bg-white border border-slate-300 rounded-l-xl text-xs font-mono font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-sans focus:outline-none focus:border-[#016976]"
             />
             <button
               type="submit"
@@ -186,7 +202,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
             <span>Avg Block Time</span>
           </div>
           <div className="text-lg sm:text-xl font-black text-slate-900 font-mono">
-            ~14.6s <span className="text-xs font-normal text-slate-400 font-sans">(Ethash PoW)</span>
+            {avgBlockTime !== null ? `~${avgBlockTime.toFixed(2)}s` : '…'} <span className="text-xs font-normal text-slate-400 font-sans">(this page)</span>
           </div>
         </div>
 
@@ -257,8 +273,57 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
           </div>
         </div>
 
+        {/* Mobile card list */}
+        <div className={`sm:hidden divide-y divide-slate-100 transition-opacity ${loading && !showSpinner ? 'opacity-60' : ''}`}>
+          {showSpinner ? (
+            <div className="py-14 flex flex-col items-center justify-center gap-2 text-slate-500">
+              <RefreshCw className="w-6 h-6 text-[#016976] animate-spin" />
+              <span className="font-semibold text-sm">Fetching blocks…</span>
+            </div>
+          ) : blocks.length === 0 ? (
+            <div className="py-12 text-center text-slate-500 text-sm">No blocks found.</div>
+          ) : (
+            blocks.map((block) => {
+              const gasPercent = block.gasLimit > 0 ? ((block.gasUsed / block.gasLimit) * 100).toFixed(1) : '0';
+              return (
+                <div
+                  key={block.number}
+                  onClick={() => onSelectBlock(block.number)}
+                  className="px-4 py-3 active:bg-slate-50 cursor-pointer space-y-1.5"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-mono font-bold text-sm text-[#016976]">#{block.number.toLocaleString()}</span>
+                    <span className="text-[11px] text-slate-500 font-mono flex items-center gap-1 shrink-0">
+                      <Clock className="w-3 h-3 text-slate-400" />
+                      {formatTimeAgo(block.timestamp)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 text-xs">
+                    <span className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-slate-400 shrink-0">Miner</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectAddress(block.miner);
+                        }}
+                        className="font-mono font-semibold text-slate-800 truncate cursor-pointer"
+                      >
+                        {block.miner ? `${block.miner.slice(0, 6)}…${block.miner.slice(-4)}` : ''}
+                      </button>
+                    </span>
+                    <span className="font-mono text-[11px] text-slate-500 shrink-0">
+                      {block.transactions.length} txns<span className="hidden min-[360px]:inline"> · {gasPercent}% gas</span>
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
         {/* Table Content */}
-        <div className="overflow-x-auto">
+        <div className={`hidden sm:block overflow-x-auto transition-opacity ${loading && !showSpinner ? 'opacity-60' : ''}`}>
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -272,7 +337,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs font-medium">
-              {loading ? (
+              {showSpinner ? (
                 <tr>
                   <td colSpan={7} className="py-16 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-2">
@@ -392,9 +457,9 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
         </div>
 
         {/* Footer Pagination */}
-        <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between gap-3">
           <div className="text-xs text-slate-500 font-medium">
-            Page <span className="font-bold text-slate-900">{page}</span> • Showing 25 blocks per page
+            Page <span className="font-bold text-slate-900">{page}</span><span className="hidden sm:inline"> • Showing 25 blocks per page</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -408,7 +473,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
               }`}
             >
               <ChevronLeft className="w-3.5 h-3.5" />
-              <span>Newer Blocks</span>
+              <span>Newer<span className="hidden sm:inline"> Blocks</span></span>
             </button>
             <button
               onClick={handleNextPage}
@@ -419,7 +484,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
                   : 'border-slate-300 text-slate-700 hover:bg-slate-100 bg-white cursor-pointer shadow-xs'
               }`}
             >
-              <span>Older Blocks</span>
+              <span>Older<span className="hidden sm:inline"> Blocks</span></span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>

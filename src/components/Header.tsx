@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, Shield, Cpu, Layers, ArrowRightLeft, Coins, Image, Terminal, 
-  Activity, Menu, X, PlusCircle, CheckCircle2, Globe, Trophy, Radio, Command,
+  Cpu, Layers, Coins, Image, Terminal, 
+  Activity, Menu, X, PlusCircle, CheckCircle2, Globe, Trophy,
   FileCode
 } from 'lucide-react';
 import { NetworkStats } from '../types/blockchain';
@@ -10,16 +10,18 @@ import { rpcService } from '../services/rpc';
 import { QuickSearchModal } from './QuickSearchModal';
 import { NetworkStatusModal } from './NetworkStatusModal';
 import { BitnetScanIcon } from './BitnetScanIcon';
+import { SearchBox } from './SearchBox';
 
 interface HeaderProps {
   currentView: string;
-  onNavigate: (view: string, param?: string) => void;
+  /** Identifies the visible page including its parameter; the search box clears when it changes. */
+  routeKey: string;
+  onNavigate: (view: string, param?: string | number) => void;
   stats: NetworkStats | null;
   onSearch: (query: string) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, onSearch }) => {
-  const [searchInput, setSearchInput] = useState('');
+export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigate, stats, onSearch }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [addedToWallet, setAddedToWallet] = useState(false);
   const [priceData, setPriceData] = useState<BtnPriceData>(priceService.getCachedPrice());
@@ -50,12 +52,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchInput.trim()) return;
-    onSearch(searchInput.trim());
-  };
 
 
   const handleAddToMetaMask = async () => {
@@ -153,13 +149,13 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-xs">
-      {/* Top micro-ticker banner with sharp high-contrast background */}
+    <>
+      {/* Top micro-ticker banner (scrolls away so the sticky nav stays compact on phones) */}
       <div className="bg-slate-900 border-b border-slate-800 py-1.5 px-3 sm:px-6 lg:px-8 text-xs text-slate-300">
-        <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-3">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-3">
           
-          {/* Row 1 on mobile / Left group on desktop: Bitnet Chain Node Button + BTN Price */}
-          <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 w-full sm:w-auto">
+          {/* Left group: Bitnet Chain Node Button + BTN Price */}
+          <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 w-full sm:w-auto min-w-0">
             {/* Bitnet Chain & Node Status Button */}
             <button
               onClick={() => setShowNetworkModal(true)}
@@ -188,28 +184,28 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
               <span className="text-white font-mono font-bold text-[11px] sm:text-xs group-hover:text-sky-300 transition-colors">
                 {priceData.priceFormatted}
               </span>
-              <span className={`text-[10px] sm:text-[11px] font-bold ${priceData.change24h >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <span className={`text-[10px] sm:text-[11px] font-bold ${!priceData.available ? 'text-slate-400' : priceData.change24h >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {priceData.change24hFormatted}
               </span>
-              <span className="text-[9px] text-slate-300 font-medium bg-slate-700 px-1 py-0.2 rounded hidden xs:inline sm:inline">
+              <span className="text-[9px] text-slate-300 font-medium bg-slate-700 px-1 py-px rounded hidden sm:inline">
                 NestEx
               </span>
             </a>
 
             {/* Desktop Ticker Items */}
-            <div className="hidden sm:flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-1">
               <span className="text-slate-400 font-medium">Block:</span>
               <span className="text-sky-400 font-mono font-bold">
                 #{stats ? stats.latestBlock.toLocaleString() : 'Loading...'}
               </span>
             </div>
-            <div className="hidden md:flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-1">
               <span className="text-slate-400 font-medium">Gas:</span>
               <span className="text-amber-400 font-mono font-bold">
                 {stats?.gasPriceGwei !== null && stats?.gasPriceGwei !== undefined ? `${stats.gasPriceGwei} Gwei` : 'Unknown'}
               </span>
             </div>
-            <div className="hidden lg:flex items-center gap-1">
+            <div className="hidden xl:flex items-center gap-1">
               <span className="text-slate-400 font-medium">Reward:</span>
               <span className="text-emerald-400 font-mono font-bold">
                 1.0 BTN / block
@@ -223,11 +219,11 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
             </div>
           </div>
 
-          {/* Row 2 on mobile / Right group on desktop: Add Wallet + PoW Badge */}
-          <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto pt-1 sm:pt-0 border-t border-slate-800/80 sm:border-0">
+          {/* Right group (tablet & desktop): Add Wallet + PoW Badge. On phones the wallet button lives in the menu. */}
+          <div className="hidden sm:flex items-center justify-end gap-3 shrink-0">
             <button
               onClick={handleAddToMetaMask}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-2.5 py-1 sm:px-3 rounded-lg sm:rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold border border-slate-700 text-[11px] sm:text-xs transition-all cursor-pointer shadow-xs"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold border border-slate-700 text-xs transition-all cursor-pointer"
               title="Add Bitnet Network to MetaMask"
             >
               {addedToWallet ? (
@@ -242,8 +238,8 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
                 </>
               )}
             </button>
-            <div className="flex items-center gap-1.5 text-slate-400 text-[11px] sm:text-xs font-mono shrink-0">
-              <span className="text-slate-700 hidden sm:inline">|</span>
+            <div className="hidden lg:flex items-center gap-1.5 text-slate-400 text-xs font-mono shrink-0">
+              <span className="text-slate-700">|</span>
               <Globe className="w-3.5 h-3.5 text-sky-400" />
               <span>Ethash PoW</span>
             </div>
@@ -252,12 +248,15 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
       </div>
 
       {/* Main navigation header */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-sm">
       <div className="max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-6 py-2">
         <div className="flex items-center justify-between gap-2 lg:gap-3">
           {/* Logo with BitnetScan brand icon & rotating inner block */}
-          <div 
-            onClick={() => onNavigate('dashboard')} 
-            className="flex items-center gap-2.5 cursor-pointer group flex-shrink-0"
+          <button
+            type="button"
+            onClick={() => { onNavigate('dashboard'); setMobileMenuOpen(false); }}
+            className="flex items-center gap-2.5 cursor-pointer group flex-shrink-0 text-left"
+            aria-label="BitnetScan home"
           >
             <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white border border-slate-200 p-1.5 shadow-sm group-hover:border-[#015866] group-hover:shadow-md transition-all flex items-center justify-center overflow-hidden">
               <BitnetScanIcon 
@@ -273,39 +272,18 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
               </div>
               <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium -mt-0.5 hidden sm:block">Bitnet Money Block Explorer</p>
             </div>
-          </div>
+          </button>
 
-          {/* Search bar in header (wide & spacious with full address visibility, fluid) */}
-          <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 min-w-0 max-w-xs md:max-w-sm lg:max-w-md xl:max-w-xl mx-2">
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-slate-400" />
-              </div>
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search by Address / Txn Hash / Block # (0x...)"
-                className="w-full pl-9 pr-28 py-1.5 xl:py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#016976] rounded-xl text-xs xl:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#016976]/20 transition-all font-mono shadow-2xs"
-              />
-              <div className="absolute inset-y-0 right-20 hidden xl:flex items-center">
-                <button
-                  type="button"
-                  onClick={() => setShowSearchModal(true)}
-                  className="px-1.5 py-0.5 rounded bg-slate-200 hover:bg-slate-300 text-[10px] font-mono font-bold text-slate-600 transition-colors cursor-pointer"
-                  title="Command Palette (⌘K)"
-                >
-                  ⌘K
-                </button>
-              </div>
-              <button
-                type="submit"
-                className="absolute inset-y-1 right-1 px-3 bg-[#016976] hover:bg-[#015661] text-white font-bold text-xs rounded-lg transition-all shadow-xs flex items-center gap-1 cursor-pointer"
-              >
-                Search
-              </button>
-            </div>
-          </form>
+          {/* Search bar in header with live previews */}
+          <div className="hidden md:flex flex-1 min-w-0 max-w-xs md:max-w-sm lg:max-w-md xl:max-w-xl mx-2">
+            <SearchBox
+              size="md"
+              routeKey={routeKey}
+              onNavigate={(view, param) => onNavigate(view, param)}
+              onSearch={onSearch}
+              onOpenPalette={() => setShowSearchModal(true)}
+            />
+          </div>
 
           {/* Desktop Nav menu */}
           <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 text-xs font-semibold flex-shrink-0">
@@ -316,7 +294,10 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
                 <button
                   key={item.id}
                   onClick={() => onNavigate(item.id)}
-                  className={`px-2 xl:px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all text-xs font-bold cursor-pointer whitespace-nowrap ${
+                  title={item.label}
+                  aria-label={item.label}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`px-1.5 xl:px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all text-xs font-bold cursor-pointer whitespace-nowrap ${
                     isActive
                       ? item.activeClass
                       : `${item.hoverClass} hover:bg-slate-50`
@@ -327,7 +308,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
                   }`}>
                     <Icon className="w-3.5 h-3.5" />
                   </div>
-                  <span>{item.label}</span>
+                  <span className="hidden xl:inline">{item.label}</span>
                 </button>
               );
             })}
@@ -336,65 +317,81 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
           {/* Mobile hamburger button */}
           <div className="flex lg:hidden items-center gap-2">
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 shadow-sm cursor-pointer"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Search input */}
-        <form onSubmit={handleSearchSubmit} className="mt-3 md:hidden">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search Address / Tx / Block..."
-              className="w-full pl-9 pr-16 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 font-mono"
-            />
-            <button
-              type="submit"
-              className="absolute right-1 top-1 bottom-1 px-3 bg-[#016976] text-white font-bold text-xs rounded-lg cursor-pointer"
-            >
-              Go
-            </button>
-          </div>
-        </form>
+        {/* Mobile Search input with live previews */}
+        <div className="mt-2 md:hidden">
+          <SearchBox
+            size="sm"
+            routeKey={routeKey}
+            onNavigate={(view, param) => { setMobileMenuOpen(false); onNavigate(view, param); }}
+            onSearch={(query) => { setMobileMenuOpen(false); onSearch(query); }}
+            placeholder="Address, tx hash or block #"
+            submitLabel="Go"
+          />
+        </div>
 
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="lg:hidden mt-3 pt-3 border-t border-slate-200 flex flex-col gap-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentView === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    onNavigate(item.id);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`px-3 py-2 rounded-xl flex items-center gap-2.5 transition-all text-xs font-bold cursor-pointer ${
-                    isActive
-                      ? item.activeClass
-                      : `${item.hoverClass} hover:bg-slate-50`
-                  }`}
-                >
-                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${
-                    isActive ? 'bg-white/20 text-white' : item.iconBg
-                  }`}>
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          <nav className="lg:hidden mt-2 pt-2 border-t border-slate-200 max-h-[calc(100dvh-8rem)] overflow-y-auto overscroll-contain" aria-label="Main">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = currentView === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      onNavigate(item.id);
+                      setMobileMenuOpen(false);
+                    }}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`px-3 py-2.5 rounded-xl flex items-center gap-2.5 transition-all text-xs font-bold cursor-pointer border ${
+                      isActive
+                        ? `${item.activeClass} border-transparent`
+                        : `${item.hoverClass} bg-white border-slate-200 hover:bg-slate-50`
+                    }`}
+                  >
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
+                      isActive ? 'bg-white/20 text-white' : item.iconBg
+                    }`}>
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={handleAddToMetaMask}
+              className="sm:hidden mt-2 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all cursor-pointer"
+            >
+              {addedToWallet ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-400">Bitnet Added</span>
+                </>
+              ) : (
+                <>
+                  <PlusCircle className="w-4 h-4 text-sky-400" />
+                  <span>Add Bitnet to Wallet</span>
+                </>
+              )}
+            </button>
+          </nav>
         )}
       </div>
+      </header>
 
       {/* Quick Search Command Palette (Cmd+K) */}
       <QuickSearchModal
@@ -412,6 +409,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onNavigate, stats, 
         gasPriceGwei={stats?.gasPriceGwei}
         peerCount={stats?.peerCount}
       />
-    </header>
+    </>
   );
 };
