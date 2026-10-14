@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { rpcService } from '../services/rpc';
 import { explorerApiService } from '../services/explorerApi';
-import { VERIFIED_HODL_WALLETS, RichAccount, fetchLiveRichList } from '../data/richList';
+import { RichAccount, TopAccountsResult, fetchTopAccounts } from '../data/richList';
 import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
 
 interface RichListViewProps {
@@ -15,7 +15,9 @@ interface RichListViewProps {
 }
 
 export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, latestBlock, onBack }) => {
-  const [accounts, setAccounts] = useState<RichAccount[]>(VERIFIED_HODL_WALLETS);
+  const [accounts, setAccounts] = useState<RichAccount[]>([]);
+  const [listSource, setListSource] = useState<TopAccountsResult['source'] | null>(null);
+  const [updatedAt, setUpdatedAt] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
@@ -32,16 +34,16 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
   const [customLoading, setCustomLoading] = useState(false);
   const [customError, setCustomError] = useState<string | null>(null);
 
-  // Est on-chain circulating supply = current block * 1.0 BTN (Whitepaper PoW subsidy)
-  const estimatedTotalSupply = (latestBlock > 0 ? latestBlock : 7721500) * 1.0;
+  // Base issuance: 1 BTN per block since block 1 (no premine)
+  const estimatedTotalSupply = latestBlock > 0 ? latestBlock : 0;
 
-  const loadBalances = async () => {
+  const loadBalances = async (force = false) => {
     setLoading(true);
     try {
-      const liveList = await fetchLiveRichList(latestBlock);
-      if (liveList && liveList.length > 0) {
-        setAccounts(liveList);
-      }
+      const result = await fetchTopAccounts(latestBlock, force ? 0 : 60000);
+      setAccounts(result.accounts);
+      setListSource(result.source);
+      setUpdatedAt(result.updatedAt);
     } catch (err) {
       console.error('Error loading rich list:', err);
     } finally {
@@ -75,14 +77,14 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
       const balStr = await rpcService.getBalance(cleanAddr);
       const txCount = await rpcService.getTransactionCount(cleanAddr);
       const balNum = parseFloat(balStr) || 0;
-      const pct = ((balNum / estimatedTotalSupply) * 100).toFixed(4);
+      const pct = estimatedTotalSupply > 0 ? ((balNum / estimatedTotalSupply) * 100).toFixed(4) : null;
 
       const newAccount: RichAccount = {
         rank: 0,
         address: cleanAddr,
         balance: balNum,
         balanceFormatted: balNum.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
-        percentage: `${pct}%`,
+        percentage: pct !== null ? `${pct}%` : 'Unknown',
         txCount,
         balanceLive: true,
       };
@@ -138,7 +140,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-[#D97706] border border-amber-200 flex items-center gap-1.5">
                   <Trophy className="w-3.5 h-3.5 text-[#D97706]" />
-                  <span>Top Whale Accounts</span>
+                  <span>Top accounts by balance</span>
                 </span>
               </div>
               <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
@@ -151,10 +153,10 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
         {/* 3 Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-            <span className="text-xs text-slate-500 font-semibold block mb-1">Circulating Total Supply (Est.)</span>
+            <span className="text-xs text-slate-500 font-semibold block mb-1">Base issuance (1 BTN × blocks)</span>
             <div className="text-xl font-bold font-mono text-slate-900 flex items-center gap-1.5">
               <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-4 h-4" />
-              <span>{(estimatedTotalSupply / 1e6).toFixed(2)}M BTN</span>
+              <span>{estimatedTotalSupply > 0 ? `${(estimatedTotalSupply / 1e6).toFixed(2)}M BTN` : '…'}</span>
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
               ≈ {formatBtnInUsd(estimatedTotalSupply, priceData, 0)} USD (NestEx Spot)
@@ -162,10 +164,10 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
           </div>
 
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-            <span className="text-xs text-slate-500 font-semibold block mb-1">#1 Whale Account Balance</span>
+            <span className="text-xs text-slate-500 font-semibold block mb-1">Largest balance</span>
             <div className="text-xl font-bold font-mono text-slate-900 flex items-center gap-1.5">
               <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-4 h-4" />
-              <span>{accounts[0]?.balanceFormatted || '1,042,986.96'} BTN</span>
+              <span>{accounts[0] ? `${accounts[0].balanceFormatted} BTN` : '…'}</span>
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
               ≈ {formatBtnInUsd(accounts[0]?.balance ?? NaN, priceData)} USD
@@ -198,12 +200,27 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
         </div>
       </div>
 
-      <p className="text-xs text-slate-500">Ranking covers the watched wallets only. Balances marked snapshot could not be refreshed.</p>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+        <p>
+          {listSource === 'snapshot'
+            ? 'Explorer ranking unavailable — showing previously known large holders with live balances.'
+            : 'Top 50 accounts from the Bitnet explorer, with balances read live from the RPC.'}
+          {updatedAt && ` Updated ${new Date(updatedAt).toLocaleTimeString('en-US', { hour12: false })}.`}
+        </p>
+        <button
+          onClick={() => loadBalances(true)}
+          disabled={loading}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
       {/* Check Any Address Rank Tool */}
       <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
         <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
           <Zap className="w-4 h-4 text-[#016976]" />
-          <span>Query Any Wallet Ranking & Balance</span>
+          <span>Check any address</span>
         </h3>
         <form onSubmit={handleCheckCustomWallet} className="flex flex-col sm:flex-row gap-3">
           <input
@@ -219,7 +236,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
             className="px-5 py-2.5 rounded-xl bg-[#016976] hover:bg-[#015661] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
           >
             {customLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-            <span>Check & Add</span>
+            <span>Check</span>
           </button>
         </form>
         {customError && (
@@ -288,6 +305,11 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                     >
                       {acc.address.slice(0, 6)}...{acc.address.slice(-4)}
                     </span>
+                    {(acc.name || acc.isContract) && (
+                      <span className="shrink-0 px-1.5 py-px rounded-md bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-700 font-sans truncate max-w-[8rem]">
+                        {acc.name || 'Contract'}
+                      </span>
+                    )}
                     <button
                       onClick={(e) => copyAddress(acc.address, e)}
                       className="p-1 rounded-md hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors shrink-0"
@@ -314,7 +336,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                     </span>
                     <div className="font-extrabold text-sm text-slate-900 flex items-center gap-1.5 truncate">
                       <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{acc.balanceFormatted} BTN{!acc.balanceLive && ' (snapshot)'}</span>
+                      <span className="truncate">{acc.balanceFormatted} BTN{!acc.balanceLive && ' (not live)'}</span>
                     </div>
                     <div className="text-[11px] text-slate-500 font-sans font-medium mt-0.5 truncate">
                       ≈ {formatBtnInUsd(acc.balance, priceData)} USD
@@ -323,10 +345,10 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
 
                   <div className="text-right shrink-0">
                     <div className="inline-flex items-center px-2 py-0.5 rounded-md bg-teal-50 text-[#016976] text-[10px] font-bold border border-teal-200/60">
-                      {acc.percentage} of Supply
+                      {acc.percentage} of issuance
                     </div>
                     <div className="text-[10px] text-slate-500 font-sans font-medium mt-1">
-                      {acc.txCount.toLocaleString()} outgoing txns
+                      {acc.txCount !== null ? `${acc.txCount.toLocaleString()} sent` : '—'}
                     </div>
                   </div>
                 </div>
@@ -343,8 +365,8 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                 <th className="py-4 px-4 sm:px-6">Rank</th>
                 <th className="py-4 px-4">Address</th>
                 <th className="py-4 px-4 text-right">Balance (BTN)</th>
-                <th className="py-4 px-4 text-right hidden md:table-cell">% of Supply</th>
-                <th className="py-4 px-4 text-right">Txn Count</th>
+                <th className="py-4 px-4 text-right hidden md:table-cell">% of Issuance</th>
+                <th className="py-4 px-4 text-right">Sent Txns</th>
                 <th className="py-4 px-4 text-center">Action</th>
               </tr>
             </thead>
@@ -400,6 +422,11 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                         >
                           {acc.address}
                         </span>
+                        {(acc.name || acc.isContract) && (
+                          <span className="shrink-0 px-1.5 py-px rounded-md bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-700 font-sans truncate max-w-[8rem]">
+                            {acc.name || 'Contract'}
+                          </span>
+                        )}
                         <button
                           onClick={(e) => copyAddress(acc.address, e)}
                           className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors flex-shrink-0"
@@ -417,7 +444,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                     <td className="py-4 px-4 text-right">
                       <div className="font-bold text-slate-900 flex items-center justify-end gap-1.5">
                         <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
-                        <span>{acc.balanceFormatted} BTN{!acc.balanceLive && ' (snapshot)'}</span>
+                        <span>{acc.balanceFormatted} BTN{!acc.balanceLive && ' (not live)'}</span>
                       </div>
                       <div className="text-[11px] text-slate-500 font-sans font-medium mt-0.5">
                         ≈ {formatBtnInUsd(acc.balance, priceData)} USD
@@ -431,7 +458,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
 
                     {/* Tx count */}
                     <td className="py-4 px-4 text-right text-slate-800 font-semibold">
-                      {acc.txCount.toLocaleString()} outgoing txns
+                      {acc.txCount !== null ? `${acc.txCount.toLocaleString()} sent` : '—'}
                     </td>
 
                     {/* Action */}

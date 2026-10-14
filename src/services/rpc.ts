@@ -21,13 +21,12 @@ class BitnetRpcService {
   private activeRpc = this.endpoints[0];
   private inFlightRequests = new Map<string, Promise<any>>();
   private latencyMap = new Map<string, number>();
-  private healthListeners = new Set<(status: { activeRpc: string; latencyMs: number }) => void>();
+  private healthListeners = new Set<(status: { activeRpc: string; latencyMs: number | null }) => void>();
   // Direct node URLs usually lack CORS headers in browsers; stop pinging them after a failure.
   private unreachableDirect = new Set<string>();
 
   constructor() {
     this.activeRpc = this.endpoints[0];
-    this.latencyMap.set(this.endpoints[0], 28);
     // Measure latency across all endpoints immediately and re-check periodically
     this.measureLatencies().catch(() => {});
     if (typeof window !== 'undefined') {
@@ -83,9 +82,11 @@ class BitnetRpcService {
     return this.activeRpc;
   }
 
-  public getLatency(endpoint?: string): number {
+  /** Last measured round trip in ms, or null before the first successful request. */
+  public getLatency(endpoint?: string): number | null {
     const target = endpoint || this.activeRpc;
-    return this.latencyMap.get(target) || 28;
+    const ms = this.latencyMap.get(target);
+    return ms !== undefined && ms < 9999 ? ms : null;
   }
 
   public setActiveRpc(url: string) {
@@ -93,7 +94,7 @@ class BitnetRpcService {
     this.notifyHealthListeners();
   }
 
-  public subscribeHealth(cb: (status: { activeRpc: string; latencyMs: number }) => void): () => void {
+  public subscribeHealth(cb: (status: { activeRpc: string; latencyMs: number | null }) => void): () => void {
     this.healthListeners.add(cb);
     cb({ activeRpc: this.activeRpc, latencyMs: this.getLatency() });
     return () => {
@@ -108,6 +109,63 @@ class BitnetRpcService {
         cb(status);
       } catch {}
     });
+  }
+
+  /**
+   * Sends several JSON-RPC calls in one HTTP request (JSON-RPC batch). Results keep the
+   * order of `calls`; a failed call yields null. Falls back to individual requests when
+   * no endpoint accepts batches.
+   */
+  public async batch(calls: { method: string; params: any[] }[], timeoutMs = 8000): Promise<any[]> {
+    if (calls.length === 0) return [];
+    const urlsToTry = [...this.endpoints]
+      .filter((url) => !this.unreachableDirect.has(url))
+      .sort((a, b) => (this.latencyMap.get(a) ?? 9999) - (this.latencyMap.get(b) ?? 9999));
+    const body = JSON.stringify(calls.map((c, id) => ({ jsonrpc: '2.0', id, method: c.method, params: c.params })));
+
+    for (const url of urlsToTry) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+          signal: controller.signal,
+        });
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (!Array.isArray(data)) continue;
+        const byId = new Map<number, any>(data.map((item: any) => [item.id, item]));
+        return calls.map((_, id) => {
+          const item = byId.get(id);
+          return item && !item.error && item.result !== undefined ? item.result : null;
+        });
+      } catch {
+        // try the next endpoint
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    return Promise.all(calls.map((c) => this.rawRequest(c.method, c.params).catch(() => null)));
+  }
+
+  /** Block headers (without transactions) for [from, from + count), oldest first. */
+  public async getBlockHeaders(from: number, count: number): Promise<Block[]> {
+    const numbers = Array.from({ length: count }, (_, i) => from + i).filter((n) => n >= 0);
+    const missing = numbers.filter((n) => !this.blockCache.has(n));
+    for (let i = 0; i < missing.length; i += 50) {
+      const chunk = missing.slice(i, i + 50);
+      const results = await this.batch(chunk.map((n) => ({ method: 'eth_getBlockByNumber', params: ['0x' + n.toString(16), false] })));
+      results.forEach((raw) => {
+        if (!raw) return;
+        const block = this.parseRawBlock(raw);
+        this.blockCache.set(block.number, block);
+        this.blockCache.set(block.hash.toLowerCase(), block);
+      });
+    }
+    return numbers.map((n) => this.blockCache.get(n)).filter((b): b is Block => !!b);
   }
 
   private async rawRequest(method: string, params: any[] = [], timeoutMs = 2500): Promise<any> {

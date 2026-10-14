@@ -428,7 +428,7 @@ class ExplorerApiService {
             hash: item.hash || '',
             timestamp: parseTimestampToSeconds(item.timestamp),
             txCount: item.transaction_count || item.tx_count || 0,
-            difficulty: '704.28 GH',
+            difficulty: item.difficulty != null ? String(item.difficulty) : '',
             miner: cleanAddr,
             reward: '1.0 BTN',
           }));
@@ -449,13 +449,8 @@ class ExplorerApiService {
     await this.ensureSnapshot();
     const cached = this.blocksCache.get(cleanAddr);
     if (cached && cached.length > 0) {
-      const knownTotals: Record<string, number> = {
-        '0xfad4a236c87880035497043f24ea58d73c3e50de': 4354589,
-        '0x6c0db3ea9eed7ed145f36da461d84a8d02596b08': 493335,
-        '0x6afcdfec8066a7fbf1295f10c4907924e99e72a4': 441101,
-      };
-      const total = totalCount || knownTotals[cleanAddr] || cached.length;
-      return { blocks: cached, totalCount: total };
+      // Without the indexer counter the total is unknown (0); only the cached blocks are listed.
+      return { blocks: cached, totalCount };
     }
 
     return { blocks: [], totalCount: 0 };

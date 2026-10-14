@@ -6,7 +6,7 @@
   </picture>
 
   <p align="center">
-    <strong>Next-Generation Blockchain Explorer & Web3 Analytics Suite for Bitnet Money (BTN)</strong>
+    <strong>Block explorer for Bitnet Money (BTN)</strong>
   </p>
 
   <p align="center">
@@ -18,108 +18,69 @@
 
 <br />
 
-# BitnetScan — Next-Generation Bitnet (BTN) Blockchain Explorer
+# BitnetScan
 
-BitnetScan is a state-of-the-art, feature-complete Block Explorer and Web3 Analytics Suite engineered specifically for the **Bitnet Money** Layer-1 Proof-of-Work (PoW) EVM blockchain.
+BitnetScan is a block explorer for the Bitnet Money proof-of-work EVM chain (chain ID 210). Live site: https://bitnetscan.vercel.app
 
----
+## Features
 
-## 🚀 Key Features
+- **Dashboard** – latest blocks and transactions, block time, gas price, hashrate, BTN price from NestEx and today's transaction count.
+- **Search** – block numbers, transaction hashes and addresses, with a preview of the result while you type. Known tokens, contracts and pools can be found by name.
+- **Blocks and transactions** – the full transaction archive (newest first, back to block 1), block details with the exact miner reward, transaction details with decoded input data and event logs.
+- **Addresses** – balance, nonce, transaction history, BTS-20 tokens, NFTs, mined blocks, contract bytecode and a read-only contract caller.
+- **Top accounts** – ranking by balance from the Bitnet explorer, with each balance read live from the RPC.
+- **Tokens, NFTs and contracts** – BTS-20 tokens, NFT collections (IPFS content verified against its CID) and verified contracts.
+- **Mining** – miner share of the last 200 blocks, worker counts published by pools, pool servers and a reward calculator.
+- **Developer tools** – JSON-RPC console and RPC endpoint status.
 
-### 1. Live Network Metrics & Dashboard
-- **Real-Time Block & Transaction Feed:** Auto-polls Bitnet RPC every 20 seconds with animated visual updates.
-- **PoW Hashrate & Difficulty Analytics:** Dynamic hashrate estimation calculated directly from current block difficulty and block times.
-- **Gas Tracker:** Live gas fee tracking in Gwei (RPC recommendation; unavailable data is marked unknown).
-- **Network Status Ticker:** Peer counts, chain ID 210, client version, and node synchronization status.
+## Data sources
 
-### 2. Universal Omni-Search
-- Search by **Block Number** (e.g. `7721294`)
-- Search by **Block Hash** (`0x...`)
-- Search by **Transaction Hash** (`0x...`)
-- Search by **Wallet / Contract Address** (`0x...`)
+| Data | Source |
+| --- | --- |
+| Blocks, transactions, balances, receipts | Bitnet JSON-RPC (`rpc.bitnetmoney.org`, `rpc.bitnetmoney.com`) |
+| Transaction archive, address history, top accounts, counters | Bitnet explorer indexer (`explorer.bitnetmoney.com`) |
+| Daily statistics | `stats.explorer.bitnetmoney.com` |
+| BTN price | NestEx (`api.nestex.one`) |
+| Pool workers and servers | CoolPool API (`coolpool.top`) |
 
-### 3. Comprehensive Block Inspection
-- Block height, timestamp, PoW nonce, mixHash, parent hash navigation.
-- Miner address with balance preview and direct account navigation.
-- Block reward calculation (1.0 BTN base subsidy; uncle rewards and fees are additional).
-- Gas Used vs Gas Limit percentage progress visualization.
-- **Node ExtraData Decoding:** Automatically converts raw hex into ASCII client identification (e.g., `geth go1.22.2 linux`).
-- Full list of all transactions within the block.
+The browser reaches these services through `/api/*` paths. They are proxied by Vite during development (`vite.config.ts`) and by Vercel rewrites in production (`vercel.json`).
 
-### 4. Advanced Transaction & Execution Inspection
-- Success/revert status badge with gas fee calculations.
-- Value transferred in BTN with precise unit formatting.
-- **Smart Contract Input Data Decoder:**
-  - Decodes standard ERC-20 / BTS-20, BTS-721, BTS-1155, BTS-21, and BTS-HCE method calls.
-  - View modes: Decoded Arguments, Raw Hex, and UTF-8 string text.
-- Event Log decoder for `Transfer` and custom contract events.
+Values that cannot be read are shown as unknown rather than estimated. The supply chart uses the explorer's circulating supply series when available; otherwise it shows base issuance (block height × 1 BTN) and labels it as an estimate.
 
-### 5. Address & Smart Contract Suite
-- EOA vs Smart Contract auto-detection using `eth_getCode`.
-- QR Code generator for mobile wallet transfers.
-- **Live Read Contract Interface:** Directly execute `name()`, `symbol()`, `totalSupply()`, `decimals()`, `owner()`, and `balanceOf()` queries via JSON-RPC.
-- Full EVM deployed bytecode viewer.
-
-### 6. Bitnet Token Standards & NFT Explorers
-- **BTS-20 Explorer:** Inspect any token contract on Bitnet.
-- **BTS-721 NFT Explorer:** Load every ERC-721 collection, instance and transfer page from the Bitnet indexer. Holder balances use the complete instance list. Token details check ERC-721 support, `ownerOf` and `tokenURI` at a single RPC block; images and attributes come from creator metadata, with explicit indexer fallback when gateways are unavailable.
-- Documentation for official standards: `BTS-20`, `BTS-721`, `BTS-1155`, `BTS-21`, `BTS-HCE`.
-
-### 7. PoW Mining Calculator & Guide
-- Interactive reward estimation tool based on user hash power (MH/s or GH/s).
-- Configuration guides for Ethash miners (lolMiner, T-Rex, Bitnet Desktop Node).
-
-### 8. Developer JSON-RPC Console & Node Health Ping
-- Interactive JSON-RPC 2.0 playground with pre-filled method templates and live latency timing.
-- Real-time multi-node health checker pinging `rpc.bitnetmoney.org`, `rpc.bitnetmoney.com`, etc.
-
-### 9. 1-Click MetaMask Integration
-- "Add Bitnet to Wallet" button in the header pre-populating Chain ID `210`, RPC URL, and `BTN` currency symbol.
-
----
-
-## 🛠️ Tech Stack
-- **Framework:** React 18, Vite 5, TypeScript
-- **Styling:** Tailwind CSS (Dark Cyber Glassmorphism)
-- **Web3 / Crypto:** Ethers.js v6
-- **Icons:** Lucide React
-
----
-
-## ⚡ Quick Start
+## Development
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
-
-# Build for production
+npm run dev      # http://localhost:5173
 npm run build
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Checks:
 
-## Data coverage and validation
+```bash
+npm run test:explorer
+npm run test:nfts
+node scripts/check-hashrate.mjs
+node scripts/check-supply-history.mjs
+node scripts/check-transaction-history.mjs
+node scripts/verify-all-system-checks.mjs
+```
 
-Run `npm run test:nfts` and `npm run build` for NFT regression checks. `node scripts/check-nfts.mjs --live` additionally checks current indexed holder quantities and sample NFT owners/tokenURIs against Bitnet RPC; it needs network access. Hashrate is an estimate from cumulative work divided by elapsed time. Daily/weekly/monthly/yearly/all charts use real block timestamps; transaction activity is the average of 12 sampled blocks per interval, not a full-chain total. Supply history is unavailable until a complete issuance index is provided. Watched wallets and transaction snapshots are labelled accordingly.
+`node scripts/check-nfts.mjs --live` also compares indexed NFT holders and sample owners/tokenURIs against the RPC (needs network access, Node.js 22.19+).
 
-NFT collection hints contain addresses and labels only. Legacy NFT snapshots are not loaded. Partial scans, unavailable metadata and cached records are labelled; missing prices and mint timestamps are not estimated. Collection names can be reused by different contracts: the five known addresses are grouped separately from additional indexed contracts. Indexer inclusion is not an authenticity badge. Wallet holdings exclude cached ownership records, and transfer events are keyed by transaction, log index and token ID. ERC-721 IDs remain decimal strings to preserve all 256 bits.
+## Tech stack
 
-IPFS images and tokenURI metadata use a lazily loaded `@helia/verified-fetch` client to discover providers and verify content against its CID. Images also try HTTP gateways in parallel, share in-flight IPFS requests and use a bounded memory cache. Migrated public gateways (`w3s.link`, `ipfs.io`, `dweb.link`, `nftstorage.link`, `storacha.link`) are excluded from hotlink fallbacks because their service-worker pages cannot load as an image or JSON response. Original creator URIs and CID paths are preserved. See the [IPFS gateway migration notice](https://gatewaychanges.ipfs.io/).
+React 18, TypeScript, Vite 5, Tailwind CSS, ethers v6, lucide-react, `@helia/verified-fetch` for IPFS.
 
-Use Node.js 22.19+ (or Node.js 24) when running live IPFS checks. The project `.npmrc` disables automatic peer installation because Helia's transport dependencies declare React Native peers that this browser app does not use.
+## Notes
 
-The SDK is a separate lazy chunk (about 494 KB gzip). Its transitive Node-only `node-forge`/`braces` dependencies currently have npm security advisories; neither package nor `acme-client` is present in the emitted browser code. Recheck those advisories before using this dependency tree in a Node server.
+- IPFS images and metadata are fetched with `@helia/verified-fetch`, which is loaded only when an NFT page needs it. HTTP gateways are tried in parallel; migrated public gateways (`w3s.link`, `ipfs.io`, `dweb.link`, `nftstorage.link`, `storacha.link`) are skipped because they no longer serve raw content. If no provider serves a CID, the UI shows `IPFS image unavailable`.
+- `.npmrc` disables automatic peer installation because Helia's transport dependencies declare React Native peers that this app does not use.
 
-BitnetPunks' indexed image directory is `bafybeihtkm7laawttavonnpqkc3ihqrtcejhhfwmirnisfafa2wndt6kem`; its sampled contract tokenURI points to metadata directory `bafybeigid6ra5ehwariynf5fxpytq7t2unuszul6m5hz76et4p2plya4sm`. Retrieval improvements cannot restore content if no reachable provider serves it. In that case the UI reports `IPFS image unavailable`. Recovery requires the original directory/CAR to be re-pinned under the same CID by its creator or another holder of the files; changing gateways or generating replacement artwork would not recover the original NFT images.
+## Contributing
 
-Vite `/api/*` proxies apply only to development. Production must configure equivalent HTTPS reverse proxies for `/api/rpc`, `/api/rpc2`, `/api/explorer`, `/api/bitnet-explorer`, `/api/nestex`, or allow the listed direct endpoints through CORS. No production deployment is performed by this change.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
----
+## License
 
-## 🤝 Contributing
-
-Contributions are welcome! Please check out the [Contributing Guidelines](CONTRIBUTING.md) to get started with development, bug reports, and pull requests.
-
+[MIT](LICENSE)

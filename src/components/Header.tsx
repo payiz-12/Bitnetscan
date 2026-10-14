@@ -5,7 +5,6 @@ import {
   FileCode
 } from 'lucide-react';
 import { NetworkStats } from '../types/blockchain';
-import { priceService, BtnPriceData } from '../services/priceService';
 import { rpcService } from '../services/rpc';
 import { QuickSearchModal } from './QuickSearchModal';
 import { NetworkStatusModal } from './NetworkStatusModal';
@@ -24,16 +23,11 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigate, stats, onSearch }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [addedToWallet, setAddedToWallet] = useState(false);
-  const [priceData, setPriceData] = useState<BtnPriceData>(priceService.getCachedPrice());
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showNetworkModal, setShowNetworkModal] = useState(false);
-  const [rpcLatency, setRpcLatency] = useState<number>(24);
+  const [rpcLatency, setRpcLatency] = useState<number | null>(null);
 
   useEffect(() => {
-    const unsubPrice = priceService.subscribe((data) => {
-      setPriceData(data);
-    });
-
     const unsubHealth = rpcService.subscribeHealth((st) => {
       setRpcLatency(st.latencyMs);
     });
@@ -47,7 +41,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
-      unsubPrice();
       unsubHealth();
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -154,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
       <div className="bg-slate-900 border-b border-slate-800 py-1.5 px-3 sm:px-6 lg:px-8 text-xs text-slate-300">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-3">
           
-          {/* Left group: Bitnet Chain Node Button + BTN Price */}
+          {/* Left group: network status + latest block and gas price */}
           <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 w-full sm:w-auto min-w-0">
             {/* Bitnet Chain & Node Status Button */}
             <button
@@ -162,59 +155,27 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
               className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 sm:px-2.5 rounded-lg border border-slate-700 text-xs transition-colors cursor-pointer group shrink-0"
               title="View Bitnet RPC & Node Health Status"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#22C55E] animate-pulse shrink-0"></span>
+              <span className={`w-2 h-2 rounded-full shrink-0 ${rpcLatency !== null ? 'bg-emerald-400' : 'bg-slate-500'}`}></span>
               <span className="text-white font-bold text-[11px] sm:text-xs">
                 <span className="sm:hidden">Bitnet (210)</span>
                 <span className="hidden sm:inline">Bitnet Mainnet (Chain 210)</span>
               </span>
               <span className="text-emerald-400 text-[10px] font-mono font-bold bg-slate-900/60 px-1.5 py-0.5 rounded group-hover:bg-slate-900 text-center inline-flex items-center justify-center tabular-nums">
-                {rpcLatency}ms
+                {rpcLatency !== null ? `${rpcLatency}ms` : '…'}
               </span>
             </button>
 
-            {/* Live NestEx BTN/USDT Spot Price */}
-            <a
-              href="https://trade.nestex.one/spot/BTN"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 sm:gap-1.5 bg-slate-800/90 hover:bg-slate-800 px-2 py-0.5 sm:px-2.5 rounded-lg border border-slate-700/80 text-xs transition-colors group cursor-pointer shrink-0"
-              title="NestEx BTN/USDT Live Spot Exchange"
-            >
-              <span className="text-slate-400 font-medium text-[11px] sm:text-xs">BTN:</span>
-              <span className="text-white font-mono font-bold text-[11px] sm:text-xs group-hover:text-sky-300 transition-colors">
-                {priceData.priceFormatted}
-              </span>
-              <span className={`text-[10px] sm:text-[11px] font-bold ${!priceData.available ? 'text-slate-400' : priceData.change24h >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {priceData.change24hFormatted}
-              </span>
-              <span className="text-[9px] text-slate-300 font-medium bg-slate-700 px-1 py-px rounded hidden sm:inline">
-                NestEx
-              </span>
-            </a>
-
             {/* Desktop Ticker Items */}
-            <div className="hidden md:flex items-center gap-1">
+            <div className="flex items-center gap-1 text-[11px] sm:text-xs">
               <span className="text-slate-400 font-medium">Block:</span>
               <span className="text-sky-400 font-mono font-bold">
-                #{stats ? stats.latestBlock.toLocaleString() : 'Loading...'}
+                {stats ? `#${stats.latestBlock.toLocaleString()}` : '…'}
               </span>
             </div>
-            <div className="hidden lg:flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-1">
               <span className="text-slate-400 font-medium">Gas:</span>
               <span className="text-amber-400 font-mono font-bold">
                 {stats?.gasPriceGwei !== null && stats?.gasPriceGwei !== undefined ? `${stats.gasPriceGwei} Gwei` : 'Unknown'}
-              </span>
-            </div>
-            <div className="hidden xl:flex items-center gap-1">
-              <span className="text-slate-400 font-medium">Reward:</span>
-              <span className="text-emerald-400 font-mono font-bold">
-                1.0 BTN / block
-              </span>
-            </div>
-            <div className="hidden xl:flex items-center gap-1">
-              <span className="text-slate-400 font-medium">Hashrate:</span>
-              <span className="text-orange-400 font-mono font-bold">
-                {stats?.hashrateEstimate || 'Active'}
               </span>
             </div>
           </div>

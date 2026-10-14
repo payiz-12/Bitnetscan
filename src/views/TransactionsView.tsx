@@ -12,7 +12,6 @@ interface TransactionsViewProps {
   onSelectTx: (txHash: string) => void;
   onSelectBlock: (blockNumber: number) => void;
   onSelectAddress: (address: string) => void;
-  initialSort?: 'latest' | 'oldest';
 }
 
 export const TransactionsView: React.FC<TransactionsViewProps> = ({
@@ -20,30 +19,24 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
   onSelectTx,
   onSelectBlock,
   onSelectAddress,
-  initialSort = 'latest',
 }) => {
-  const [sortOrder, setSortOrder] = useState<'latest' | 'oldest'>(initialSort);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const pageSize = 50;
   const [remotePage, setRemotePage] = useState<IndexedTransactionPage | null>(null);
   const [pageLoading, setPageLoading] = useState(false);
   const [pageError, setPageError] = useState('');
+  const [totalOnChain, setTotalOnChain] = useState<number | null>(null);
   const cursors = useRef<(TransactionCursor | undefined)[]>([undefined]);
   const source = useRef<string>();
-  const snapshot = useMemo(() => explorerApiService.getLedgerTransactions({
-    sort: 'oldest', query: searchQuery, page: currentPage, pageSize,
-  }), [searchQuery, currentPage, refreshTrigger]);
   const query = searchQuery.trim().toLowerCase();
-  const transactions = sortOrder === 'oldest' ? snapshot.transactions : (remotePage?.transactions || []).filter(tx =>
+  const transactions = (remotePage?.transactions || []).filter(tx =>
     !query || [tx.hash, tx.from, tx.to, String(tx.blockNumber)].some(value => value.toLowerCase().includes(query)));
-  const total = sortOrder === 'oldest' ? snapshot.total : remotePage?.transactions.length || 0;
-  const totalPages = sortOrder === 'oldest' ? snapshot.totalPages : currentPage + (remotePage?.next ? 1 : 0);
+  const totalPages = currentPage + (remotePage?.next ? 1 : 0);
 
+  // Pages come from the explorer indexer with cursor pagination, newest first, back to block 1.
   useEffect(() => {
-    if (sortOrder !== 'latest') { setPageLoading(false); setPageError(''); return; }
     let active = true;
     setPageLoading(true);
     setPageError('');
@@ -59,26 +52,15 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
       .catch(() => { if (active) setPageError('Indexer unavailable. Retry to load this page.'); })
       .finally(() => { if (active) setPageLoading(false); });
     return () => { active = false; };
-  }, [sortOrder, currentPage, refreshTrigger]);
+  }, [currentPage, refreshTrigger]);
 
-  // The historical snapshot is downloaded on demand; re-read it once it arrives.
-  const [snapshotReady, setSnapshotReady] = useState(explorerApiService.snapshotLoaded);
   useEffect(() => {
-    if (sortOrder !== 'oldest' || snapshotReady) return;
     let active = true;
-    explorerApiService.ensureSnapshot().then(() => {
-      if (active) {
-        setSnapshotReady(explorerApiService.snapshotLoaded);
-        setRefreshTrigger((prev) => prev + 1);
-      }
-    });
+    explorerApiService.getOfficialNetworkStats()
+      .then((stats) => { if (active && stats?.totalTransactions != null) setTotalOnChain(stats.totalTransactions); })
+      .catch(() => {});
     return () => { active = false; };
-  }, [sortOrder, snapshotReady]);
-
-  // Reset page to 1 when search or sort order changes
-  useEffect(() => {
-    if (sortOrder === 'oldest') setCurrentPage(1);
-  }, [sortOrder, searchQuery]);
+  }, [refreshTrigger]);
 
   const handleCopy = (text: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -138,14 +120,9 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
           </button>
           <div className="h-4 w-px bg-slate-300 hidden sm:block" />
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex flex-wrap items-center gap-x-2.5 gap-y-1">
-              <span>Bitnet Blockchain Transactions</span>
-              <span className="text-xs font-bold font-mono px-2 py-0.5 rounded-full bg-teal-50 text-[#016976] border border-teal-200/80">
-                {sortOrder === 'oldest' ? `${total.toLocaleString()} Snapshot Records` : 'Indexer Archive'}
-              </span>
-            </h1>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Transactions</h1>
             <p className="text-xs text-slate-500 font-medium">
-              Browse indexed transaction pages; historical snapshots are listed separately.
+              {totalOnChain !== null ? `${totalOnChain.toLocaleString()} transactions on Bitnet · newest first` : 'Newest first'}
             </p>
           </div>
         </div>
@@ -162,90 +139,11 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
         </div>
       </div>
 
-      {/* Genesis & Network Highlights Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-teal-900 via-slate-900 to-[#014E58] rounded-2xl p-4 text-white shadow-sm flex items-center gap-3.5 border border-teal-800/40">
-          <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/20">
-            <Landmark className="w-6 h-6 text-teal-300" />
-          </div>
-          <div className="min-w-0">
-            <span className="text-[11px] font-bold text-teal-200 uppercase tracking-wider block">
-              Bitnet Genesis
-            </span>
-            <div className="text-sm font-bold font-mono text-white truncate">
-              July 14, 2023 06:54 UTC
-            </div>
-            <div className="text-[10px] text-teal-300/80">
-              Block #1 Genesis Launch
-            </div>
-          </div>
-        </div>
-
-        <div className="hidden sm:flex bg-white rounded-2xl p-4 border border-slate-200 shadow-xs items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-sky-50 flex items-center justify-center text-[#0284C7] flex-shrink-0 border border-sky-100">
-            <ArrowRightLeft className="w-6 h-6" />
-          </div>
-          <div className="min-w-0">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Ledger Depth
-            </span>
-            <div className="text-sm font-bold font-mono text-slate-900 truncate">
-              {sortOrder === 'latest' ? 'Cursor-paginated archive' : 'Historical snapshot only'}
-            </div>
-            <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              Indexer coverage varies by source
-            </div>
-          </div>
-        </div>
-
-        <div className="hidden sm:flex bg-white rounded-2xl p-4 border border-slate-200 shadow-xs items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 flex-shrink-0 border border-amber-100">
-            <Flame className="w-6 h-6" />
-          </div>
-          <div className="min-w-0">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Fee Data
-            </span>
-            <div className="text-sm font-bold font-mono text-slate-900 truncate">
-              Per transaction
-            </div>
-            <div className="text-[10px] text-slate-500">
-              Actual indexed fee shown below
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Filter and Tab Controls */}
       <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
-        {/* Sort Tabs: Latest vs Oldest */}
-        <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl w-full md:w-auto">
-          <button
-            onClick={() => { setCurrentPage(1); setSortOrder('latest'); }}
-            className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              sortOrder === 'latest'
-                ? 'bg-white text-[#016976] shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 shrink-0" />
-            <span>Latest<span className="hidden min-[400px]:inline"> Transactions</span></span>
-          </button>
-
-          <button
-            onClick={() => { setCurrentPage(1); setSortOrder('oldest'); }}
-            className={`flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              sortOrder === 'oldest'
-                ? 'bg-[#016976] text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Landmark className="w-3.5 h-3.5 shrink-0" />
-            <span><span className="hidden min-[400px]:inline">Historical </span>Snapshot</span>
-          </button>
-        </div>
-
+        <span className="text-xs text-slate-500" role="status">
+          {pageLoading ? 'Loading…' : pageError || `Page ${currentPage} · ${transactions.length} transactions`}
+        </span>
         {/* Search Bar */}
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -267,7 +165,6 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
         </div>
       </div>
 
-      <p className="text-xs text-slate-500" role="status">{pageLoading && sortOrder === 'latest' ? 'Loading indexer page…' : sortOrder === 'oldest' && !snapshotReady ? 'Loading historical snapshot…' : pageError || (sortOrder === 'latest' ? 'Next loads older transactions from the indexer. Search filters the current page.' : 'Historical cached records; this snapshot does not contain the full chain.')}</p>
       {/* Main Ledger Table */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
         {/* Mobile card list */}
@@ -284,8 +181,12 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
               <div
                 key={tx.hash}
                 onClick={() => onSelectTx(tx.hash)}
-                className="px-4 py-3 active:bg-slate-50 cursor-pointer space-y-1.5"
+                className="px-4 py-3 active:bg-slate-50 cursor-pointer flex gap-3"
               >
+                <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-1.5 shrink-0 mt-0.5">
+                  <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-full h-full object-contain" />
+                </div>
+                <div className="min-w-0 flex-1 space-y-1.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <span className="font-mono font-bold text-xs text-[#0284C7] block">{truncate(tx.hash, 10, 6)}</span>
@@ -349,6 +250,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                     <span className="ml-auto text-[10px] text-slate-400">Fee {String(tx.fee).replace(/\s*BTN$/, '')}</span>
                   )}
                 </div>
+                </div>
               </div>
             ))
           )}
@@ -392,6 +294,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                       {/* Hash with copy icon */}
                       <td className="py-3.5 px-4 font-mono">
                         <div className="flex items-center gap-2">
+                          <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-5 h-5 shrink-0" />
                           <span className="font-bold text-[#0284C7] group-hover:underline">
                             {truncate(tx.hash, 8, 6)}
                           </span>
@@ -547,8 +450,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
         {/* Pagination Footer */}
         <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
           <div>
-            {sortOrder === 'latest' ? `Page ${currentPage} · ${transactions.length} records shown` :
-              `Snapshot page ${currentPage} of ${totalPages} · ${total.toLocaleString()} cached records`}
+            Page {currentPage}{query ? ' · filtered' : ''}
 
           </div>
 
@@ -594,16 +496,6 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
               <ChevronRight className="w-4 h-4" />
             </button>
 
-            {sortOrder === 'oldest' && <button
-              onClick={() => {
-                setCurrentPage(totalPages);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              disabled={pageLoading || currentPage >= totalPages}
-              className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-all cursor-pointer"
-            >
-              Last
-            </button>}
           </div>
         </div>
       </div>

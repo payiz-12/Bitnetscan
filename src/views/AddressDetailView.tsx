@@ -14,7 +14,6 @@ import {
   AddressNftHolding 
 } from '../services/nftSyncService';
 import { NftImage } from '../components/NftImage';
-import { VERIFIED_HODL_WALLETS } from '../data/richList';
 import { ethers } from 'ethers';
 
 interface AddressDetailViewProps {
@@ -57,7 +56,8 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
   // Real transactions & activity history
   const [transactions, setTransactions] = useState<AddressTransaction[]>(initialCachedTxs);
   const [minedBlocks, setMinedBlocks] = useState<MinedBlock[]>(initialCachedBlocks);
-  const [minedBlocksTotalCount, setMinedBlocksTotalCount] = useState<number>(initialCachedBlocks.length);
+  // 0 = total unknown (indexer counter unavailable)
+  const [minedBlocksTotalCount, setMinedBlocksTotalCount] = useState<number>(0);
   const [minedBlocksLoading, setMinedBlocksLoading] = useState<boolean>(false);
   const [liveSyncFlash, setLiveSyncFlash] = useState<boolean>(false);
   const [tokens, setTokens] = useState<AddressTokenBalance[]>([]);
@@ -138,11 +138,6 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
       let snapshotDate: string | null = null;
       let source: 'rpc' | 'explorer' | 'snapshot' | 'standard' = 'rpc';
 
-      // Historical snapshot (rich list) reference only for fallback
-      const richMatch = VERIFIED_HODL_WALLETS.find(
-        (a) => a.address.toLowerCase() === cleanAddr
-      );
-
       // 1. Independent Live RPC Queries via Promise.allSettled
       try {
         const [balRes, countRes, codeRes] = await Promise.allSettled([
@@ -222,13 +217,8 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   if (Number.isFinite(parsedTotal)) resolvedTotalTx = parsedTotal;
                 }
                 if (needsCode && data.is_contract !== undefined && data.is_contract !== null) {
-                  if (data.is_contract === true) {
-                    resolvedCode = '0x60806040';
-                    resolvedCodeStatus = 'verified_contract';
-                  } else {
-                    resolvedCode = '0x';
-                    resolvedCodeStatus = 'verified_eoa';
-                  }
+                  // The indexer knows the account type but not the bytecode; leave the code unknown.
+                  resolvedCodeStatus = data.is_contract === true ? 'verified_contract' : 'verified_eoa';
                 }
                 break;
               }
@@ -245,21 +235,6 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             resolvedTotalTx = counters.transactionsCount;
           }
         } catch {}
-      }
-
-      // 4. If fields failed on live networks, fall back to verified historical snapshot with date
-      if (richMatch) {
-        if (resolvedBal === null) {
-          resolvedBal = richMatch.balance.toString();
-          balStatus = 'cached';
-          snapshotDate = 'Snapshot (Mar 2026)';
-          source = 'snapshot';
-        }
-        if (resolvedNonce === null) {
-          resolvedNonce = richMatch.txCount;
-        }
-        // Rich-list membership does not verify bytecode or account type.
-        // Keep unresolved types unknown; preserve any RPC/indexer verification.
       }
 
       // If resolvedBal is still null, it stays null (do NOT assume 0.0000).
@@ -301,7 +276,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   hash: rb.hash,
                   timestamp: rb.timestamp,
                   txCount: Array.isArray(rb.transactions) ? rb.transactions.length : 0,
-                  difficulty: rb.difficulty || '704.28 GH',
+                  difficulty: rb.difficulty || '',
                   miner: lowerAddr,
                   reward: '1.0 BTN',
                 });
@@ -311,8 +286,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           }
           mergedBlocks.sort((a, b) => b.number - a.number);
           setMinedBlocks(mergedBlocks);
-          const computedTotal = Math.max(blocksResult.totalCount, mergedBlocks.length);
-          setMinedBlocksTotalCount(computedTotal);
+          setMinedBlocksTotalCount(blocksResult.totalCount > 0 ? Math.max(blocksResult.totalCount, mergedBlocks.length) : 0);
           setTokens(tokenBalances || []);
           setTxsLoading(false);
           setTokensLoading(false);
@@ -380,7 +354,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             hash: b.hash,
             timestamp: b.timestamp,
             txCount: Array.isArray(b.transactions) ? b.transactions.length : 0,
-            difficulty: b.difficulty || '704.28 GH',
+            difficulty: b.difficulty || '',
             miner: cleanAddr,
             reward: '1.0 BTN',
           });
@@ -389,7 +363,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
       }
 
       if (addedCount > 0) {
-        setMinedBlocksTotalCount((c) => c + addedCount);
+        setMinedBlocksTotalCount((c) => (c > 0 ? c + addedCount : 0));
         setLiveSyncFlash(true);
         setTimeout(() => setLiveSyncFlash(false), 3500);
 
@@ -428,7 +402,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             hash: rb.hash,
             timestamp: rb.timestamp,
             txCount: Array.isArray(rb.transactions) ? rb.transactions.length : 0,
-            difficulty: rb.difficulty || '704.28 GH',
+            difficulty: rb.difficulty || '',
             miner: cleanAddr,
             reward: '1.0 BTN',
           });
@@ -438,8 +412,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
 
       merged.sort((a, b) => b.number - a.number);
       setMinedBlocks(merged);
-      const computedTotal = Math.max(blocksResult.totalCount, merged.length);
-      setMinedBlocksTotalCount(computedTotal);
+      setMinedBlocksTotalCount(blocksResult.totalCount > 0 ? Math.max(blocksResult.totalCount, merged.length) : 0);
     } catch (err) {
       console.error('Error refreshing mined blocks:', err);
     } finally {
@@ -453,7 +426,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isContract = bytecode && bytecode !== '0x' && bytecode.length > 2;
+  const isContract = codeStatus === 'verified_contract' || (!!bytecode && bytecode !== '0x' && bytecode.length > 2);
 
   const formatTimeAgo = (timestamp: number) => {
     const seconds = Math.max(0, Math.floor(Date.now() / 1000 - timestamp));
@@ -535,7 +508,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
         </button>
 
         <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-teal-50 border border-teal-200 text-[#016976] text-xs font-mono font-bold shadow-2xs">
-          <span className="w-2 h-2 rounded-full bg-[#016976] animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-[#016976]"></span>
           <span>
             {loading
               ? 'Querying Chain & Indexer…'
@@ -704,14 +677,14 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               {(minedBlocksTotalCount > 0 || minedBlocks.length > 0) ? 'Mined PoW Blocks' : 'Network Protocol'}
             </span>
             <div className="text-lg font-bold font-mono text-[#016976]">
-              {(minedBlocksTotalCount > 0 || minedBlocks.length > 0)
-                ? `${(minedBlocksTotalCount || minedBlocks.length).toLocaleString()} Blocks`
-                : 'Chain ID 210'}
+              {minedBlocksTotalCount > 0
+                ? `${minedBlocksTotalCount.toLocaleString()} Blocks`
+                : minedBlocks.length > 0 ? `${minedBlocks.length.toLocaleString()} recent` : 'Chain ID 210'}
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
-              {(minedBlocksTotalCount > 0 || minedBlocks.length > 0)
-                ? `${(minedBlocksTotalCount || minedBlocks.length).toLocaleString()} BTN mining reward`
-                : 'Bitnet EVM Mainnet'}
+              {minedBlocksTotalCount > 0
+                ? `≥ ${minedBlocksTotalCount.toLocaleString()} BTN in subsidies`
+                : minedBlocks.length > 0 ? 'Total unavailable' : 'Bitnet EVM Mainnet'}
             </span>
           </div>
         </div>
@@ -1293,24 +1266,19 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 <Pickaxe className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900">Validated / Mined Blocks</h3>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Live RPC Synced
-                  </span>
-                </div>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">Mined Blocks</h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  Total {(minedBlocksTotalCount || minedBlocks.length).toLocaleString()} PoW blocks mined • Cumulative Miner Earnings: {(minedBlocksTotalCount || minedBlocks.length).toLocaleString()} BTN
+                  {minedBlocksTotalCount > 0
+                    ? `${minedBlocksTotalCount.toLocaleString()} blocks mined in total (≥ ${minedBlocksTotalCount.toLocaleString()} BTN in block subsidies)`
+                    : `${minedBlocks.length.toLocaleString()} recent blocks loaded · total unavailable`}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               {liveSyncFlash && (
-                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-xl animate-bounce">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>+1.0 BTN New Block!</span>
+                <div className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl">
+                  New block mined
                 </div>
               )}
               <button
@@ -1319,11 +1287,8 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${minedBlocksLoading ? 'animate-spin text-[#016976]' : ''}`} />
-                <span>Live Refresh</span>
+                <span>Refresh</span>
               </button>
-              <span className="text-xs font-mono text-amber-700 font-bold bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 whitespace-nowrap">
-                1.0 BTN / Block
-              </span>
             </div>
           </div>
 
@@ -1409,7 +1374,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           </div>
 
           <div className="bg-[#0B132B] p-4 rounded-2xl border border-slate-700 font-mono text-xs text-emerald-400 break-all max-h-72 overflow-y-auto shadow-inner">
-            {bytecode}
+            {bytecode ?? 'Bytecode could not be loaded from the RPC.'}
           </div>
         </div>
       )}

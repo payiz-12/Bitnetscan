@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Block } from '../types/blockchain';
+import { rpcService } from '../services/rpc';
 import { 
   Github, Globe, Server, Code, FileText, Cpu, ExternalLink, ShieldCheck,
   Heart, Copy, Check, X, QrCode
@@ -6,9 +8,23 @@ import {
 
 const DONATION_ADDRESS = '0x4251F40A6e3CbD1CA01669DAd35E157CeEa7Be48';
 
-export const Footer: React.FC = () => {
+const rpcLabel = (url: string) =>
+  url.includes('rpc2') || url.includes('bitnetmoney.com') ? 'rpc.bitnetmoney.com' : 'rpc.bitnetmoney.org';
+
+export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [activeRpc, setActiveRpc] = useState(rpcService.getActiveRpc());
+  const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
+
+  useEffect(() => rpcService.subscribeHealth((st) => setActiveRpc(st.activeRpc)), []);
+  useEffect(() => {
+    const t = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 15000);
+    return () => clearInterval(t);
+  }, []);
+
+  const blockAge = latestBlock ? Math.max(0, now - latestBlock.timestamp) : null;
+  const healthy = blockAge !== null && blockAge < 180;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -44,9 +60,13 @@ export const Footer: React.FC = () => {
             <p className="text-slate-500 text-xs">
               Bitnet Money (BTN) L1 Block Explorer
             </p>
-            <div className="flex items-center gap-2 text-[#016976] font-mono text-[11px] font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#016976] animate-pulse"></span>
-              <span>Network Status: Live & Producing Blocks</span>
+            <div className={`flex items-center gap-2 font-mono text-[11px] font-bold ${healthy ? 'text-[#016976]' : 'text-amber-700'}`}>
+              <span className={`w-2 h-2 rounded-full ${blockAge === null ? 'bg-slate-300' : healthy ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+              <span>
+                {latestBlock
+                  ? `Block #${latestBlock.number.toLocaleString()} · ${blockAge! < 60 ? `${blockAge}s` : `${Math.floor(blockAge! / 60)}m`} ago`
+                  : 'Connecting to the network…'}
+              </span>
             </div>
           </div>
 
@@ -70,7 +90,7 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex justify-between border-b border-slate-100 pb-1">
                 <span className="text-slate-500">Gas Limit:</span>
-                <span className="text-slate-900 font-bold">150,000,000</span>
+                <span className="text-slate-900 font-bold">{latestBlock ? latestBlock.gasLimit.toLocaleString('en-US') : '…'}</span>
               </li>
               <li className="flex justify-between">
                 <span className="text-slate-500">Base Reward:</span>
@@ -167,7 +187,7 @@ export const Footer: React.FC = () => {
             <span className="text-slate-300 hidden sm:inline">•</span>
             <span className="flex items-center gap-1 text-slate-600">
               <Server className="w-3 h-3 text-[#016976]" />
-              <span>RPC: rpc.bitnetmoney.org</span>
+              <span>RPC: {rpcLabel(activeRpc)}</span>
             </span>
             <span className="text-slate-300 hidden sm:inline">•</span>
             <span className="flex items-center gap-1 text-slate-600">

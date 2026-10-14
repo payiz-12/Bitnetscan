@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Block } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
+import { blockRewardLabel } from '../services/blockReward';
 
 interface BlocksViewProps {
   latestBlockNumber: number;
@@ -289,8 +290,12 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
                 <div
                   key={block.number}
                   onClick={() => onSelectBlock(block.number)}
-                  className="px-4 py-3 active:bg-slate-50 cursor-pointer space-y-1.5"
+                  className="px-4 py-3 active:bg-slate-50 cursor-pointer flex items-center gap-3"
                 >
+                  <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center p-1.5 shrink-0">
+                    <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-full h-full object-contain" />
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex items-center justify-between gap-3">
                     <span className="font-mono font-bold text-sm text-[#016976]">#{block.number.toLocaleString()}</span>
                     <span className="text-[11px] text-slate-500 font-mono flex items-center gap-1 shrink-0">
@@ -315,6 +320,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
                     <span className="font-mono text-[11px] text-slate-500 shrink-0">
                       {block.transactions.length} txns<span className="hidden min-[360px]:inline"> · {gasPercent}% gas</span>
                     </span>
+                  </div>
                   </div>
                 </div>
               );
@@ -367,8 +373,8 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
                       {/* Block Number */}
                       <td className="py-3.5 px-4 sm:px-6 font-mono font-bold text-[#016976] group-hover:underline">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                            <Box className="w-3.5 h-3.5 text-[#016976]" />
+                          <div className="w-7 h-7 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center p-1 flex-shrink-0">
+                            <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-full h-full object-contain" />
                           </div>
                           <span>#{block.number.toLocaleString()}</span>
                         </div>
@@ -445,7 +451,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
                       {/* Block Reward */}
                       <td className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                          1.0 BTN
+                          {blockRewardLabel(block)}
                         </span>
                       </td>
                     </tr>

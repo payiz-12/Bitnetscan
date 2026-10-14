@@ -4,7 +4,9 @@ import {
   ExternalLink, ArrowUpRight, Zap, CheckCircle2, ChevronRight, User, BarChart2, Coins, TrendingUp, FileCode, Trophy
 } from 'lucide-react';
 import { Block, NetworkStats, Transaction } from '../types/blockchain';
-import { VERIFIED_HODL_WALLETS, RichAccount, fetchLiveRichList } from '../data/richList';
+import { RichAccount, fetchTopAccounts } from '../data/richList';
+import { KNOWN_MINING_POOLS } from '../data/miningPools';
+import { blockRewardLabel } from '../services/blockReward';
 import { explorerApiService } from '../services/explorerApi';
 import { statsHistoryService } from '../services/statsHistory';
 import { NetworkActivityCharts } from '../components/NetworkActivityCharts';
@@ -54,18 +56,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [priceData, setPriceData] = useState<BtnPriceData>(priceService.getCachedPrice());
-  const [txFeedTab, setTxFeedTab] = useState<'latest' | 'oldest'>('latest');
-  const [snapshotReady, setSnapshotReady] = useState(explorerApiService.snapshotLoaded);
-
-  // The "Oldest" feed (and the empty-feed fallback) reads the on-demand historical snapshot.
-  React.useEffect(() => {
-    if (snapshotReady || (txFeedTab !== 'oldest' && (loading || recentTxs.length > 0))) return;
-    let active = true;
-    explorerApiService.ensureSnapshot().then(() => {
-      if (active) setSnapshotReady(explorerApiService.snapshotLoaded);
-    });
-    return () => { active = false; };
-  }, [txFeedTab, recentTxs.length, loading, snapshotReady]);
 
   React.useEffect(() => {
     return priceService.subscribe((data) => {
@@ -100,28 +90,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   // Refreshed by the app-level poll (the indexer scan itself is cached for 30 s).
   const dailyTxCount = stats?.transactionsToday ?? null;
   const [richAccounts, setRichAccounts] = useState<RichAccount[]>([]);
-  const [richStatus, setRichStatus] = useState('Loading watched wallet balances…');
+  const [richSource, setRichSource] = useState<'indexer' | 'snapshot' | null>(null);
+  const latestBlockRef = React.useRef(0);
+  latestBlockRef.current = stats?.latestBlock || 0;
   React.useEffect(() => {
     if (!stats?.latestBlock) return;
-    let active = true, busy = false;
+    let active = true;
     const refresh = async () => {
-      if (busy) return;
-      busy = true;
       try {
-        const accounts = await fetchLiveRichList(stats.latestBlock);
+        const result = await fetchTopAccounts(latestBlockRef.current);
         if (active) {
-          setRichAccounts(accounts);
-          setRichStatus(accounts.every(a => a.balanceLive) ? 'Live balances · 50 watched wallets' : 'Some balances are historical snapshots');
+          setRichAccounts(result.accounts);
+          setRichSource(result.source);
         }
-      } finally { busy = false; }
+      } catch { /* keep the last list */ }
     };
     refresh();
-    // 50 wallets × 2 RPC calls per refresh; balances of large holders change slowly.
+    // One indexer page plus one batched RPC request per refresh.
     const timer = setInterval(() => {
       if (!isPageHidden()) refresh();
-    }, 300000);
+    }, 120000);
     return () => { active = false; clearInterval(timer); };
   }, [!!stats?.latestBlock]);
+
+  const avgBlockTime = stats?.avgBlockTimeSeconds && stats.avgBlockTimeSeconds > 0 ? stats.avgBlockTimeSeconds : null;
+  const sinceLastBlock = recentBlocks[0] ? Math.max(0, nowSec - recentBlocks[0].timestamp) : 0;
+  const nextBlockProgress = avgBlockTime ? Math.min(100, Math.round((sinceLastBlock / avgBlockTime) * 100)) : null;
 
   return (
     <div className="space-y-5 sm:space-y-8 animate-fade-in">
@@ -142,7 +136,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   Ethash Layer-1 Blockchain
                 </span>
                 <span className="hidden sm:flex text-xs text-slate-600 items-center gap-1.5 font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                   PoW Consensus • 1.0 BTN / block reward
                 </span>
               </div>
@@ -234,7 +228,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {priceData.priceFormatted}
               </div>
               <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 flex items-center justify-between truncate">
-                <span>{priceData.available ? `High: $${priceData.high24h}` : 'NestEx unavailable'}</span>
+                <span>{priceData.available ? `High: $${priceData.high24h.toFixed(priceData.high24h < 0.1 ? 4 : 2)}` : 'NestEx unavailable'}</span>
                 <span className="text-[10px] text-slate-400 hidden sm:inline">NestEx ↗</span>
               </div>
             </div>
@@ -300,7 +294,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
                     : 'text-amber-700 bg-amber-50 border-amber-200'
                 }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${dailyTxCount !== null ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${dailyTxCount !== null ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                   {dailyTxCount !== null ? 'Indexed' : 'Unavailable'}
                 </span>
               </div>
@@ -324,24 +318,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="px-3.5 py-3 sm:p-5 border-b border-slate-200 bg-slate-50">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="hidden min-[400px]:flex w-10 h-10 rounded-xl bg-white border border-slate-200 items-center justify-center text-[#016976] shadow-xs relative shrink-0">
+                <div className="hidden min-[400px]:flex w-10 h-10 rounded-xl bg-white border border-slate-200 items-center justify-center text-[#016976] shadow-xs shrink-0">
                   <Box className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                  </span>
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-slate-900">Latest Blocks</h3>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      Live Feed
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    Target: ~{stats?.avgBlockTimeSeconds != null ? Number(stats.avgBlockTimeSeconds).toFixed(2) : '14.60'}s block time
-                  </p>
+                  <h3 className="text-base font-bold text-slate-900">Latest Blocks</h3>
+                  {avgBlockTime && (
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Avg block time {avgBlockTime.toFixed(2)}s (last 120 blocks)
+                    </p>
+                  )}
                 </div>
               </div>
               <button
@@ -358,24 +344,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {/* Upcoming Block Dashed Mining Slot */}
             {(recentBlocks[0]?.number || stats?.latestBlock) && (
               <div className="p-3 bg-teal-50/20 border-b border-slate-100">
-                <div className="relative overflow-hidden rounded-xl border-2 border-dashed border-[#016976]/40 bg-white/85 p-3 shadow-2xs transition-all animate-pulse-dashed">
-                  {/* Background Progress Fill across ~15s */}
-                  <div
-                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-teal-500/10 via-emerald-500/15 to-teal-400/20 transition-all duration-1000 ease-linear pointer-events-none"
-                    style={{
-                      width: `${Math.min(100, Math.round(((recentBlocks[0] ? Math.max(0, nowSec - recentBlocks[0].timestamp) : 0) / (stats?.avgBlockTimeSeconds || 14.6)) * 100))}%`
-                    }}
-                  />
+                <div className="relative overflow-hidden rounded-xl border-2 border-dashed border-[#016976]/40 bg-white/85 p-3 shadow-2xs">
+                  {/* Time since the last block relative to the measured average block time */}
+                  {nextBlockProgress !== null && (
+                    <div
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-teal-500/10 via-emerald-500/15 to-teal-400/20 transition-all duration-1000 ease-linear pointer-events-none"
+                      style={{ width: `${nextBlockProgress}%` }}
+                    />
+                  )}
 
                   <div className="relative z-10 flex items-center justify-between gap-3">
                     {/* Left: Animated Icon & Next Block info */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl border-2 border-dashed border-[#016976]/60 bg-teal-50/60 flex items-center justify-center text-[#016976] shadow-2xs flex-shrink-0 relative">
-                        <Box className="w-5 h-5 text-[#016976] animate-pulse" />
-                        <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                        </span>
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl border-2 border-dashed border-[#016976]/60 bg-teal-50/60 flex items-center justify-center text-[#016976] flex-shrink-0">
+                        <Box className="w-4 h-4 sm:w-5 sm:h-5 text-[#016976]" />
                       </div>
 
                       <div className="min-w-0">
@@ -383,33 +365,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           <span className="font-mono font-bold text-sm text-slate-800 tracking-tight">
                             #{((recentBlocks[0]?.number || stats?.latestBlock || 0) + 1).toLocaleString()}
                           </span>
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/90">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                            Mining (PoW)
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/90">
+                            Next block
                           </span>
                         </div>
-                        <div className="text-xs text-slate-500 font-mono mt-0.5 flex items-center gap-2">
-                          <span>~{Math.round(stats?.avgBlockTimeSeconds || 14.6)}s target</span>
-                          <span>•</span>
-                          <span className="text-teal-700 font-semibold">{recentBlocks[0] ? Math.max(0, nowSec - recentBlocks[0].timestamp) : 0}s</span>
+                        <div className="text-xs text-slate-500 font-mono mt-0.5">
+                          <span className="text-teal-700 font-semibold">{sinceLastBlock}s</span> since last block
                         </div>
                       </div>
                     </div>
 
                     {/* Right: Block Progress Meter */}
-                    <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
-                      <span className="font-mono font-bold text-xs text-[#016976]">
-                        %{Math.min(100, Math.round(((recentBlocks[0] ? Math.max(0, nowSec - recentBlocks[0].timestamp) : 0) / (stats?.avgBlockTimeSeconds || 14.6)) * 100))}
-                      </span>
-                      <div className="w-20 sm:w-28 bg-slate-200/80 rounded-full h-2 overflow-hidden border border-teal-200/50 shadow-inner">
-                        <div
-                          className="h-full bg-gradient-to-r from-[#016976] via-teal-500 to-emerald-400 rounded-full transition-all duration-1000 ease-linear"
-                          style={{
-                            width: `${Math.min(100, Math.round(((recentBlocks[0] ? Math.max(0, nowSec - recentBlocks[0].timestamp) : 0) / (stats?.avgBlockTimeSeconds || 14.6)) * 100))}%`
-                          }}
-                        />
+                    {nextBlockProgress !== null && avgBlockTime && (
+                      <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
+                        <span className="font-mono font-bold text-xs text-[#016976]">
+                          {sinceLastBlock}s / {avgBlockTime.toFixed(1)}s
+                        </span>
+                        <div className="w-20 sm:w-28 bg-slate-200/80 rounded-full h-2 overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-[#016976] via-teal-500 to-emerald-400 rounded-full transition-all duration-1000 ease-linear"
+                            style={{ width: `${nextBlockProgress}%` }}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -439,8 +418,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="hidden sm:flex w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 items-center justify-center p-2 group-hover:border-[#016976] group-hover:scale-105 transition-all duration-200 shadow-2xs shrink-0">
-                        <img src="/bitnet-logo-blue.svg" alt="" className="w-full h-full object-contain" />
+                      <div className="flex w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-50 border border-slate-200 items-center justify-center p-1.5 sm:p-2 group-hover:border-[#016976] transition-colors shrink-0">
+                        <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-full h-full object-contain" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5">
@@ -448,8 +427,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             #{block.number.toLocaleString()}
                           </span>
                           {isNewest && isVeryRecent && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-teal-100 text-[#016976] border border-teal-300 animate-pulse shrink-0">
-                              <span className="w-1 h-1 rounded-full bg-[#016976]"></span>
+                            <span className="inline-flex items-center px-1.5 py-px rounded text-[9px] font-bold bg-teal-100 text-[#016976] border border-teal-300 shrink-0">
                               New
                             </span>
                           )}
@@ -459,23 +437,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           </span>
                         </div>
                         <div className="text-xs text-slate-600 flex items-center gap-1.5 mt-0.5 min-w-0">
-                          <span className="font-medium text-slate-400 shrink-0">Miner:</span>
+                          <span className="font-medium text-slate-400 shrink-0">Miner</span>
                           <span 
                             onClick={(e) => {
                               e.stopPropagation();
                               onSelectAddress(block.miner);
                             }}
+                            title={block.miner}
                             className="font-mono text-slate-700 hover:text-[#016976] hover:underline font-semibold truncate"
                           >
-                            {truncateAddress(block.miner)}
+                            {KNOWN_MINING_POOLS[(block.miner || '').toLowerCase()]?.category === 'known'
+                              ? KNOWN_MINING_POOLS[block.miner.toLowerCase()].name
+                              : truncateAddress(block.miner)}
                           </span>
                         </div>
                       </div>
                     </div>
 
                     <div className="text-right flex-shrink-0 space-y-1">
-                      <div className="text-xs font-bold font-mono text-emerald-800 bg-emerald-50 group-hover:bg-emerald-100 px-2 py-0.5 rounded-lg border border-emerald-200 group-hover:border-emerald-300 flex items-center justify-end gap-1 shadow-2xs transition-colors">
-                        <span>1.0 BTN</span>
+                      <div
+                        className="text-xs font-bold font-mono text-emerald-800 bg-emerald-50 group-hover:bg-emerald-100 px-2 py-0.5 rounded-lg border border-emerald-200 flex items-center justify-end gap-1 transition-colors"
+                        title="Block reward: 1 BTN subsidy + 1/32 BTN per included uncle + transaction fees"
+                      >
+                        <span>{blockRewardLabel(block)}</span>
                       </div>
                       <div className="flex items-center gap-2 justify-end">
                         <div className="w-12 bg-slate-200/80 rounded-full h-1.5 overflow-hidden" title={`Gas Usage: ${gasPercent}%`}>
@@ -520,34 +504,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <ArrowRightLeft className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-x-2 gap-y-1 flex-wrap">
-                    <h3 className="text-base font-bold text-slate-900 whitespace-nowrap">Latest Transactions</h3>
-                    <div className="flex items-center gap-1 bg-slate-200/70 p-0.5 rounded-lg text-[10px] font-bold">
-                      <button
-                        onClick={() => setTxFeedTab('latest')}
-                        className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
-                          txFeedTab === 'latest'
-                            ? 'bg-white text-[#016976] shadow-2xs font-extrabold'
-                            : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                      >
-                        Latest
-                      </button>
-                      <button
-                        onClick={() => setTxFeedTab('oldest')}
-                        className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
-                          txFeedTab === 'oldest'
-                            ? 'bg-[#016976] text-white shadow-2xs font-extrabold'
-                            : 'text-slate-600 hover:text-slate-900'
-                        }`}
-                      >
-                        Oldest
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    {txFeedTab === 'latest' ? 'Live on-chain transaction stream' : 'Historical verified genesis transactions'}
-                  </p>
+                  <h3 className="text-base font-bold text-slate-900 whitespace-nowrap">Latest Transactions</h3>
+                  {dailyTxCount !== null && (
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      {dailyTxCount.toLocaleString()} today (UTC)
+                    </p>
+                  )}
                 </div>
               </div>
               <button
@@ -562,30 +524,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <div className="divide-y divide-slate-100 lg:max-h-[520px] lg:overflow-y-auto">
             {(() => {
-              const activeTxs = txFeedTab === 'oldest'
-                ? explorerApiService.getOldestLedgerTransactions(15).map(t => ({
-                    hash: t.hash,
-                    blockNumber: t.blockNumber,
-                    timestamp: t.timestamp,
-                    from: t.from,
-                    to: t.to,
-                    value: t.value,
-                    valueWei: t.valueWei,
-                    fee: t.fee,
-                  }))
-                : (recentTxs.length > 0
-                    ? recentTxs
-                    : explorerApiService.getLatestLedgerTransactions(15).map(t => ({
-                        hash: t.hash,
-                        blockNumber: t.blockNumber,
-                        timestamp: t.timestamp,
-                        from: t.from,
-                        to: t.to,
-                        value: t.value,
-                        valueWei: t.valueWei,
-                        fee: t.fee,
-                      }))
-                  );
+              const activeTxs = recentTxs;
 
               if (activeTxs.length === 0) {
                 return (
@@ -594,7 +533,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <ArrowRightLeft className="w-5 h-5" />
                     </div>
                     <div className="text-xs font-semibold text-slate-500">
-                      No transactions found
+                      {loading ? 'Loading transactions…' : 'No transactions found'}
                     </div>
                   </div>
                 );
@@ -608,8 +547,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     index >= MOBILE_FEED_LIMIT ? 'hidden lg:flex' : 'flex'
                   }`}
                 >
-                  <div className="hidden sm:flex w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 items-center justify-center text-[#016976] group-hover:border-[#016976] transition-all shadow-2xs shrink-0 self-center">
-                    <ArrowRightLeft className="w-4 h-4" />
+                  <div className="flex w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-50 border border-slate-200 items-center justify-center p-1.5 sm:p-2 group-hover:border-[#016976] transition-colors shrink-0 self-center">
+                    <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-full h-full object-contain" />
                   </div>
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex items-start justify-between gap-3">
@@ -704,12 +643,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <Trophy className="w-5 h-5 text-[#D97706]" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">Bitnet HODL Rich List</h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-[#016976] border border-teal-200">
-                  Watched Wallet Ranking
-                </span>
-              </div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900">Top Accounts</h3>
+              <p className="text-[11px] text-slate-500 font-medium">
+                {richSource === 'snapshot'
+                  ? 'Explorer ranking unavailable · known large holders'
+                  : 'By balance · live RPC balances'}
+              </p>
             </div>
           </div>
 
@@ -718,13 +657,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onClick={onViewRichList}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#016976] hover:bg-[#015661] text-white text-xs font-bold transition-all self-start sm:self-auto cursor-pointer shadow-xs"
             >
-              <span>View Full Rich List ({VERIFIED_HODL_WALLETS.length} Wallets)</span>
+              <span>View top 50</span>
               <ArrowUpRight className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        <p className="text-xs text-slate-500">{richStatus}</p>
         {/* Mobile View: Dedicated cards with zero horizontal scroll (sm:hidden) */}
         <div className="sm:hidden divide-y divide-slate-100 font-mono">
           {richAccounts.slice(0, 5).map((acc) => (
@@ -756,7 +694,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     {truncateAddress(acc.address)}
                   </span>
                   <span className="text-[10px] text-slate-500 font-sans block mt-0.5">
-                    {acc.balanceLive ? 'Live balance' : 'Historical snapshot'} • {acc.txCount.toLocaleString()} outgoing txns
+                    {acc.name || (acc.isContract ? 'Contract' : 'Wallet')}{acc.txCount !== null ? ` · ${acc.txCount.toLocaleString()} sent` : ''}
                   </span>
                 </div>
               </div>
@@ -764,7 +702,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="text-right shrink-0">
                 <div className="flex items-center justify-end gap-1 text-xs font-bold text-slate-900">
                   <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
-                  <span>{acc.balanceFormatted} BTN{!acc.balanceLive && ' (snapshot)'}</span>
+                  <span>{acc.balanceFormatted} BTN{!acc.balanceLive && ' (not live)'}</span>
                 </div>
                 <div className="text-[10px] text-[#016976] font-bold mt-0.5 flex items-center justify-end gap-0.5">
                   <span>View</span>
@@ -783,8 +721,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <th className="py-3 px-3">Rank</th>
                 <th className="py-3 px-3">Wallet Address</th>
                 <th className="py-3 px-3 text-right">Balance (BTN)</th>
-                <th className="py-3 px-3 text-right hidden md:table-cell">% Base Issuance (est.)</th>
-                <th className="py-3 px-3 text-right">Outgoing Txns</th>
+                <th className="py-3 px-3 text-right hidden md:table-cell">% of Issuance</th>
+                <th className="py-3 px-3 text-right">Sent Txns</th>
                 <th className="py-3 px-3 text-center">Details</th>
               </tr>
             </thead>
@@ -820,14 +758,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <td className="py-3 px-3 text-right font-bold text-slate-900 whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5">
                       <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
-                      <span>{acc.balanceFormatted} BTN{!acc.balanceLive && ' (snapshot)'}</span>
+                      <span>{acc.balanceFormatted} BTN{!acc.balanceLive && ' (not live)'}</span>
                     </div>
                   </td>
                   <td className="py-3 px-3 text-right hidden md:table-cell text-slate-600 font-medium">
                     {acc.percentage}
                   </td>
                   <td className="py-3 px-3 text-right text-slate-800 font-semibold whitespace-nowrap">
-                    {acc.txCount.toLocaleString()} outgoing txns
+                    {acc.txCount !== null ? `${acc.txCount.toLocaleString()} sent` : '—'}
                   </td>
                   <td className="py-3 px-3 text-center text-[#016976]">
                     <span className="inline-flex items-center gap-1 group-hover:underline text-xs font-bold">

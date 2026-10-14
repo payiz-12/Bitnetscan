@@ -5,6 +5,8 @@ import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceSer
 import { fetchLivePoolStats, getCachedPoolStats, LivePoolStats, computeLiveMiningSummary, ComputedMinerStats } from '../services/miningPoolStats';
 import { KNOWN_MINING_POOLS } from '../data/miningPools';
 import { isPageHidden } from '../services/pageVisibility';
+import { loadMinerSample, getCachedMinerSample } from '../services/minerSample';
+import { COOLPOOL_ADDR } from '../services/miningPoolStats';
 
 interface MiningViewProps {
   stats: NetworkStats | null;
@@ -40,10 +42,21 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
     return () => { active = false; clearInterval(interval); };
   }, []);
 
-  // Compute live mining distribution and calibrated worker counts from real blocks & pool APIs
+  // Miner distribution over the last MINER_SAMPLE_SIZE blocks (falls back to the recent feed while loading)
+  const [sampleBlocks, setSampleBlocks] = useState<Block[]>(() => getCachedMinerSample());
+  React.useEffect(() => {
+    let active = true;
+    const load = () => loadMinerSample().then((b) => { if (active) setSampleBlocks(b); }).catch(() => {});
+    load();
+    const interval = setInterval(() => { if (!isPageHidden()) load(); }, 60000);
+    return () => { active = false; clearInterval(interval); };
+  }, []);
+
   const miningSummary = React.useMemo(() => {
-    return computeLiveMiningSummary(recentBlocks || [], stats?.hashrateHps, poolStats);
-  }, [recentBlocks, stats?.hashrateHps, poolStats]);
+    const blocks = sampleBlocks.length > 0 ? sampleBlocks : recentBlocks || [];
+    return computeLiveMiningSummary(blocks, stats?.hashrateHps, poolStats);
+  }, [sampleBlocks, recentBlocks, stats?.hashrateHps, poolStats]);
+  const coolPool = poolStats[COOLPOOL_ADDR];
 
   const reportedWorkers = miningSummary.reportedWorkers;
 
@@ -231,15 +244,40 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
 
         <div className="space-y-3 text-xs text-slate-600 leading-relaxed">
           <p>
-            You can mine Bitnet directly using standard Ethash GPU mining software (lolMiner, T-Rex, Gminer, TeamRedMiner) or by running the official Bitnet Desktop Node.
+            Bitnet uses Ethash, so standard GPU miners (lolMiner, T-Rex, Gminer, TeamRedMiner) work. You can join a pool or mine solo with the{' '}
+            <a href="https://github.com/BitnetMoney/bitnet-desktop-node" target="_blank" rel="noopener noreferrer" className="text-[#016976] font-bold hover:underline">Bitnet Desktop Node</a>.
           </p>
 
-          <div className="p-4 rounded-2xl bg-[#0B132B] border border-slate-700 font-mono space-y-2 shadow-inner">
-            <div className="text-slate-400 font-semibold">// Example lolMiner Configuration</div>
-            <div className="text-emerald-400 font-bold select-all break-all">
-              lolMiner --algo ETHASH --pool rpc.bitnetmoney.org:8545 --user YOUR_WALLET_ADDRESS --ethstratum ETHPROXY
-            </div>
-          </div>
+          {coolPool?.servers && coolPool.servers.length > 0 ? (
+            <>
+              <div className="rounded-2xl border border-slate-200 overflow-hidden">
+                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-bold text-slate-900">CoolPool servers</span>
+                  <span className="text-[11px] text-slate-500">
+                    {coolPool.feePercent !== undefined && `Fee ${coolPool.feePercent}%`}
+                    {coolPool.minPayoutBtn !== undefined && ` · Min payout ${coolPool.minPayoutBtn} BTN`}
+                    {' · from coolpool.top'}
+                  </span>
+                </div>
+                <div className="divide-y divide-slate-100 font-mono">
+                  {coolPool.servers.map((srv) => (
+                    <div key={srv.host} className="px-4 py-2 flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-bold text-slate-900 select-all break-all">{srv.host}</span>
+                      <span className="text-[11px] text-slate-500 font-sans">{srv.region}{srv.note ? ` · ${srv.note}` : ''}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="p-4 rounded-2xl bg-[#0B132B] border border-slate-700 font-mono space-y-2">
+                <div className="text-slate-400 font-semibold"># lolMiner</div>
+                <div className="text-emerald-400 font-bold select-all break-all">
+                  lolMiner --algo ETHASH --pool {coolPool.servers[0].host} --user YOUR_BTN_ADDRESS
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-slate-500">Pool server list could not be loaded from coolpool.top.</p>
+          )}
         </div>
       </div>
 
@@ -251,7 +289,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
             <h3 className="text-lg font-bold text-slate-900">Bitnet Miners & Pools</h3>
           </div>
           <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-            Share of last {miningSummary.totalBlocksSampled} blocks
+            Share of last {miningSummary.totalBlocksSampled} blocks{sampleBlocks.length === 0 ? ' (loading…)' : ''}
           </span>
         </div>
 
@@ -313,7 +351,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
           ))}
         </div>
         <p className="text-[11px] text-slate-500">
-          Worker counts are shown only when a pool publishes them. Block share does not reveal how many machines a miner runs.
+          Worker counts are shown when the pool publishes them.
         </p>
       </div>
     </div>

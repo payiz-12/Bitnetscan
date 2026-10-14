@@ -142,7 +142,7 @@ export const App: React.FC = () => {
         }
       }
 
-      // Merge and sort real transactions from live blocks, ledger indexer, and verified ledger database!
+      // Merge transactions from the latest blocks and the indexer's newest page
       setRecentTxs((prev) => {
         const seen = new Set<string>();
         const ledgerConverted: Transaction[] = (liveLedgerTxs || []).map((t) => ({
@@ -151,27 +151,14 @@ export const App: React.FC = () => {
           blockNumber: t.blockNumber,
           from: t.from,
           to: t.to,
-          value: t.valueNum.toString(),
+          value: t.value,
+          valueWei: t.valueWei,
           timestamp: t.timestamp,
-          status: t.status === 'success' ? 1 : 0,
-          gasPrice: '2',
+          status: t.status === 'success' ? 1 : t.status === 'failed' ? 0 : undefined,
           fee: t.fee,
         }));
 
-        const fallbackDb: Transaction[] = explorerApiService.getLedgerTransactions({ pageSize: 20 }).transactions.map((t) => ({
-          hash: t.hash,
-          blockHash: '',
-          blockNumber: t.blockNumber,
-          from: t.from,
-          to: t.to,
-          value: t.valueNum.toString(),
-          timestamp: t.timestamp,
-          status: t.status === 'success' ? 1 : 0,
-          gasPrice: '2',
-          fee: t.fee,
-        }));
-
-        const combined = [...rpcTxs, ...ledgerConverted, ...prev, ...fallbackDb].filter((t) => {
+        const combined = [...rpcTxs, ...ledgerConverted, ...prev].filter((t) => {
           if (!t || !t.hash) return false;
           const h = t.hash.toLowerCase();
           if (seen.has(h)) return false;
@@ -506,7 +493,7 @@ export const App: React.FC = () => {
         </ErrorBoundary>
       </main>
 
-      <Footer />
+      <Footer latestBlock={recentBlocks[0]} />
     </div>
   );
 };

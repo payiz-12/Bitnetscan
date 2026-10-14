@@ -6,6 +6,7 @@ import {
 import { Block, Transaction } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
 import { explorerApiService } from '../services/explorerApi';
+import { ethers } from 'ethers';
 
 interface BlockDetailViewProps {
   blockNumberOrHash: number | string;
@@ -71,6 +72,32 @@ export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  // Exact miner reward: 1 BTN + 1/32 BTN per uncle + fees from the transaction receipts.
+  const [reward, setReward] = useState<{ total: string; fees: string } | null>(null);
+  const [rewardError, setRewardError] = useState(false);
+
+  useEffect(() => {
+    if (!block) return;
+    let active = true;
+    setReward(null);
+    setRewardError(false);
+    (async () => {
+      const subsidy = block.number > 0 ? 10n ** 18n + (BigInt(block.uncles?.length || 0) * 10n ** 18n) / 32n : 0n;
+      const txs = (block.transactions || []).filter((t): t is Transaction => typeof t === 'object');
+      let fees = 0n;
+      if (txs.length > 0) {
+        const receipts = await rpcService.batch(txs.map((t) => ({ method: 'eth_getTransactionReceipt', params: [t.hash] })));
+        for (let i = 0; i < txs.length; i++) {
+          const r = receipts[i];
+          const price = r?.effectiveGasPrice ?? txs[i].gasPriceWei;
+          if (!r || r.gasUsed == null || price == null) throw new Error('Missing receipt');
+          fees += BigInt(r.gasUsed) * BigInt(price);
+        }
+      }
+      if (active) setReward({ total: ethers.formatEther(subsidy + fees), fees: ethers.formatEther(fees) });
+    })().catch(() => { if (active) setRewardError(true); });
+    return () => { active = false; };
+  }, [block]);
 
   useEffect(() => {
     let isMounted = true;
@@ -258,8 +285,16 @@ export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
             </span>
             <div className="sm:col-span-2 text-slate-900 mt-1 sm:mt-0 font-mono font-extrabold flex items-center gap-1.5">
               <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-4 h-4" />
-              <span className="text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">1.0 BTN</span>
-              <span className="text-slate-400 font-normal text-xs">(PoW Block Subsidy + Transaction Fees)</span>
+              <span className="text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                {reward ? `${reward.total} BTN` : rewardError ? 'Unavailable' : '…'}
+              </span>
+              {reward && (
+                <span className="text-slate-500 font-normal text-xs">
+                  {block.number === 0
+                    ? '(genesis block)'
+                    : `(1 BTN subsidy${block.uncles?.length ? ` + ${block.uncles.length} uncle × 1/32 BTN` : ''} + ${reward.fees} BTN fees)`}
+                </span>
+              )}
             </div>
           </div>
 

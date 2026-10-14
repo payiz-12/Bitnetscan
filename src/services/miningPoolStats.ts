@@ -8,6 +8,10 @@ export interface LivePoolStats {
   networkHashrateGh?: number;
   lastUpdated: number;
   source: string;
+  /** Stratum servers, fee and payout terms as published by the pool. */
+  servers?: { region: string; host: string; note?: string }[];
+  feePercent?: number;
+  minPayoutBtn?: number;
 }
 
 export const COOLPOOL_ADDR = '0x6c0db3ea9eed7ed145f36da461d84a8d02596b08';
@@ -57,6 +61,13 @@ export async function fetchLivePoolStats(): Promise<Record<string, LivePoolStats
               networkHashrateGh: Number.isFinite(networkHashrate) ? networkHashrate : undefined,
               lastUpdated: Date.now(),
               source: 'CoolPool API',
+              servers: Array.isArray(json.coin.servers)
+                ? json.coin.servers
+                    .filter((srv: any) => typeof srv?.ip === 'string' && srv.ip)
+                    .map((srv: any) => ({ region: String(srv.country || ''), host: String(srv.ip), note: srv.text ? String(srv.text) : undefined }))
+                : undefined,
+              feePercent: Number.isFinite(parseFloat(json.coin.commission?.value)) ? parseFloat(json.coin.commission.value) : undefined,
+              minPayoutBtn: Number.isFinite(parseFloat(json.coin.minPayout?.value)) ? parseFloat(json.coin.minPayout.value) : undefined,
             },
           };
           break;

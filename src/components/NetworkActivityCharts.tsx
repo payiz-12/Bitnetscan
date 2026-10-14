@@ -12,6 +12,7 @@ import { loadTransactionHistory, loadSupplyHistory, TransactionHistory, Transact
 import { loadWhitepaperSupplyHistory, getCachedWhitepaperSupply } from '../services/whitepaperSupply';
 import { fetchLivePoolStats, getCachedPoolStats, LivePoolStats, computeLiveMiningSummary } from '../services/miningPoolStats';
 import { isPageHidden } from '../services/pageVisibility';
+import { loadMinerSample, getCachedMinerSample } from '../services/minerSample';
 import { formatEther } from 'ethers';
 
 interface NetworkActivityChartsProps {
@@ -132,10 +133,18 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
     return (total / blocksData.length).toFixed(1);
   }, [blocksData]);
 
-  // 2. Miner & pool distribution across recent blocks
+  // 2. Miner & pool distribution across the last 200 blocks (recent feed while loading)
+  const [sampleBlocks, setSampleBlocks] = useState<Block[]>(() => getCachedMinerSample());
+  useEffect(() => {
+    let active = true;
+    const load = () => loadMinerSample().then((b) => { if (active) setSampleBlocks(b); }).catch(() => {});
+    load();
+    const interval = setInterval(() => { if (!isPageHidden()) load(); }, 60000);
+    return () => { active = false; clearInterval(interval); };
+  }, []);
   const miningSummary = useMemo(() => {
-    return computeLiveMiningSummary(recentBlocks, stats?.hashrateHps, poolStats);
-  }, [recentBlocks, stats?.hashrateHps, poolStats]);
+    return computeLiveMiningSummary(sampleBlocks.length > 0 ? sampleBlocks : recentBlocks, stats?.hashrateHps, poolStats);
+  }, [sampleBlocks, recentBlocks, stats?.hashrateHps, poolStats]);
 
   const minerDistribution = miningSummary.miners;
   const reportedWorkers = miningSummary.reportedWorkers;
@@ -417,22 +426,17 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shadow-xs">
-            <Activity className="w-5 h-5 animate-pulse" />
+            <Activity className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-              <span>Bitnet Network Activity & Performance Analytics</span>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-[#016976] border border-teal-200">
-                Live RPC
-              </span>
-            </h2>
+            <h2 className="text-lg font-black text-slate-900">Network Activity</h2>
           </div>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto text-xs font-mono">
           <span className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-semibold flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-[#016976]" />
-            <span>{blocksData.length}-Block Rolling Window</span>
+            <span>Last {blocksData.length} blocks</span>
           </span>
         </div>
       </div>
@@ -587,10 +591,16 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs">
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
               <span className="text-[10px] text-slate-500 block">Network Congestion</span>
-              <span className="font-bold text-emerald-700 flex items-center gap-1 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Fluid / Low Gas</span>
-              </span>
+              {(() => {
+                const pct = parseFloat(String(avgGasPercent));
+                const level = blocksData.length === 0 ? null : pct < 25 ? 'Low' : pct < 70 ? 'Moderate' : 'High';
+                const tone = level === 'High' ? 'text-rose-700' : level === 'Moderate' ? 'text-amber-700' : 'text-emerald-700';
+                return (
+                  <span className={`font-bold ${tone} block mt-0.5`}>
+                    {level ? `${level} (${pct.toFixed(1)}% gas used)` : '…'}
+                  </span>
+                );
+              })()}
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
               <span className="text-[10px] text-slate-500 block">Base Gas Price</span>
@@ -866,7 +876,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
         {metric === 'hashrate' && (
           <p className="text-xs text-slate-500">
-            On-chain estimated network hashrate: work delta / time elapsed. Each data point is the average for its period.{' '}
+            Network hashrate from on-chain difficulty and block times, averaged per period.{' '}
             {hashState && <span className="font-semibold text-[#D68142]">{hashState}</span>}
             {hashHistory.length > 0 && ` · Latest data: ${new Date(hashHistory[hashHistory.length - 1].timestamp * 1000).toLocaleString('en-US')}`}
           </p>
@@ -876,8 +886,8 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           <p className="text-xs text-slate-500">
             {supplyState && <span className="font-semibold text-[#016976]">{supplyState} </span>}
             {supplyIsEstimate
-              ? 'Base issuance estimate: block height × 1 BTN subsidy, no premine. Excludes uncle rewards and burned coins, so it is not a verified circulating supply.'
-              : 'Circulating supply reported by the Bitnet explorer indexer.'}
+              ? 'Estimated from block height × 1 BTN (excludes uncle rewards and burned coins).'
+              : 'Circulating supply from the Bitnet explorer.'}
             {latestSupply && ` Latest: ${latestSupply.supplyText} BTN.`}
           </p>
         )}
@@ -1184,8 +1194,8 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                     </span>
                   </div>
                 ) : (
-                  <span className="text-xs text-slate-600 font-medium">
-                    Hover over the chart to inspect points across the selected timeframe.
+                  <span className="text-xs text-slate-500 font-medium">
+                    Hover or tap the chart for details.
                   </span>
                 )}
               </div>

@@ -79,7 +79,7 @@ const SEARCH_INDEX: IndexEntry[] = (() => {
   BITNET_NFT_COLLECTIONS.forEach((c) => add({ address: c.contract, name: c.name, symbol: c.symbol || undefined, kind: 'NFT Collection', icon: ImageIcon, tone: TONES.nft }));
   Object.values(KNOWN_MINING_POOLS).forEach((p) => add({ address: p.address, name: p.name, kind: 'Miner', icon: Cpu, tone: TONES.pool }));
   OFFICIAL_BITNET_VERIFIED_CONTRACTS.forEach((c) => add({ address: c.address, name: c.name, kind: 'Verified Contract', icon: FileCode, tone: TONES.contract }));
-  VERIFIED_HODL_WALLETS.forEach((w) => add({ address: w.address, name: `Rich List #${w.rank}`, kind: 'Wallet', icon: Trophy, tone: TONES.rich }));
+  VERIFIED_HODL_WALLETS.forEach((w) => add({ address: w.address, name: 'Large holder', kind: 'Wallet', icon: Trophy, tone: TONES.rich }));
   return entries;
 })();
 
