@@ -25,11 +25,6 @@ export const RpcStatusView: React.FC = () => {
     checkHealth();
   }, []);
 
-  const handleSelectEndpoint = (url: string) => {
-    rpcService.setActiveRpc(url);
-    setActiveUrl(url);
-    checkHealth();
-  };
 
   const onlineEndpoints = endpoints.filter((e) => e.status === 'online');
   const avgLatency =
@@ -51,13 +46,13 @@ export const RpcStatusView: React.FC = () => {
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Bitnet RPC Node Health
-              </h1>
+              <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                RPC endpoint status
+              </h2>
             </div>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Monitor response latency, block synchronization, and node availability across Bitnet L1 RPC infrastructure.
+            Latency and block height of each endpoint. Requests go to the fastest healthy one.
           </p>
         </div>
 
@@ -67,7 +62,7 @@ export const RpcStatusView: React.FC = () => {
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 text-xs font-bold border border-slate-200 cursor-pointer self-start sm:self-auto shadow-xs transition-colors flex-shrink-0"
         >
           <RefreshCw className={`w-3.5 h-3.5 text-[#016976] ${loading ? 'animate-spin' : ''}`} />
-          <span>Ping All Nodes</span>
+          <span>Check again</span>
         </button>
       </div>
 
@@ -178,14 +173,6 @@ export const RpcStatusView: React.FC = () => {
                         </div>
                       )}
 
-                      {!isSelected && ep.status === 'online' && (
-                        <button
-                          onClick={() => handleSelectEndpoint(ep.url)}
-                          className="ml-1 sm:ml-2 px-3 py-1 rounded-lg bg-[#016976] hover:bg-[#01545e] text-white text-xs font-bold cursor-pointer transition-colors shadow-xs"
-                        >
-                          Switch
-                        </button>
-                      )}
                     </div>
                   </div>
                 </div>

@@ -180,6 +180,10 @@ export interface NetworkMiningSummary {
   unknownMinersCount: number;
   totalBlocksSampled: number;
   networkHashrateGh: number | null;
+  /** Share of the largest miner in the sample (%). */
+  topSharePercent: number | null;
+  /** Fewest miners that together produced more than half of the sampled blocks. */
+  nakamotoCoefficient: number | null;
 }
 
 /**
@@ -229,6 +233,16 @@ export function computeLiveMiningSummary(
 
   miners.sort((a, b) => b.count - a.count);
 
+  let cumulative = 0;
+  let nakamoto: number | null = null;
+  for (let i = 0; i < miners.length && totalBlocks > 0; i++) {
+    cumulative += miners[i].count;
+    if (cumulative * 2 > totalBlocks) {
+      nakamoto = i + 1;
+      break;
+    }
+  }
+
   // Pool-reported worker counts do not depend on whether the pool mined one of the sampled blocks.
   const reportingPools = Object.values(activePoolStats);
   return {
@@ -240,5 +254,7 @@ export function computeLiveMiningSummary(
     unknownMinersCount: miners.filter((m) => m.category === 'unknown').length,
     totalBlocksSampled: totalBlocks,
     networkHashrateGh: netHashrateGh !== null ? parseFloat(netHashrateGh.toFixed(1)) : null,
+    topSharePercent: miners.length > 0 ? (miners[0].count / totalBlocks) * 100 : null,
+    nakamotoCoefficient: nakamoto,
   };
 }

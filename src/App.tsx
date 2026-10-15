@@ -14,7 +14,7 @@ const TokensView = lazy(() => import('./views/TokensView').then((m) => ({ defaul
 const NftsView = lazy(() => import('./views/NftsView').then((m) => ({ default: m.NftsView })));
 const MiningView = lazy(() => import('./views/MiningView').then((m) => ({ default: m.MiningView })));
 const ConsoleView = lazy(() => import('./views/ConsoleView').then((m) => ({ default: m.ConsoleView })));
-const RpcStatusView = lazy(() => import('./views/RpcStatusView').then((m) => ({ default: m.RpcStatusView })));
+const NetworkView = lazy(() => import('./views/NetworkView').then((m) => ({ default: m.NetworkView })));
 const RichListView = lazy(() => import('./views/RichListView').then((m) => ({ default: m.RichListView })));
 const ContractsView = lazy(() => import('./views/ContractsView').then((m) => ({ default: m.ContractsView })));
 
@@ -69,7 +69,7 @@ const parseHash = (): { view: string; param?: string | number } => {
   if (route === 'contracts' || route === 'contract') return { view: 'contracts' };
   if (route === 'mining' || route === 'miner') return { view: 'mining' };
   if (route === 'console') return { view: 'console' };
-  if (route === 'nodes' || route === 'rpc' || route === 'rpc-status') return { view: 'nodes' };
+  if (route === 'nodes' || route === 'network' || route === 'rpc' || route === 'rpc-status') return { view: 'nodes' };
 
   return { view: 'dashboard' };
 };
@@ -499,7 +499,7 @@ export const App: React.FC = () => {
           )}
 
           {currentView === 'nodes' && (
-            <RpcStatusView />
+            <NetworkView stats={stats} />
           )}
           </Suspense>
         </ErrorBoundary>

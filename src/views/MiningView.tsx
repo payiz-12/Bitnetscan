@@ -162,9 +162,23 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
               {priceData.priceFormatted}
             </div>
           </a>
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-            <span className="text-xs text-slate-500 block mb-1 font-medium">Consensus Algorithm</span>
-            <span className="text-xl font-black font-mono text-[#016976]">Ethash (PoW)</span>
+          <div
+            className="p-4 rounded-2xl bg-slate-50 border border-slate-200"
+            title="The fewest miners that together produced more than half of the sampled blocks. 1 means a single miner holds a majority of the hashrate."
+          >
+            <span className="text-xs text-slate-500 block mb-1 font-medium">Nakamoto Coefficient</span>
+            <span className={`text-xl font-black font-mono ${
+              miningSummary.nakamotoCoefficient === null ? 'text-slate-900'
+                : miningSummary.nakamotoCoefficient <= 1 ? 'text-rose-700'
+                : miningSummary.nakamotoCoefficient === 2 ? 'text-amber-700' : 'text-emerald-700'
+            }`}>
+              {miningSummary.nakamotoCoefficient ?? '…'}
+            </span>
+            <span className="text-[10px] text-slate-400 block mt-0.5">
+              {miningSummary.topSharePercent !== null
+                ? `Largest miner ${miningSummary.topSharePercent.toFixed(1)}% of last ${miningSummary.totalBlocksSampled} blocks`
+                : 'Loading blocks…'}
+            </span>
           </div>
         </div>
       </div>

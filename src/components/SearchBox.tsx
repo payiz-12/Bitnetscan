@@ -62,7 +62,7 @@ const PAGES: { view: string; label: string; keywords: string; icon: IconType }[]
   { view: 'contracts', label: 'Verified Contracts', keywords: 'contract source code', icon: FileCode },
   { view: 'mining', label: 'Mining & Hashrate', keywords: 'miner pool hashrate difficulty', icon: Cpu },
   { view: 'console', label: 'JSON-RPC Console', keywords: 'rpc developer console', icon: Terminal },
-  { view: 'nodes', label: 'Node & RPC Status', keywords: 'node rpc status health', icon: Activity },
+  { view: 'nodes', label: 'Network & RPC', keywords: 'network node rpc status health chain id epoch dag pool api supply', icon: Activity },
 ];
 
 // Named, locally known addresses that can be found by name, symbol or address prefix.

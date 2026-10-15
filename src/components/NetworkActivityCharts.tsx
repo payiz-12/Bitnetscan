@@ -643,11 +643,21 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                   <span className="truncate">{reportedWorkersLabel}</span>
                 </span>
               </div>
-              <div className="min-w-0">
-                <span className="text-[10px] text-slate-500 font-medium block truncate">Mining Entities</span>
-                <span className="font-black text-slate-900 flex items-center gap-1.5 mt-0.5 text-xs">
-                  <Server className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
-                  <span className="truncate">{knownPoolsCount} Known<span className="hidden min-[400px]:inline"> •</span><span className="min-[400px]:hidden">,</span> {unknownMinersCount} Unk<span className="hidden min-[400px]:inline">nown</span></span>
+              <div
+                className="min-w-0"
+                title="Nakamoto coefficient: the fewest miners that together produced more than half of the sampled blocks. 1 means a single miner holds a majority."
+              >
+                <span className="text-[10px] text-slate-500 font-medium block truncate">Nakamoto Coefficient</span>
+                <span className={`font-black flex items-center gap-1.5 mt-0.5 text-xs ${
+                  miningSummary.nakamotoCoefficient === null ? 'text-slate-900'
+                    : miningSummary.nakamotoCoefficient <= 1 ? 'text-rose-700'
+                    : miningSummary.nakamotoCoefficient === 2 ? 'text-amber-700' : 'text-emerald-700'
+                }`}>
+                  <Server className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">
+                    {miningSummary.nakamotoCoefficient ?? '…'}
+                    {miningSummary.topSharePercent !== null && ` · top ${miningSummary.topSharePercent.toFixed(0)}%`}
+                  </span>
                 </span>
               </div>
             </div>

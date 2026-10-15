@@ -68,7 +68,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     { id: 'rich-list', label: 'Rich List (Top Holders)', icon: Trophy, desc: 'Largest BTN balance whale accounts and ranking' },
     { id: 'blocks', label: 'All Blocks', icon: Hash, desc: 'Full chronological ledger of Bitnet PoW blocks' },
     { id: 'mining', label: 'Mining & Hashrate', icon: Cpu, desc: 'PoW network difficulty, hashrate stats, and mining pools' },
-    { id: 'nodes', label: 'Node & RPC Status', icon: Activity, desc: 'Real-time JSON-RPC latency pings and node health' },
+    { id: 'nodes', label: 'Network & RPC', icon: Activity, desc: 'Chain parameters, Ethash epoch and DAG, pools, API and RPC status' },
     { id: 'console', label: 'Web3 JSON-RPC Console', icon: Terminal, desc: 'Direct on-chain RPC query tool for developers' },
   ];
 

@@ -133,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
     },
     { 
       id: 'nodes', 
-      label: 'Nodes', 
+      label: 'Network', 
       icon: Activity,
       iconBg: 'bg-rose-50 text-rose-600 border border-rose-200/60',
       activeClass: 'bg-rose-600 text-white shadow-xs',
