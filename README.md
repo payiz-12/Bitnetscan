@@ -30,8 +30,9 @@ BitnetScan is a block explorer for the Bitnet Money proof-of-work EVM chain (cha
 - **Addresses** – balance, nonce, transaction history, BTS-20 tokens, NFTs, mined blocks, contract bytecode and a read-only contract caller.
 - **Top accounts** – ranking by balance from the Bitnet explorer, with each balance read live from the RPC.
 - **Tokens, NFTs and contracts** – BTS-20 tokens, NFT collections (IPFS content verified against its CID) and verified contracts.
-- **Mining** – miner share of the last 200 blocks, worker counts published by pools, pool servers and a reward calculator.
-- **Developer tools** – JSON-RPC console and RPC endpoint status.
+- **Mining** – miner share of the last 200 blocks, Nakamoto coefficient, worker counts published by pools, pool servers and a reward calculator.
+- **Network** – chain parameters, Ethash epoch and DAG size, reward rules, endpoints and wallet config for pool and node operators.
+- **Developer tools** – JSON-RPC console, RPC endpoint status and a public API.
 
 ## Data sources
 
@@ -41,11 +42,22 @@ BitnetScan is a block explorer for the Bitnet Money proof-of-work EVM chain (cha
 | Transaction archive, address history, top accounts, counters | Bitnet explorer indexer (`explorer.bitnetmoney.com`) |
 | Daily statistics | `stats.explorer.bitnetmoney.com` |
 | BTN price | NestEx (`api.nestex.one`) |
-| Pool workers and servers | CoolPool API (`coolpool.top`) |
+| Pool workers and servers | CoolPool API (`coolpool.top`), GTPool (`gtpool.io`) |
 
 The browser reaches these services through `/api/*` paths. They are proxied by Vite during development (`vite.config.ts`) and by Vercel rewrites in production (`vercel.json`).
 
-Values that cannot be read are shown as unknown rather than estimated. The supply chart uses the explorer's circulating supply series when available; otherwise it shows base issuance (block height × 1 BTN) and labels it as an estimate.
+Values that cannot be read are shown as unknown rather than estimated.
+
+## API
+
+| Endpoint | Returns |
+| --- | --- |
+| [`/api/stats`](https://bitnetscan.vercel.app/api/stats) | Live chain stats as JSON: height, average block time, difficulty, hashrate, gas price, peers, Ethash epoch and DAG size (cached 15 s) |
+| [`/api/supply`](https://bitnetscan.vercel.app/api/supply) | Circulating supply in BTN as plain text |
+| [`/api/supply?q=total`](https://bitnetscan.vercel.app/api/supply?q=total) | Total supply in BTN as plain text |
+| [`/api/supply?format=json`](https://bitnetscan.vercel.app/api/supply?format=json) | The supply snapshot with block range and method |
+
+Supply is the sum of all account balances indexed by the explorer, recomputed every hour by `.github/workflows/supply-snapshot.yml` (`scripts/supply-snapshot.mjs`) and stored on the `data` branch. Block height alone undercounts supply because Bitnet pays uncle rewards ((8 − depth) / 8 BTN to the uncle miner, 1/32 BTN to the including miner). Circulating supply excludes the balances of `0x0…0` and `0x…dEaD`.
 
 ## Development
 
