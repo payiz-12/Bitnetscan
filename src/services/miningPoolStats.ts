@@ -22,65 +22,127 @@ export const SOLO_NODE_ADDR = '0x6afcdfec8066a7fbf1295f10c4907924e99e72a4';
 let poolStatsCache: Record<string, LivePoolStats> = {};
 
 let lastFetchTime = 0;
-let isFetching = false;
+let inFlight: Promise<Record<string, LivePoolStats>> | null = null;
 
-export async function fetchLivePoolStats(): Promise<Record<string, LivePoolStats>> {
-  const now = Date.now();
-  if (isFetching || now - lastFetchTime < 30000) {
-    return poolStatsCache;
-  }
+const UNIT_TO_GH: Record<string, number> = { '': 1e-9, K: 1e-6, M: 1e-3, G: 1, T: 1e3, P: 1e6 };
+const toGh = (value: string, unit: string) => {
+  const n = parseFloat(value);
+  const factor = UNIT_TO_GH[(unit || '').toUpperCase()];
+  return Number.isFinite(n) && factor !== undefined ? n * factor : undefined;
+};
 
-  isFetching = true;
-  lastFetchTime = now;
-
+async function fetchWithTimeout(url: string, accept: string, ms = 6000): Promise<Response | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
   try {
-    // CoolPool publishes its connected worker count; other miners do not.
-    const coolPoolUrls = [
-      '/api/coolpool/api/coin/btnsolo',
-      'https://coolpool.top/api/coin/btnsolo',
-    ];
-
-    for (const url of coolPoolUrls) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 4000);
-        const res = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } });
-        clearTimeout(timeout);
-
-        if (!res.ok || !(res.headers.get('content-type') || '').includes('json')) continue;
-        const json = await res.json();
-        const workers = Number(json?.coin?.minersTotal);
-        if (Number.isFinite(workers) && workers >= 0) {
-          const poolHashrate = parseFloat(json.coin.poolHashrate?.value);
-          const networkHashrate = parseFloat(json.coin.networkHashrate?.value);
-          poolStatsCache = {
-            ...poolStatsCache,
-            [COOLPOOL_ADDR]: {
-              workers,
-              hashrateGh: Number.isFinite(poolHashrate) ? poolHashrate : undefined,
-              networkHashrateGh: Number.isFinite(networkHashrate) ? networkHashrate : undefined,
-              lastUpdated: Date.now(),
-              source: 'CoolPool API',
-              servers: Array.isArray(json.coin.servers)
-                ? json.coin.servers
-                    .filter((srv: any) => typeof srv?.ip === 'string' && srv.ip)
-                    .map((srv: any) => ({ region: String(srv.country || ''), host: String(srv.ip), note: srv.text ? String(srv.text) : undefined }))
-                : undefined,
-              feePercent: Number.isFinite(parseFloat(json.coin.commission?.value)) ? parseFloat(json.coin.commission.value) : undefined,
-              minPayoutBtn: Number.isFinite(parseFloat(json.coin.minPayout?.value)) ? parseFloat(json.coin.minPayout.value) : undefined,
-            },
-          };
-          break;
-        }
-      } catch {
-        // Try next URL or keep the last measured value
-      }
-    }
+    const res = await fetch(url, { signal: controller.signal, headers: { Accept: accept } });
+    return res.ok ? res : null;
+  } catch {
+    return null;
   } finally {
-    isFetching = false;
+    clearTimeout(timer);
   }
+}
 
-  return poolStatsCache;
+/** CoolPool's JSON API: connected workers, pool/network hashrate, servers and terms. */
+async function fetchCoolPool(): Promise<LivePoolStats | null> {
+  for (const url of ['/api/coolpool/api/coin/btnsolo', 'https://coolpool.top/api/coin/btnsolo']) {
+    const res = await fetchWithTimeout(url, 'application/json');
+    if (!res || !(res.headers.get('content-type') || '').includes('json')) continue;
+    try {
+      const json = await res.json();
+      const workers = Number(json?.coin?.minersTotal);
+      if (!Number.isFinite(workers) || workers < 0) continue;
+      const poolHashrate = parseFloat(json.coin.poolHashrate?.value);
+      const networkHashrate = parseFloat(json.coin.networkHashrate?.value);
+      return {
+        workers,
+        hashrateGh: Number.isFinite(poolHashrate) ? poolHashrate : undefined,
+        networkHashrateGh: Number.isFinite(networkHashrate) ? networkHashrate : undefined,
+        lastUpdated: Date.now(),
+        source: 'CoolPool API',
+        servers: Array.isArray(json.coin.servers)
+          ? json.coin.servers
+              .filter((srv: any) => typeof srv?.ip === 'string' && srv.ip)
+              .map((srv: any) => ({ region: String(srv.country || ''), host: String(srv.ip), note: srv.text ? String(srv.text) : undefined }))
+          : undefined,
+        feePercent: Number.isFinite(parseFloat(json.coin.commission?.value)) ? parseFloat(json.coin.commission.value) : undefined,
+        minPayoutBtn: Number.isFinite(parseFloat(json.coin.minPayout?.value)) ? parseFloat(json.coin.minPayout.value) : undefined,
+      };
+    } catch {
+      // try the next URL
+    }
+  }
+  return null;
+}
+
+/**
+ * GTPool has no JSON API; its home page lists every coin it mines with the pool's worker
+ * count and hashrate. Read the Bitnet (BTN) card from that page.
+ */
+export function parseGtPoolPage(html: string): LivePoolStats | null {
+  const start = html.indexOf('coin/btn.png');
+  if (start < 0) return null;
+  const nextCard = html.indexOf('class="column"', start);
+  const card = html.slice(start, nextCard > start ? nextCard : start + 4000);
+
+  const workersMatch = card.match(/<span>workers<\/span>\s*([\d.,]+)/);
+  if (!workersMatch) return null;
+  const workers = parseInt(workersMatch[1].replace(/[.,]/g, ''), 10);
+  if (!Number.isFinite(workers)) return null;
+  const poolHr = card.match(/<span>hashrate<\/span>\s*([\d.]+)\s*([KMGTP]?)/);
+  const netHr = card.match(/<span>Hashrate<\/span>:\s*([\d.]+)\s*([KMGTP]?)/);
+
+  const hosts = [...new Set([...html.matchAll(/\b([a-z]{2})\.gtpool\.io\b/g)].map((m) => m[1]))];
+  const tcp = html.match(/TCP port\s*(\d+)/i)?.[1];
+  const ssl = html.match(/SSL port\s*(\d+)/i)?.[1];
+
+  return {
+    workers,
+    hashrateGh: poolHr ? toGh(poolHr[1], poolHr[2]) : undefined,
+    networkHashrateGh: netHr ? toGh(netHr[1], netHr[2]) : undefined,
+    lastUpdated: Date.now(),
+    source: 'gtpool.io',
+    servers: tcp
+      ? hosts.map((region) => ({
+          region: region.toUpperCase(),
+          host: `${region}.gtpool.io:${tcp}`,
+          note: ssl ? `SSL ${ssl} · account required` : 'account required',
+        }))
+      : undefined,
+  };
+}
+
+async function fetchGtPool(): Promise<LivePoolStats | null> {
+  const res = await fetchWithTimeout('/api/gtpool/', 'text/html');
+  if (!res) return null;
+  try {
+    return parseGtPoolPage(await res.text());
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Worker counts as published by the pools themselves; refreshed at most every 30 s.
+ * Concurrent callers share the request in flight, so a page opened mid-request still gets the result.
+ */
+export function fetchLivePoolStats(): Promise<Record<string, LivePoolStats>> {
+  if (inFlight) return inFlight;
+  if (Date.now() - lastFetchTime < 30000) return Promise.resolve(poolStatsCache);
+
+  lastFetchTime = Date.now();
+  inFlight = (async () => {
+    const [cool, gt] = await Promise.all([fetchCoolPool(), fetchGtPool()]);
+    // Keep the last successful reading of a pool when a refresh fails.
+    poolStatsCache = {
+      ...poolStatsCache,
+      ...(cool ? { [COOLPOOL_ADDR]: cool } : {}),
+      ...(gt ? { [GTPOOL_ADDR]: gt } : {}),
+    };
+    return poolStatsCache;
+  })().finally(() => { inFlight = null; });
+  return inFlight;
 }
 
 export function getCachedPoolStats(): Record<string, LivePoolStats> {
@@ -98,6 +160,8 @@ export interface ComputedMinerStats {
   /** Worker count reported by the pool API, or null when the miner does not publish one. */
   minersCount: number | null;
   workersSource?: string;
+  /** Hashrate as reported by the pool itself (GH/s). */
+  poolHashrateGh?: number;
   count: number;
   percent: string;
   /** Network hashrate × block share; null while the network hashrate is unknown. */
@@ -155,6 +219,7 @@ export function computeLiveMiningSummary(
       badge: poolInfo.badge,
       minersCount: reported ? reported.workers : null,
       workersSource: reported?.source,
+      poolHashrateGh: reported?.hashrateGh,
       count: data.count,
       percent: (share * 100).toFixed(1),
       estimatedHashrateGh: netHashrateGh !== null ? parseFloat((netHashrateGh * share).toFixed(1)) : null,

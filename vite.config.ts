@@ -43,6 +43,12 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/bitnet-explorer/, '') || '/',
         secure: true,
       },
+      '/api/gtpool': {
+        target: 'https://gtpool.io',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/gtpool/, '') || '/',
+        secure: true,
+      },
       '/api/coolpool': {
         target: 'https://coolpool.top',
         changeOrigin: true,

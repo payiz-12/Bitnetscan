@@ -730,16 +730,23 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                         {item.minersCount !== null ? (
                           <span
                             className="text-[9px] font-bold text-[#016976] bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap"
-                            title={`Reported by ${item.workersSource}`}
+                            title={`Reported by ${item.workersSource}${item.poolHashrateGh !== undefined ? ` · pool hashrate ${item.poolHashrateGh.toFixed(2)} GH/s` : ''}`}
                           >
                             {item.minersCount} {item.minersCount === 1 ? 'Worker' : 'Workers'}
+                            {item.poolHashrateGh !== undefined && ` · ${item.poolHashrateGh.toFixed(2)} GH/s`}
+                          </span>
+                        ) : item.estimatedHashrateGh !== null ? (
+                          <span
+                            className="text-[9px] font-bold text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap"
+                            title={item.category === 'known'
+                              ? 'Pool statistics could not be loaded. Hashrate estimated from its share of recent blocks.'
+                              : 'Solo miner: no pool publishes its workers. Hashrate estimated from its share of recent blocks.'}
+                          >
+                            {item.category === 'known' ? 'Pool' : 'Solo'} · ≈ {item.estimatedHashrateGh} GH/s
                           </span>
                         ) : (
-                          <span
-                            className="text-[9px] font-bold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap"
-                            title="This miner does not publish a worker count"
-                          >
-                            Workers n/a
+                          <span className="text-[9px] font-bold text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap">
+                            {item.category === 'known' ? 'Pool data unavailable' : 'Solo miner'}
                           </span>
                         )}
                       </div>

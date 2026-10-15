@@ -6,7 +6,7 @@ import { fetchLivePoolStats, getCachedPoolStats, LivePoolStats, computeLiveMinin
 import { KNOWN_MINING_POOLS } from '../data/miningPools';
 import { isPageHidden } from '../services/pageVisibility';
 import { loadMinerSample, getCachedMinerSample } from '../services/minerSample';
-import { COOLPOOL_ADDR } from '../services/miningPoolStats';
+import { COOLPOOL_ADDR, GTPOOL_ADDR } from '../services/miningPoolStats';
 
 interface MiningViewProps {
   stats: NetworkStats | null;
@@ -57,6 +57,10 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
     return computeLiveMiningSummary(blocks, stats?.hashrateHps, poolStats);
   }, [sampleBlocks, recentBlocks, stats?.hashrateHps, poolStats]);
   const coolPool = poolStats[COOLPOOL_ADDR];
+  const poolGuides = [
+    { name: 'CoolPool', site: 'coolpool.top', stats: coolPool },
+    { name: 'GTPool', site: 'gtpool.io', stats: poolStats[GTPOOL_ADDR] },
+  ].filter((p): p is { name: string; site: string; stats: LivePoolStats } => !!p.stats?.servers?.length);
 
   const reportedWorkers = miningSummary.reportedWorkers;
 
@@ -75,6 +79,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
         badge: p.badge,
         minersCount: poolStats[p.address]?.workers ?? null,
         workersSource: poolStats[p.address]?.source,
+        poolHashrateGh: poolStats[p.address]?.hashrateGh,
         count: 0,
         percent: '0.0',
         estimatedHashrateGh: null,
@@ -248,35 +253,39 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
             <a href="https://github.com/BitnetMoney/bitnet-desktop-node" target="_blank" rel="noopener noreferrer" className="text-[#016976] font-bold hover:underline">Bitnet Desktop Node</a>.
           </p>
 
-          {coolPool?.servers && coolPool.servers.length > 0 ? (
+          {poolGuides.length > 0 ? (
             <>
-              <div className="rounded-2xl border border-slate-200 overflow-hidden">
-                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-bold text-slate-900">CoolPool servers</span>
-                  <span className="text-[11px] text-slate-500">
-                    {coolPool.feePercent !== undefined && `Fee ${coolPool.feePercent}%`}
-                    {coolPool.minPayoutBtn !== undefined && ` · Min payout ${coolPool.minPayoutBtn} BTN`}
-                    {' · from coolpool.top'}
-                  </span>
+              {poolGuides.map(({ name, site, stats: pool }) => (
+                <div key={name} className="rounded-2xl border border-slate-200 overflow-hidden">
+                  <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-bold text-slate-900">{name} servers</span>
+                    <span className="text-[11px] text-slate-500">
+                      {pool.feePercent !== undefined && `Fee ${pool.feePercent}% · `}
+                      {pool.minPayoutBtn !== undefined && `Min payout ${pool.minPayoutBtn} BTN · `}
+                      from {site}
+                    </span>
+                  </div>
+                  <div className="divide-y divide-slate-100 font-mono">
+                    {pool.servers!.map((srv) => (
+                      <div key={srv.host} className="px-4 py-2 flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-bold text-slate-900 select-all break-all">{srv.host}</span>
+                        <span className="text-[11px] text-slate-500 font-sans">{srv.region}{srv.note ? ` · ${srv.note}` : ''}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="divide-y divide-slate-100 font-mono">
-                  {coolPool.servers.map((srv) => (
-                    <div key={srv.host} className="px-4 py-2 flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-bold text-slate-900 select-all break-all">{srv.host}</span>
-                      <span className="text-[11px] text-slate-500 font-sans">{srv.region}{srv.note ? ` · ${srv.note}` : ''}</span>
-                    </div>
-                  ))}
+              ))}
+              {coolPool?.servers && coolPool.servers.length > 0 && (
+                <div className="p-4 rounded-2xl bg-[#0B132B] border border-slate-700 font-mono space-y-2">
+                  <div className="text-slate-400 font-semibold"># lolMiner (CoolPool)</div>
+                  <div className="text-emerald-400 font-bold select-all break-all">
+                    lolMiner --algo ETHASH --pool {coolPool.servers[0].host} --user YOUR_BTN_ADDRESS
+                  </div>
                 </div>
-              </div>
-              <div className="p-4 rounded-2xl bg-[#0B132B] border border-slate-700 font-mono space-y-2">
-                <div className="text-slate-400 font-semibold"># lolMiner</div>
-                <div className="text-emerald-400 font-bold select-all break-all">
-                  lolMiner --algo ETHASH --pool {coolPool.servers[0].host} --user YOUR_BTN_ADDRESS
-                </div>
-              </div>
+              )}
             </>
           ) : (
-            <p className="text-slate-500">Pool server list could not be loaded from coolpool.top.</p>
+            <p className="text-slate-500">Pool server lists could not be loaded.</p>
           )}
         </div>
       </div>
@@ -316,11 +325,17 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
                 <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-bold">
                   {m.minersCount !== null ? (
                     <span className="inline-flex items-center gap-1.5 text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md" title={`Reported by ${m.workersSource}`}>
-                      {m.minersCount} {m.minersCount === 1 ? 'Worker' : 'Workers'} · {m.workersSource}
+                      {m.minersCount} {m.minersCount === 1 ? 'Worker' : 'Workers'}
+                      {m.poolHashrateGh !== undefined && ` · ${m.poolHashrateGh.toFixed(2)} GH/s`}
+                      {' · '}{m.workersSource}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-md">
-                      Worker count not published
+                    <span
+                      className="inline-flex items-center gap-1.5 text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-md"
+                      title="A solo miner is not part of a pool, so no service publishes its workers. The hashrate is estimated from its share of recent blocks."
+                    >
+                      {m.category === 'known' ? 'Pool data unavailable' : 'Solo miner'}
+                      {m.estimatedHashrateGh !== null && m.count > 0 ? ` · ≈ ${m.estimatedHashrateGh} GH/s` : ''}
                     </span>
                   )}
                 </div>
@@ -351,7 +366,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
           ))}
         </div>
         <p className="text-[11px] text-slate-500">
-          Worker counts are shown when the pool publishes them.
+          Workers and pool hashrate come from coolpool.top and gtpool.io. Solo miners do not publish workers; their hashrate is estimated from block share.
         </p>
       </div>
     </div>
