@@ -551,6 +551,8 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     ? 'Smart Contract'
                     : minedBlocks.length > 0
                     ? 'Miner Wallet'
+                    : codeStatus === 'loading'
+                    ? 'Address'
                     : 'User Wallet'}
                 </h2>
                 <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${
@@ -568,6 +570,8 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     ? 'PoW Miner'
                     : codeStatus === 'cached'
                     ? `Cached (${cachedSnapshotDate || 'Historical'})`
+                    : codeStatus === 'loading'
+                    ? 'Checking…'
                     : 'EOA Wallet'}
                 </span>
               </div>
@@ -608,7 +612,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               <div className="text-xs font-mono font-semibold text-slate-500 mt-1 flex items-center gap-2">
                 <span>
                   {balance === null
-                    ? 'RPC / Indexer unreachable'
+                    ? (loading ? 'Reading from the RPC…' : 'RPC / Indexer unreachable')
                     : balanceStatus === 'zero'
                     ? 'Verified 0.0000 on-chain'
                     : balanceStatus === 'cached'

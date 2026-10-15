@@ -29,6 +29,18 @@ import { rpcService } from './services/rpc';
 import { explorerApiService } from './services/explorerApi';
 import { isPageHidden, onPageVisible } from './services/pageVisibility';
 
+// EIP-3091 explorer links (/tx/<hash>, /address/<address>, /block/<number|hash>, /token/<address>)
+// arrive as paths, e.g. from wallets and chain registries. The app routes with hashes, so translate
+// such a path once on load.
+const translateEip3091Path = () => {
+  if (typeof window === 'undefined') return;
+  const match = window.location.pathname.match(/^\/(tx|address|block|token)\/([^/?#]+)\/?$/i);
+  if (!match) return;
+  const kind = match[1].toLowerCase();
+  window.history.replaceState(null, '', `/#/${kind === 'token' ? 'address' : kind}/${match[2]}`);
+};
+translateEip3091Path();
+
 // URL hash route parser for browser history & back/forward support
 const parseHash = (): { view: string; param?: string | number } => {
   if (typeof window === 'undefined') return { view: 'dashboard' };
