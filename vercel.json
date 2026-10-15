@@ -1,4 +1,9 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "data": false
+    }
+  },
   "rewrites": [
     { "source": "/api/coolpool/:path*", "destination": "https://coolpool.top/:path*" },
     {

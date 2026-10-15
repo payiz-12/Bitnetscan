@@ -1,6 +1,7 @@
 import officialData from './official_rich_list.json';
 import { ethers } from 'ethers';
 import { rpcService } from '../services/rpc';
+import { fetchSupplySnapshot } from '../services/supply';
 
 export interface RichAccount {
   rank: number;
@@ -20,6 +21,8 @@ export interface TopAccountsResult {
   /** 'indexer': chain-wide ranking from the explorer indexer; 'snapshot': fallback address list. */
   source: 'indexer' | 'snapshot';
   updatedAt: number;
+  /** What percentages are relative to: the hourly circulating-supply snapshot, or base issuance (block height × 1 BTN). */
+  percentageBasis: 'supply' | 'issuance';
 }
 
 // Previously known large holders; used only when the indexer ranking is unavailable.
@@ -75,7 +78,13 @@ export function fetchTopAccounts(latestBlock?: number, maxAgeMs = 60000): Promis
       ? indexed
       : VERIFIED_HODL_WALLETS.map((w) => ({ address: w.address, balanceWei: '', isContract: false, name: undefined as string | undefined }));
 
-    const issued = latestBlock || (await rpcService.getBlockNumber().catch(() => 0));
+    const [height, supply] = await Promise.all([
+      latestBlock ? Promise.resolve(latestBlock) : rpcService.getBlockNumber().catch(() => 0),
+      fetchSupplySnapshot(),
+    ]);
+    const supplyBtn = supply ? Number(supply.circulatingSupply) : NaN;
+    const basis: TopAccountsResult['percentageBasis'] = Number.isFinite(supplyBtn) && supplyBtn > 0 ? 'supply' : 'issuance';
+    const issued = basis === 'supply' ? supplyBtn : height;
     const results = await rpcService.batch(candidates.flatMap((c) => [
       { method: 'eth_getBalance', params: [c.address.toLowerCase(), 'latest'] },
       { method: 'eth_getTransactionCount', params: [c.address.toLowerCase(), 'latest'] },
@@ -115,7 +124,7 @@ export function fetchTopAccounts(latestBlock?: number, maxAgeMs = 60000): Promis
 
     accounts.sort((a, b) => b.balance - a.balance);
     accounts.forEach((a, idx) => { a.rank = idx + 1; });
-    cached = { accounts, source, updatedAt: Date.now() };
+    cached = { accounts, source, updatedAt: Date.now(), percentageBasis: basis };
     return cached;
   })().finally(() => { pending = null; });
 

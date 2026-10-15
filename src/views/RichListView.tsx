@@ -6,6 +6,7 @@ import {
 import { rpcService } from '../services/rpc';
 import { explorerApiService } from '../services/explorerApi';
 import { RichAccount, TopAccountsResult, fetchTopAccounts } from '../data/richList';
+import { fetchSupplySnapshot, SupplySnapshot } from '../services/supply';
 import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
 
 interface RichListViewProps {
@@ -18,6 +19,11 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
   const [accounts, setAccounts] = useState<RichAccount[]>([]);
   const [listSource, setListSource] = useState<TopAccountsResult['source'] | null>(null);
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
+  const [percentageBasis, setPercentageBasis] = useState<TopAccountsResult['percentageBasis']>('issuance');
+  const [supply, setSupply] = useState<SupplySnapshot | null>(null);
+  useEffect(() => {
+    fetchSupplySnapshot().then(setSupply);
+  }, []);
   const [loading, setLoading] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
@@ -34,8 +40,8 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
   const [customLoading, setCustomLoading] = useState(false);
   const [customError, setCustomError] = useState<string | null>(null);
 
-  // Base issuance: 1 BTN per block since block 1 (no premine)
-  const estimatedTotalSupply = latestBlock > 0 ? latestBlock : 0;
+  // Circulating supply from the hourly balance-sum snapshot; base issuance (1 BTN × blocks) as fallback
+  const estimatedTotalSupply = supply ? Number(supply.circulatingSupply) : latestBlock > 0 ? latestBlock : 0;
 
   const loadBalances = async (force = false) => {
     setLoading(true);
@@ -44,6 +50,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
       setAccounts(result.accounts);
       setListSource(result.source);
       setUpdatedAt(result.updatedAt);
+      setPercentageBasis(result.percentageBasis);
     } catch (err) {
       console.error('Error loading rich list:', err);
     } finally {
@@ -153,13 +160,17 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
         {/* 3 Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-            <span className="text-xs text-slate-500 font-semibold block mb-1">Base issuance (1 BTN × blocks)</span>
+            <span className="text-xs text-slate-500 font-semibold block mb-1">
+              {supply ? 'Circulating supply' : 'Base issuance (1 BTN × blocks)'}
+            </span>
             <div className="text-xl font-bold font-mono text-slate-900 flex items-center gap-1.5">
               <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-4 h-4" />
               <span>{estimatedTotalSupply > 0 ? `${(estimatedTotalSupply / 1e6).toFixed(2)}M BTN` : '…'}</span>
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
-              ≈ {formatBtnInUsd(estimatedTotalSupply, priceData, 0)} USD (NestEx Spot)
+              {supply
+                ? `Sum of all balances · block #${supply.blockRange[1].toLocaleString()} · updated hourly`
+                : `≈ ${formatBtnInUsd(estimatedTotalSupply, priceData, 0)} USD (NestEx Spot)`}
             </span>
           </div>
 
@@ -345,7 +356,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
 
                   <div className="text-right shrink-0">
                     <div className="inline-flex items-center px-2 py-0.5 rounded-md bg-teal-50 text-[#016976] text-[10px] font-bold border border-teal-200/60">
-                      {acc.percentage} of issuance
+                      {acc.percentage} of {percentageBasis === 'supply' ? 'supply' : 'issuance'}
                     </div>
                     <div className="text-[10px] text-slate-500 font-sans font-medium mt-1">
                       {acc.txCount !== null ? `${acc.txCount.toLocaleString()} sent` : '—'}
@@ -365,7 +376,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                 <th className="py-4 px-4 sm:px-6">Rank</th>
                 <th className="py-4 px-4">Address</th>
                 <th className="py-4 px-4 text-right">Balance (BTN)</th>
-                <th className="py-4 px-4 text-right hidden md:table-cell">% of Issuance</th>
+                <th className="py-4 px-4 text-right hidden md:table-cell">{percentageBasis === 'supply' ? '% of Supply' : '% of Issuance'}</th>
                 <th className="py-4 px-4 text-right">Sent Txns</th>
                 <th className="py-4 px-4 text-center">Action</th>
               </tr>

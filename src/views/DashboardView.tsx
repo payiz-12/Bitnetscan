@@ -91,6 +91,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const dailyTxCount = stats?.transactionsToday ?? null;
   const [richAccounts, setRichAccounts] = useState<RichAccount[]>([]);
   const [richSource, setRichSource] = useState<'indexer' | 'snapshot' | null>(null);
+  const [richBasis, setRichBasis] = useState<'supply' | 'issuance'>('issuance');
   const latestBlockRef = React.useRef(0);
   latestBlockRef.current = stats?.latestBlock || 0;
   React.useEffect(() => {
@@ -102,6 +103,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         if (active) {
           setRichAccounts(result.accounts);
           setRichSource(result.source);
+          setRichBasis(result.percentageBasis);
         }
       } catch { /* keep the last list */ }
     };
@@ -721,7 +723,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <th className="py-3 px-3">Rank</th>
                 <th className="py-3 px-3">Wallet Address</th>
                 <th className="py-3 px-3 text-right">Balance (BTN)</th>
-                <th className="py-3 px-3 text-right hidden md:table-cell">% of Issuance</th>
+                <th className="py-3 px-3 text-right hidden md:table-cell">{richBasis === 'supply' ? '% of Supply' : '% of Issuance'}</th>
                 <th className="py-3 px-3 text-right">Sent Txns</th>
                 <th className="py-3 px-3 text-center">Details</th>
               </tr>
