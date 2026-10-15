@@ -114,7 +114,8 @@ export function parseGtPoolPage(html: string): LivePoolStats | null {
 }
 
 async function fetchGtPool(): Promise<LivePoolStats | null> {
-  const res = await fetchWithTimeout('/api/gtpool/', 'text/html');
+  // No trailing slash: Vercel's /api/gtpool rewrite does not match /api/gtpool/.
+  const res = await fetchWithTimeout('/api/gtpool', 'text/html');
   if (!res) return null;
   try {
     return parseGtPoolPage(await res.text());
