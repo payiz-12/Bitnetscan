@@ -14,6 +14,7 @@ import {
   AddressNftHolding 
 } from '../services/nftSyncService';
 import { NftImage } from '../components/NftImage';
+import { blockRewardLabel } from '../services/blockReward';
 import { ethers } from 'ethers';
 
 interface AddressDetailViewProps {
@@ -278,7 +279,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   txCount: Array.isArray(rb.transactions) ? rb.transactions.length : 0,
                   difficulty: rb.difficulty || '',
                   miner: lowerAddr,
-                  reward: '1.0 BTN',
+                  reward: blockRewardLabel(rb),
                 });
                 existingNums.add(rb.number);
               }
@@ -356,7 +357,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             txCount: Array.isArray(b.transactions) ? b.transactions.length : 0,
             difficulty: b.difficulty || '',
             miner: cleanAddr,
-            reward: '1.0 BTN',
+            reward: blockRewardLabel(b),
           });
           existingNumbers.add(b.number);
         }
@@ -404,7 +405,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             txCount: Array.isArray(rb.transactions) ? rb.transactions.length : 0,
             difficulty: rb.difficulty || '',
             miner: cleanAddr,
-            reward: '1.0 BTN',
+            reward: blockRewardLabel(rb),
           });
           existingNums.add(rb.number);
         }
@@ -1316,49 +1317,89 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-mono">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 text-[11px] uppercase tracking-wider font-semibold">
-                  <tr>
-                    <th className="py-3 px-3">Block</th>
-                    <th className="py-3 px-3">Block Hash</th>
-                    <th className="py-3 px-3">Age</th>
-                    <th className="py-3 px-3 text-right">Txns</th>
-                    <th className="py-3 px-3 text-right">Reward</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {minedBlocks.map((blk) => (
-                    <tr
-                      key={blk.number}
-                      onClick={() => onSelectBlock(blk.number)}
-                      className="hover:bg-slate-50 transition-colors cursor-pointer group"
-                    >
-                      <td className="py-3 px-3 font-bold text-[#016976] group-hover:underline">
-                        #{blk.number.toLocaleString()}
-                      </td>
-                      <td className="py-3 px-3 text-slate-500 truncate max-w-[150px]" title={blk.hash}>
-                        {blk.hash.slice(0, 12)}...{blk.hash.slice(-8)}
-                      </td>
-                      <td className="py-3 px-3 text-slate-500" title={new Date(blk.timestamp * 1000).toLocaleString()}>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-slate-400" />
-                          {formatTimeAgo(blk.timestamp)}
+            <div>
+              {/* Mobile Card Feed (100% width, zero horizontal sliding) */}
+              <div className="divide-y divide-slate-100 sm:hidden">
+                {minedBlocks.map((blk) => (
+                  <div
+                    key={blk.number}
+                    onClick={() => onSelectBlock(blk.number)}
+                    className="py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
+                      <Pickaxe className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono font-bold text-sm text-[#016976]">
+                          #{blk.number.toLocaleString()}
                         </span>
-                      </td>
-                      <td className="py-3 px-3 text-right text-slate-900 font-bold">
-                        {blk.txCount} txns
-                      </td>
-                      <td className="py-3 px-3 text-right font-bold text-emerald-700">
-                        <div className="flex items-center justify-end gap-1">
+                        <span className="flex items-center gap-1 font-mono font-bold text-xs text-emerald-700 shrink-0">
                           <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
-                          <span>1.0 BTN</span>
-                        </div>
-                      </td>
+                          <span>{blk.reward ?? '≥ 1.0 BTN'}</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 text-[11px] font-mono text-slate-500">
+                        <span className="truncate" title={blk.hash}>
+                          {blk.hash.slice(0, 10)}...{blk.hash.slice(-6)}
+                        </span>
+                        <span className="flex items-center gap-1 shrink-0">
+                          <span className="text-slate-700 font-semibold">{blk.txCount} {blk.txCount === 1 ? 'txn' : 'txns'}</span>
+                          <span className="text-slate-300">·</span>
+                          <Clock className="w-3 h-3 text-slate-400" />
+                          <span>{formatTimeAgo(blk.timestamp)}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-left text-xs font-mono">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 text-[11px] uppercase tracking-wider font-semibold">
+                    <tr>
+                      <th className="py-3 px-3">Block</th>
+                      <th className="py-3 px-3">Block Hash</th>
+                      <th className="py-3 px-3">Age</th>
+                      <th className="py-3 px-3 text-right">Txns</th>
+                      <th className="py-3 px-3 text-right">Reward</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {minedBlocks.map((blk) => (
+                      <tr
+                        key={blk.number}
+                        onClick={() => onSelectBlock(blk.number)}
+                        className="hover:bg-slate-50 transition-colors cursor-pointer group"
+                      >
+                        <td className="py-3 px-3 font-bold text-[#016976] group-hover:underline">
+                          #{blk.number.toLocaleString()}
+                        </td>
+                        <td className="py-3 px-3 text-slate-500" title={blk.hash}>
+                          {blk.hash.slice(0, 12)}...{blk.hash.slice(-8)}
+                        </td>
+                        <td className="py-3 px-3 text-slate-500 whitespace-nowrap" title={new Date(blk.timestamp * 1000).toLocaleString()}>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            {formatTimeAgo(blk.timestamp)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-right text-slate-900 font-bold whitespace-nowrap">
+                          {blk.txCount} {blk.txCount === 1 ? 'txn' : 'txns'}
+                        </td>
+                        <td className="py-3 px-3 text-right font-bold text-emerald-700">
+                          <div className="flex items-center justify-end gap-1 whitespace-nowrap">
+                            <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
+                            <span>{blk.reward ?? '≥ 1.0 BTN'}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>

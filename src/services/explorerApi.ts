@@ -2,6 +2,7 @@ import { Block, Transaction } from '../types/blockchain';
 import { ethers } from 'ethers';
 import { rpcService } from './rpc';
 import { indexedTransactions } from './indexedTransactions';
+import { blockRewardLabel, exactBlockRewardLabel } from './blockReward';
 
 export interface AddressTokenBalance {
   address: string;
@@ -127,7 +128,8 @@ class ExplorerApiService {
     for (const [key, val] of Object.entries(data)) {
       if (key.endsWith('_blocks')) {
         const addr = key.replace('_blocks', '').toLowerCase();
-        if (!this.blocksCache.has(addr)) this.blocksCache.set(addr, val as MinedBlock[]);
+        // Snapshot rewards were not computed from fees or uncles, so they are dropped.
+        if (!this.blocksCache.has(addr)) this.blocksCache.set(addr, (val as MinedBlock[]).map(({ reward: _reward, ...blk }) => blk));
       } else if (Array.isArray(val)) {
         // Snapshot records store values as "12.34 BTN"; views append the unit themselves.
         const txs = (val as AddressTransaction[]).map((tx) => ({
@@ -430,7 +432,9 @@ class ExplorerApiService {
             txCount: item.transaction_count || item.tx_count || 0,
             difficulty: item.difficulty != null ? String(item.difficulty) : '',
             miner: cleanAddr,
-            reward: '1.0 BTN',
+            reward: item.transaction_fees != null
+              ? exactBlockRewardLabel(item.uncles_hashes?.length || 0, String(item.transaction_fees))
+              : blockRewardLabel({ uncles: item.uncles_hashes || [], transactions: new Array(item.transaction_count || 0) }),
           }));
           liveBlocks.sort((a, b) => b.number - a.number);
         }
