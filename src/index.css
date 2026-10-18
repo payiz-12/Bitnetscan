@@ -162,3 +162,21 @@
   }
 }
 
+/* Loading placeholders shaped like the content they stand in for */
+.skeleton {
+  background: linear-gradient(90deg, #EEF1F4 25%, #F7F9FA 50%, #EEF1F4 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
+
+/* Digits line up in table columns */
+table {
+  font-variant-numeric: tabular-nums;
+}

@@ -4,6 +4,7 @@ import { loadRecentScan, getCachedRecentScan, RecentScan, weiToBtn, RECENT_SCAN_
 import { AddressTag } from '../components/AddressTag';
 import { getAddressLabel } from '../services/addressLabels';
 import { isPageHidden } from '../services/pageVisibility';
+import { SkeletonList } from '../components/Skeleton';
 
 interface UnclesViewProps {
   onSelectBlock: (n: number) => void;
@@ -102,7 +103,7 @@ export const UnclesView: React.FC<UnclesViewProps> = ({ onSelectBlock, onSelectA
               <LineChartIcon className="w-3.5 h-3.5" /> History
             </button>
             <button onClick={() => refresh(true)} disabled={loading} className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer">
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#016976]' : ''}`} /> Refresh
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-petrol' : ''}`} /> Refresh
             </button>
           </div>
         </div>
@@ -128,9 +129,8 @@ export const UnclesView: React.FC<UnclesViewProps> = ({ onSelectBlock, onSelectA
       </div>
 
       {!scan ? (
-        <div className="bg-white rounded-3xl border border-slate-200 p-12 shadow-sm flex flex-col items-center gap-3 text-slate-500">
-          <RefreshCw className="w-6 h-6 animate-spin text-[#016976]" />
-          <span className="text-xs font-semibold">Reading blocks and uncles…</span>
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <SkeletonList rows={8} label="Loading uncles" />
         </div>
       ) : (
         <>
@@ -142,7 +142,7 @@ export const UnclesView: React.FC<UnclesViewProps> = ({ onSelectBlock, onSelectA
                 <div key={m.miner} onClick={() => onSelectAddress(m.miner)} className="py-3 space-y-1.5 cursor-pointer hover:bg-slate-50">
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <span className="font-mono text-xs font-bold text-[#016976]">{short(m.miner)}</span>
+                      <span className="font-mono text-xs font-bold text-petrol">{short(m.miner)}</span>
                       <AddressTag address={m.miner} />
                     </span>
                     <span className="text-xs font-bold text-slate-900 shrink-0">{(m.staleShare * 100).toFixed(1)}% uncles</span>
@@ -170,7 +170,7 @@ export const UnclesView: React.FC<UnclesViewProps> = ({ onSelectBlock, onSelectA
                     <tr key={m.miner} onClick={() => onSelectAddress(m.miner)} className="hover:bg-slate-50 cursor-pointer">
                       <td className="py-3 px-3">
                         <span className="flex items-center gap-2">
-                          <span className="font-bold text-[#016976]" title={m.miner}>{short(m.miner)}</span>
+                          <span className="font-bold text-petrol" title={m.miner}>{short(m.miner)}</span>
                           <AddressTag address={m.miner} />
                         </span>
                       </td>
@@ -205,7 +205,7 @@ export const UnclesView: React.FC<UnclesViewProps> = ({ onSelectBlock, onSelectA
                           <span className="font-mono font-bold text-xs text-emerald-700 shrink-0">{btn(weiToBtn(u.rewardWei))}</span>
                         </div>
                         <div className="flex items-center justify-between gap-2 text-[11px] font-mono text-slate-500">
-                          <button onClick={() => onSelectAddress(u.miner)} className="truncate text-[#016976] font-semibold cursor-pointer">
+                          <button onClick={() => onSelectAddress(u.miner)} className="truncate text-petrol font-semibold cursor-pointer">
                             {getAddressLabel(u.miner)?.name || short(u.miner)}
                           </button>
                           <span className="shrink-0 flex items-center gap-1">
@@ -241,12 +241,12 @@ export const UnclesView: React.FC<UnclesViewProps> = ({ onSelectBlock, onSelectA
                           <td className="py-3 px-3 text-slate-500" title={u.hash}>{u.hash.slice(0, 10)}…{u.hash.slice(-6)}</td>
                           <td className="py-3 px-3">
                             <button onClick={() => onSelectAddress(u.miner)} className="flex items-center gap-2 cursor-pointer">
-                              <span className="font-bold text-[#016976] hover:underline">{short(u.miner)}</span>
+                              <span className="font-bold text-petrol hover:underline">{short(u.miner)}</span>
                               <AddressTag address={u.miner} />
                             </button>
                           </td>
                           <td className="py-3 px-3">
-                            <button onClick={() => onSelectBlock(u.includedIn)} className="font-bold text-[#016976] hover:underline cursor-pointer">
+                            <button onClick={() => onSelectBlock(u.includedIn)} className="font-bold text-petrol hover:underline cursor-pointer">
                               #{u.includedIn.toLocaleString()}
                             </button>
                           </td>

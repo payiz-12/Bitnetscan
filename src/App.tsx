@@ -23,7 +23,7 @@ const SupplyView = lazy(() => import('./views/SupplyView').then((m) => ({ defaul
 
 const PageFallback: React.FC = () => (
   <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-500" role="status">
-    <div className="w-8 h-8 rounded-full border-2 border-[#016976] border-t-transparent animate-spin" />
+    <div className="w-8 h-8 rounded-full border-2 border-petrol border-t-transparent animate-spin" />
     <span className="text-xs font-semibold">Loading…</span>
   </div>
 );
@@ -387,7 +387,7 @@ export const App: React.FC = () => {
     : currentView;
 
   return (
-    <div className="min-h-screen flex flex-col bg-canvas-warm text-slate-900 font-sans selection:bg-teal-100 selection:text-teal-900">
+    <div className="min-h-screen flex flex-col bg-canvas-warm text-slate-900 font-sans selection:bg-petrol-100 selection:text-petrol-800">
       <Header
         currentView={currentView}
         routeKey={routeKey}

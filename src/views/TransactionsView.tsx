@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { explorerApiService } from '../services/explorerApi';
 import { indexedTransactions, IndexedTransactionPage, TransactionCursor } from '../services/indexedTransactions';
+import { SkeletonList } from '../components/Skeleton';
 
 interface TransactionsViewProps {
   onBack: () => void;
@@ -152,7 +153,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter this page by hash, address or block..."
-            className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#016976] rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-all"
+            className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-petrol rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-all"
           />
           {searchQuery && (
             <button
@@ -169,10 +170,12 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
         {/* Mobile card list */}
         <div className="sm:hidden divide-y divide-slate-100">
-          {transactions.length === 0 ? (
+          {transactions.length === 0 && pageLoading ? (
+            <SkeletonList rows={8} label="Loading transactions" />
+          ) : transactions.length === 0 ? (
             <div className="py-12 px-4 text-center text-slate-500 space-y-2">
               <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
-                {pageLoading ? <RefreshCw className="w-6 h-6 animate-spin text-[#016976]" /> : <ArrowRightLeft className="w-6 h-6" />}
+                {pageLoading ? <RefreshCw className="w-6 h-6 animate-spin text-petrol" /> : <ArrowRightLeft className="w-6 h-6" />}
               </div>
               <p className="font-bold text-sm text-slate-700">{pageLoading ? 'Loading…' : pageError || 'No matching transactions'}</p>
             </div>
@@ -241,7 +244,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                       {truncate(tx.to, 6, 4)}
                     </button>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-px rounded text-[10px] font-bold bg-amber-50 text-[#D97706] border border-amber-200 font-sans">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-px rounded text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200 font-sans">
                       <FileCode className="w-3 h-3" />
                       Contract Creation
                     </span>
@@ -271,7 +274,13 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
-              {transactions.length === 0 ? (
+              {transactions.length === 0 && pageLoading ? (
+                <tr>
+                  <td colSpan={8} className="p-0">
+                    <SkeletonList rows={10} label="Loading transactions" />
+                  </td>
+                </tr>
+              ) : transactions.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-500">
                     <div className="max-w-sm mx-auto space-y-2">
@@ -289,7 +298,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                     <tr
                       key={tx.hash}
                       onClick={() => onSelectTx(tx.hash)}
-                      className="hover:bg-teal-50/20 transition-colors cursor-pointer group"
+                      className="hover:bg-petrol-50/20 transition-colors cursor-pointer group"
                     >
                       {/* Hash with copy icon */}
                       <td className="py-3.5 px-4 font-mono">
@@ -320,7 +329,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                               e.stopPropagation();
                               onSelectBlock(tx.blockNumber);
                             }}
-                            className="font-bold text-slate-800 hover:text-[#016976] hover:underline"
+                            className="font-bold text-slate-800 hover:text-petrol hover:underline"
                           >
                             #{tx.blockNumber.toLocaleString()}
                           </span>
@@ -345,7 +354,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                               e.stopPropagation();
                               onSelectAddress(tx.from);
                             }}
-                            className="font-semibold text-slate-700 hover:text-[#016976] hover:underline"
+                            className="font-semibold text-slate-700 hover:text-petrol hover:underline"
                           >
                             {tx.from === '0x0000000000000000000000000000000000000000'
                               ? 'Null Address (0x00...)'
@@ -375,7 +384,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                                   e.stopPropagation();
                                   onSelectAddress(tx.to);
                                 }}
-                                className="font-semibold text-slate-700 hover:text-[#016976] hover:underline cursor-pointer"
+                                className="font-semibold text-slate-700 hover:text-petrol hover:underline cursor-pointer"
                               >
                                 {truncate(tx.to, 6, 4)}
                               </span>
@@ -392,8 +401,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                               </button>
                             </>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-[#D97706] border border-amber-200">
-                              <FileCode className="w-3 h-3 text-[#D97706]" />
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200">
+                              <FileCode className="w-3 h-3 text-amber-600" />
                               <span>Contract Creation</span>
                             </span>
                           )}
@@ -479,7 +488,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
               <span className="hidden min-[400px]:inline">Previous</span>
             </button>
 
-            <span className="px-3 py-1.5 bg-[#016976] text-white font-bold rounded-lg shadow-2xs">
+            <span className="px-3 py-1.5 bg-petrol text-white font-bold rounded-lg shadow-2xs">
               {currentPage}
             </span>
 

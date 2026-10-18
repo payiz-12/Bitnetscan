@@ -41,14 +41,14 @@ interface Preview {
 }
 
 const TONES = {
-  block: 'bg-teal-50 text-[#016976] border-teal-200',
+  block: 'bg-petrol-50 text-petrol border-petrol-200',
   tx: 'bg-sky-50 text-[#0284C7] border-sky-200',
   wallet: 'bg-slate-100 text-slate-700 border-slate-200',
   contract: 'bg-indigo-50 text-indigo-600 border-indigo-200',
   token: 'bg-emerald-50 text-emerald-600 border-emerald-200',
   nft: 'bg-purple-50 text-purple-600 border-purple-200',
   pool: 'bg-orange-50 text-orange-600 border-orange-200',
-  rich: 'bg-amber-50 text-[#D68142] border-amber-200',
+  rich: 'bg-amber-50 text-terracotta border-amber-200',
   page: 'bg-slate-50 text-slate-500 border-slate-200',
 };
 
@@ -410,7 +410,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
         aria-controls={listId}
         aria-autocomplete="list"
         aria-activedescendant={showPanel && activeIndex >= 0 ? `${listId}-${activeIndex}` : undefined}
-        className={`w-full pl-9 bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#016976] rounded-xl font-mono font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-sans placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-[#016976]/20 transition-all [&::-webkit-search-cancel-button]:hidden ${
+        className={`w-full pl-9 bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-petrol rounded-xl font-mono font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-sans placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-petrol/20 transition-all [&::-webkit-search-cancel-button]:hidden ${
           md ? 'pr-28 py-1.5 xl:py-2 text-xs xl:text-sm' : 'pr-[5.5rem] py-2 text-sm'
         }`}
       />
@@ -437,7 +437,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
         ) : null}
         <button
           type="submit"
-          className="h-full px-3 bg-[#016976] hover:bg-[#015661] text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+          className="h-full px-3 bg-petrol hover:bg-[#015661] text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer"
         >
           {submitLabel}
         </button>
@@ -489,7 +489,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
 
           {isLoading && (
             <div className="px-4 py-3 flex items-center gap-2 text-xs text-slate-500 border-t border-slate-100 first:border-t-0">
-              <Loader2 className="w-4 h-4 animate-spin text-[#016976]" />
+              <Loader2 className="w-4 h-4 animate-spin text-petrol" />
               <span>
                 {kind === 'block' ? `Looking up block #${parseInt(normalized, 10).toLocaleString()}…`
                   : kind === 'address' ? 'Loading address balance…' : 'Looking up transaction…'}

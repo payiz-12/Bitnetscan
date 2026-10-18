@@ -42,7 +42,7 @@ export const RpcStatusView: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-7 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1.5">
-            <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shadow-xs">
+            <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shadow-xs">
               <Activity className="w-5 h-5" />
             </div>
             <div>
@@ -61,7 +61,7 @@ export const RpcStatusView: React.FC = () => {
           disabled={loading}
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-900 text-xs font-bold border border-slate-200 cursor-pointer self-start sm:self-auto shadow-xs transition-colors flex-shrink-0"
         >
-          <RefreshCw className={`w-3.5 h-3.5 text-[#016976] ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 text-petrol ${loading ? 'animate-spin' : ''}`} />
           <span>Check again</span>
         </button>
       </div>
@@ -128,14 +128,14 @@ export const RpcStatusView: React.FC = () => {
                 <div
                   key={ep.url}
                   className={`p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
-                    isSelected ? 'bg-teal-50/40 border-l-4 border-l-[#016976]' : 'hover:bg-slate-50/80'
+                    isSelected ? 'bg-petrol-50/40 border-l-4 border-l-petrol' : 'hover:bg-slate-50/80'
                   }`}
                 >
                   <div className="space-y-1 min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-slate-900 text-sm">{ep.name}</span>
                       {isSelected && (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#016976] text-white flex-shrink-0">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-petrol text-white flex-shrink-0">
                           Active Endpoint
                         </span>
                       )}

@@ -118,7 +118,7 @@ export const NetworkStatusModal: React.FC<NetworkStatusModalProps> = ({
 
         {/* Modal Header */}
         <div className="flex items-center gap-3 pr-10 pb-4 border-b border-slate-100">
-          <div className="w-11 h-11 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-[#016976] shadow-xs shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-petrol-50 border border-petrol-200 flex items-center justify-center text-petrol shadow-xs shrink-0">
             <Radio className="w-6 h-6" />
           </div>
           <div>
@@ -153,7 +153,7 @@ export const NetworkStatusModal: React.FC<NetworkStatusModalProps> = ({
 
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-center">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Gas Price</span>
-              <span className="text-sm sm:text-base font-black font-mono text-[#016976] mt-0.5 block truncate">
+              <span className="text-sm sm:text-base font-black font-mono text-petrol mt-0.5 block truncate">
                 {gasPriceGwei != null ? `${gasPriceGwei} Gwei` : 'Unknown'}
               </span>
             </div>
@@ -173,7 +173,7 @@ export const NetworkStatusModal: React.FC<NetworkStatusModalProps> = ({
               <button
                 onClick={testAllEndpoints}
                 disabled={isTesting}
-                className="text-xs text-[#016976] hover:text-[#01545e] font-bold flex items-center gap-1 cursor-pointer bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200/60"
+                className="text-xs text-petrol hover:text-[#01545e] font-bold flex items-center gap-1 cursor-pointer bg-petrol-50 px-2.5 py-1 rounded-lg border border-petrol-200/60"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
                 <span>{isTesting ? 'Checking…' : 'Check again'}</span>
@@ -187,7 +187,7 @@ export const NetworkStatusModal: React.FC<NetworkStatusModalProps> = ({
                   <div
                     key={ep.url}
                     className={`p-3 rounded-2xl border flex items-center justify-between gap-3 ${
-                      isSelected ? 'bg-teal-50/80 border-[#016976]' : 'bg-white border-slate-200'
+                      isSelected ? 'bg-petrol-50/80 border-petrol' : 'bg-white border-slate-200'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -211,7 +211,7 @@ export const NetworkStatusModal: React.FC<NetworkStatusModalProps> = ({
                         {ep.status === 'online' ? `${ep.latencyMs} ms` : ep.status === 'checking' ? '…' : 'Offline'}
                       </span>
                       {isSelected && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#016976]">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-petrol">
                           <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                           In use
                         </span>
@@ -231,7 +231,7 @@ export const NetworkStatusModal: React.FC<NetworkStatusModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="px-6 py-2 rounded-xl bg-[#016976] hover:bg-[#015661] active:bg-[#01454e] text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+            className="px-6 py-2 rounded-xl bg-petrol hover:bg-[#015661] active:bg-[#01454e] text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
           >
             Close
           </button>

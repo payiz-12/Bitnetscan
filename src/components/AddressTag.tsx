@@ -3,7 +3,7 @@ import { AddressLabelKind, useAddressLabel } from '../services/addressLabels';
 
 const KIND_STYLES: Record<AddressLabelKind, string> = {
   pool: 'bg-amber-50 border-amber-200 text-amber-800',
-  solo: 'bg-teal-50 border-teal-200 text-[#016976]',
+  solo: 'bg-petrol-50 border-petrol-200 text-petrol',
   miner: 'bg-orange-50 border-orange-200 text-orange-800',
   burn: 'bg-rose-50 border-rose-200 text-rose-700',
   token: 'bg-emerald-50 border-emerald-200 text-emerald-700',

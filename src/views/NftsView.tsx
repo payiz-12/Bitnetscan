@@ -130,8 +130,8 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
         onClick={() => { setSelectedId(collection.id); setQuery(''); }} 
         className={`text-left p-4 rounded-2xl border transition-all relative flex flex-col justify-between ${
           isSelected 
-            ? 'bg-teal-50/70 border-[#016976] ring-2 ring-[#016976]/30 shadow-xs' 
-            : 'bg-white border-slate-200 hover:border-teal-300 hover:shadow-xs'
+            ? 'bg-petrol-50/70 border-petrol ring-2 ring-petrol/30 shadow-xs' 
+            : 'bg-white border-slate-200 hover:border-petrol-300 hover:shadow-xs'
         }`}
       >
         <div className="flex items-center gap-3 w-full">
@@ -144,7 +144,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
             />
             {collection.verified && (
               <span className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-2xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#016976]" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-petrol" />
               </span>
             )}
           </div>
@@ -154,7 +154,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                 {collection.symbol || 'NFT'}
               </span>
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                collection.dataStatus === 'indexed' ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-500'
+                collection.dataStatus === 'indexed' ? 'bg-petrol-100 text-petrol-700' : 'bg-slate-100 text-slate-500'
               }`}>
                 {statusLabel(collection.dataStatus)}
               </span>
@@ -169,7 +169,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
           </div>
           <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
             <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg">
-              <Users className="w-3 h-3 text-[#016976] flex-shrink-0" />
+              <Users className="w-3 h-3 text-petrol flex-shrink-0" />
               <span className="truncate font-semibold">{count(collection.holdersCount ?? collection.holders.length)} Hodl</span>
             </div>
             <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg">
@@ -196,13 +196,13 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                 <span className="text-[11px] font-bold tracking-wider text-purple-600 uppercase">BITNET L1</span>
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">BTS-721 / ERC-721</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">NFT & Digital Asset Explorer</h1>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">NFT & Digital Asset Explorer</h1>
             </div>
           </div>
           <button 
             onClick={refresh} 
             disabled={syncing} 
-            className="self-start sm:self-center flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-[#016976] border border-teal-200 text-xs font-bold transition-colors disabled:opacity-60 cursor-pointer shadow-2xs"
+            className="self-start sm:self-center flex items-center gap-2 px-4 py-2.5 rounded-xl bg-petrol-50 hover:bg-petrol-100 text-petrol border border-petrol-200 text-xs font-bold transition-colors disabled:opacity-60 cursor-pointer shadow-2xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
             <span>{syncing ? 'Syncing On-Chain…' : 'Refresh Live Data'}</span>
@@ -214,7 +214,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-slate-500 font-bold uppercase">Collections</span>
-              <div className="w-6 h-6 rounded-lg bg-teal-100 text-[#016976] flex items-center justify-center">
+              <div className="w-6 h-6 rounded-lg bg-petrol-100 text-petrol flex items-center justify-center">
                 <Layers className="w-3.5 h-3.5" />
               </div>
             </div>
@@ -261,7 +261,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <Layers className="w-4 h-4 text-[#016976]" />
+            <Layers className="w-4 h-4 text-petrol" />
             Featured Collections ({knownCollections.length})
           </h2>
         </div>
@@ -296,7 +296,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                   />
                   {active.verified && (
                     <span className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-2xs">
-                      <CheckCircle2 className="w-4 h-4 text-[#016976]" />
+                      <CheckCircle2 className="w-4 h-4 text-petrol" />
                     </span>
                   )}
                 </div>
@@ -308,7 +308,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                         {active.symbol}
                       </span>
                     )}
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-100 text-[#016976]">
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-petrol-100 text-petrol">
                       {active.standard}
                     </span>
                   </div>
@@ -317,7 +317,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                   <div className="flex items-center gap-2 mt-2">
                     <button 
                       onClick={() => onSelectAddress(active.contract)} 
-                      className="text-xs font-mono text-[#016976] hover:underline font-medium break-all text-left"
+                      className="text-xs font-mono text-petrol hover:underline font-medium break-all text-left"
                     >
                       {active.contract}
                     </button>
@@ -341,14 +341,14 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
               {/* Badges / Stats Pill Group */}
               <div className="flex flex-wrap md:flex-col items-start md:items-end gap-2">
                 <span className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
-                  active.dataStatus === 'indexed' ? 'bg-teal-100 text-teal-800' : 'bg-slate-100 text-slate-700'
+                  active.dataStatus === 'indexed' ? 'bg-petrol-100 text-petrol-700' : 'bg-slate-100 text-slate-700'
                 }`}>
-                  <span className={`w-2 h-2 rounded-full ${active.dataStatus === 'indexed' ? 'bg-teal-500' : 'bg-slate-400'}`}></span>
+                  <span className={`w-2 h-2 rounded-full ${active.dataStatus === 'indexed' ? 'bg-petrol-400' : 'bg-slate-400'}`}></span>
                   {statusLabel(active.dataStatus)}
                 </span>
                 <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
                   <span className="flex items-center gap-1 bg-white border border-slate-200 px-2.5 py-1 rounded-xl shadow-2xs">
-                    <Users className="w-3.5 h-3.5 text-[#016976]" />
+                    <Users className="w-3.5 h-3.5 text-petrol" />
                     <strong>{count(active.holdersCount ?? active.holders.length)}</strong> Hodlers
                   </span>
                   <span className="flex items-center gap-1 bg-white border border-slate-200 px-2.5 py-1 rounded-xl shadow-2xs">
@@ -366,7 +366,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                 <button 
                   onClick={() => setTab('gallery')} 
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                    tab === 'gallery' ? 'bg-[#016976] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    tab === 'gallery' ? 'bg-petrol text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <ImageIcon className="w-3.5 h-3.5" />
@@ -379,7 +379,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                 <button 
                   onClick={() => setTab('holders')} 
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                    tab === 'holders' ? 'bg-[#016976] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    tab === 'holders' ? 'bg-petrol text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <Users className="w-3.5 h-3.5" />
@@ -392,7 +392,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                 <button 
                   onClick={() => setTab('activity')} 
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                    tab === 'activity' ? 'bg-[#016976] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    tab === 'activity' ? 'bg-petrol text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <ArrowRightLeft className="w-3.5 h-3.5" />
@@ -411,7 +411,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                     value={query} 
                     onChange={event => setQuery(event.target.value)} 
                     placeholder="Search by ID (#714) or Owner…" 
-                    className="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-slate-300 bg-white placeholder-slate-400 text-slate-900 focus:outline-none focus:border-[#016976] focus:ring-1 focus:ring-[#016976] shadow-2xs" 
+                    className="w-full pl-9 pr-8 py-2 text-xs rounded-xl border border-slate-300 bg-white placeholder-slate-400 text-slate-900 focus:outline-none focus:border-petrol focus:ring-1 focus:ring-petrol shadow-2xs" 
                   />
                   {query && (
                     <button 
@@ -435,7 +435,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                   <p className="text-sm font-semibold">No NFTs found matching "{query}"</p>
                   <button 
                     onClick={() => setQuery('')} 
-                    className="mt-2 text-xs text-[#016976] font-bold hover:underline"
+                    className="mt-2 text-xs text-petrol font-bold hover:underline"
                   >
                     Clear search filter
                   </button>
@@ -447,7 +447,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                   <div 
                     key={item.id} 
                     onClick={() => inspect(active, item)}
-                    className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-[#016976] hover:shadow-md transition-all cursor-pointer group flex flex-col"
+                    className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-petrol hover:shadow-md transition-all cursor-pointer group flex flex-col"
                   >
                     <div className="relative aspect-square w-full bg-slate-100 overflow-hidden">
                       <NftImage 
@@ -468,7 +468,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
 
                     <div className="p-3 flex-1 flex flex-col justify-between">
                       <div>
-                        <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate group-hover:text-[#016976] transition-colors">
+                        <h3 className="text-xs sm:text-sm font-bold text-slate-900 truncate group-hover:text-petrol transition-colors">
                           {item.name || `Token #${item.id}`}
                         </h3>
                         <div className="text-[10px] text-slate-400 mt-0.5 truncate">
@@ -491,9 +491,9 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
           {/* TAB 2: HOLDERS (HODL SAYISI) */}
           {tab === 'holders' && (
             <div className="p-4 sm:p-6">
-              <div className="mb-4 p-4 rounded-2xl bg-teal-50/60 border border-teal-100 flex items-center justify-between">
+              <div className="mb-4 p-4 rounded-2xl bg-petrol-50/60 border border-petrol-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white border border-teal-200 flex items-center justify-center text-[#016976] shadow-2xs">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-petrol-200 flex items-center justify-center text-petrol shadow-2xs">
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
@@ -526,7 +526,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                           <div className="flex items-center gap-2">
                             <button 
                               onClick={() => onSelectAddress(holder.address)} 
-                              className="text-[#016976] hover:underline font-bold"
+                              className="text-petrol hover:underline font-bold"
                             >
                               {holder.address}
                             </button>
@@ -541,7 +541,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                         <td className="p-3.5 text-right font-black text-slate-900">
                           {holder.quantity.toLocaleString()}
                         </td>
-                        <td className="p-3.5 text-right font-bold text-teal-700">
+                        <td className="p-3.5 text-right font-bold text-petrol-600">
                           {holder.percentage}
                         </td>
                         <td className="p-3.5 max-w-xs text-slate-600 font-mono text-[11px] truncate">
@@ -601,7 +601,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                             {onSelectTx ? (
                               <button 
                                 onClick={() => onSelectTx(transfer.hash)} 
-                                className="text-[#016976] font-bold hover:underline text-left cursor-pointer"
+                                className="text-petrol font-bold hover:underline text-left cursor-pointer"
                               >
                                 {shortAddress(transfer.hash)}
                               </button>
@@ -629,7 +629,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                             {transfer.from.toLowerCase() === ZERO_ADDRESS ? (
                               <span className="text-slate-400 italic">Genesis (0x0)</span>
                             ) : (
-                              <button onClick={() => onSelectAddress(transfer.from)} className="text-[#016976] hover:underline">
+                              <button onClick={() => onSelectAddress(transfer.from)} className="text-petrol hover:underline">
                                 {shortAddress(transfer.from)}
                               </button>
                             )}
@@ -638,7 +638,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                             {transfer.to.toLowerCase() === ZERO_ADDRESS ? (
                               <span className="text-slate-400 italic">Burn (0x0)</span>
                             ) : (
-                              <button onClick={() => onSelectAddress(transfer.to)} className="text-[#016976] hover:underline">
+                              <button onClick={() => onSelectAddress(transfer.to)} className="text-petrol hover:underline">
                                 {shortAddress(transfer.to)}
                               </button>
                             )}
@@ -693,7 +693,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
       {/* Inspect an ERC-721 NFT Tool */}
       <section className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-7 shadow-xs">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shadow-xs">
+          <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shadow-xs">
             <Search className="w-5 h-5" />
           </div>
           <div>
@@ -708,7 +708,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
             onChange={event => setCustomContract(event.target.value)} 
             placeholder="Contract address (0x…)" 
             aria-label="NFT contract address" 
-            className="flex-1 min-w-0 rounded-xl border border-slate-300 p-3 text-xs font-mono bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#016976] focus:ring-1 focus:ring-[#016976] shadow-2xs" 
+            className="flex-1 min-w-0 rounded-xl border border-slate-300 p-3 text-xs font-mono bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-petrol focus:ring-1 focus:ring-petrol shadow-2xs" 
             required 
           />
           <input 
@@ -719,13 +719,13 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
             onChange={event => setCustomTokenId(event.target.value)} 
             placeholder="Token ID"
             aria-label="NFT token ID" 
-            className="sm:w-36 rounded-xl border border-slate-300 p-3 text-xs font-mono bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#016976] focus:ring-1 focus:ring-[#016976] shadow-2xs" 
+            className="sm:w-36 rounded-xl border border-slate-300 p-3 text-xs font-mono bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:border-petrol focus:ring-1 focus:ring-petrol shadow-2xs" 
             required 
           />
           <button 
             type="submit"
             disabled={customLoading} 
-            className="rounded-xl bg-[#016976] hover:bg-[#015661] px-5 py-3 text-xs font-bold text-white transition-colors disabled:opacity-60 cursor-pointer shadow-xs flex items-center justify-center gap-2"
+            className="rounded-xl bg-petrol hover:bg-[#015661] px-5 py-3 text-xs font-bold text-white transition-colors disabled:opacity-60 cursor-pointer shadow-xs flex items-center justify-center gap-2"
           >
             {customLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
             <span>{customLoading ? 'Inspecting…' : 'Inspect NFT'}</span>
@@ -776,7 +776,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
 
               <div className="space-y-4 min-w-0">
                 {checking && (
-                  <p role="status" className="text-xs text-[#016976] flex gap-2 items-center p-2.5 rounded-xl bg-teal-50 border border-teal-100">
+                  <p role="status" className="text-xs text-petrol flex gap-2 items-center p-2.5 rounded-xl bg-petrol-50 border border-petrol-100">
                     <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
                     <span>Verifying live owner & metadata via RPC…</span>
                   </p>
@@ -800,7 +800,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                       <div className="flex items-center gap-2 mt-1">
                         <button 
                           onClick={() => { closeModal(); onSelectAddress(modal.item.owner); }} 
-                          className="font-mono text-[#016976] font-bold break-all text-left hover:underline"
+                          className="font-mono text-petrol font-bold break-all text-left hover:underline"
                         >
                           {modal.item.owner}
                         </button>

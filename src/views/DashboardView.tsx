@@ -14,6 +14,7 @@ import { priceService, BtnPriceData } from '../services/priceService';
 import { isPageHidden } from '../services/pageVisibility';
 import { AddressTag } from '../components/AddressTag';
 import { getAddressLabel } from '../services/addressLabels';
+import { SkeletonList } from '../components/Skeleton';
 
 interface DashboardViewProps {
   stats: NetworkStats | null;
@@ -136,7 +137,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1 sm:mb-2 flex-wrap">
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-[#016976] border border-teal-200">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-petrol-50 text-petrol border border-petrol-200">
                   Ethash Layer-1 Blockchain
                 </span>
                 <span className="hidden sm:flex text-xs text-slate-600 items-center gap-1.5 font-semibold">
@@ -145,7 +146,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
-                Bitnet Money <span className="text-[#016976]">Explorer</span>
+                Bitnet Money <span className="text-petrol">Explorer</span>
               </h1>
             </div>
           </div>
@@ -154,8 +155,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* 6 Metric Cards: 3 on top, 3 on bottom on both mobile and desktop */}
         <div className="grid grid-cols-2 min-[360px]:grid-cols-3 gap-1.5 sm:gap-4 mt-4 sm:mt-8">
           {/* Card 01: Latest Block */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-slate-200 hover:border-[#016976] hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 group">
-            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-teal-50 border border-teal-100 text-[#016976] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#016976] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-slate-200 hover:border-petrol hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 group">
+            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-petrol-50 border border-petrol-100 text-petrol flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-petrol group-hover:text-white group-hover:rotate-6 transition-all duration-300">
               <Layers className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
             </div>
             <div className="min-w-0 flex-1 w-full">
@@ -172,8 +173,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           {/* Card 02: Gas Price */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-slate-200 hover:border-[#D97706] hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 group">
-            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-amber-50 border border-amber-100 text-[#D97706] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#D97706] group-hover:text-white group-hover:-rotate-6 transition-all duration-300">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-slate-200 hover:border-amber-600 hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 group">
+            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white group-hover:-rotate-6 transition-all duration-300">
               <Flame className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
             </div>
             <div className="min-w-0 flex-1 w-full">
@@ -239,8 +240,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </a>
 
           {/* Card 04: Mining Hashrate */}
-          <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-slate-200 hover:border-[#D68142] hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 group">
-            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-orange-50 border border-orange-100 text-[#D68142] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#D68142] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-slate-200 hover:border-terracotta hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 group">
+            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-orange-50 border border-orange-100 text-terracotta flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-terracotta group-hover:text-white group-hover:rotate-6 transition-all duration-300">
               <Cpu className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
             </div>
             <div className="min-w-0 flex-1 w-full">
@@ -322,7 +323,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="px-3.5 py-3 sm:p-5 border-b border-slate-200 bg-slate-50">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="hidden min-[400px]:flex w-10 h-10 rounded-xl bg-white border border-slate-200 items-center justify-center text-[#016976] shadow-xs shrink-0">
+                <div className="hidden min-[400px]:flex w-10 h-10 rounded-xl bg-white border border-slate-200 items-center justify-center text-petrol shadow-xs shrink-0">
                   <Box className="w-5 h-5" />
                 </div>
                 <div>
@@ -336,7 +337,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               <button
                 onClick={onViewAllBlocks ? onViewAllBlocks : () => onSelectBlock(stats?.latestBlock || 0)}
-                className="shrink-0 text-xs font-bold text-[#016976] hover:text-[#014E58] flex items-center gap-1 cursor-pointer bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-lg transition-colors shadow-2xs"
+                className="shrink-0 text-xs font-bold text-petrol hover:text-[#014E58] flex items-center gap-1 cursor-pointer bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-lg transition-colors shadow-2xs"
               >
                 <span>View All</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -347,12 +348,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="divide-y divide-slate-100 lg:max-h-[560px] lg:overflow-y-auto">
             {/* Upcoming Block Dashed Mining Slot */}
             {(recentBlocks[0]?.number || stats?.latestBlock) && (
-              <div className="p-3 bg-teal-50/20 border-b border-slate-100">
-                <div className="relative overflow-hidden rounded-xl border-2 border-dashed border-[#016976]/40 bg-white/85 p-3 shadow-2xs">
+              <div className="p-3 bg-petrol-50/20 border-b border-slate-100">
+                <div className="relative overflow-hidden rounded-xl border-2 border-dashed border-petrol/40 bg-white/85 p-3 shadow-2xs">
                   {/* Time since the last block relative to the measured average block time */}
                   {nextBlockProgress !== null && (
                     <div
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-teal-500/10 via-emerald-500/15 to-teal-400/20 transition-all duration-1000 ease-linear pointer-events-none"
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-petrol-400/10 via-emerald-500/15 to-petrol-400/20 transition-all duration-1000 ease-linear pointer-events-none"
                       style={{ width: `${nextBlockProgress}%` }}
                     />
                   )}
@@ -360,8 +361,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <div className="relative z-10 flex items-center justify-between gap-3">
                     {/* Left: Animated Icon & Next Block info */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl border-2 border-dashed border-[#016976]/60 bg-teal-50/60 flex items-center justify-center text-[#016976] flex-shrink-0">
-                        <Box className="w-4 h-4 sm:w-5 sm:h-5 text-[#016976]" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl border-2 border-dashed border-petrol/60 bg-petrol-50/60 flex items-center justify-center text-petrol flex-shrink-0">
+                        <Box className="w-4 h-4 sm:w-5 sm:h-5 text-petrol" />
                       </div>
 
                       <div className="min-w-0">
@@ -374,7 +375,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           </span>
                         </div>
                         <div className="text-xs text-slate-500 font-mono mt-0.5">
-                          <span className="text-teal-700 font-semibold">{sinceLastBlock}s</span> since last block
+                          <span className="text-petrol-600 font-semibold">{sinceLastBlock}s</span> since last block
                         </div>
                       </div>
                     </div>
@@ -382,12 +383,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     {/* Right: Block Progress Meter */}
                     {nextBlockProgress !== null && avgBlockTime && (
                       <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
-                        <span className="font-mono font-bold text-xs text-[#016976]">
+                        <span className="font-mono font-bold text-xs text-petrol">
                           {sinceLastBlock}s / {avgBlockTime.toFixed(1)}s
                         </span>
                         <div className="w-20 sm:w-28 bg-slate-200/80 rounded-full h-2 overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-[#016976] via-teal-500 to-emerald-400 rounded-full transition-all duration-1000 ease-linear"
+                            className="h-full bg-gradient-to-r from-petrol via-petrol-400 to-emerald-400 rounded-full transition-all duration-1000 ease-linear"
                             style={{ width: `${nextBlockProgress}%` }}
                           />
                         </div>
@@ -398,9 +399,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             )}
             {recentBlocks.length === 0 ? (
-              <div className="p-8 text-center text-slate-500 text-sm">
-                Fetching latest blocks from Bitnet RPC...
-              </div>
+              <SkeletonList rows={6} label="Loading latest blocks" />
             ) : (
               recentBlocks.map((block, index) => {
                 const gasPercent = block.gasLimit > 0 
@@ -417,21 +416,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       index >= MOBILE_FEED_LIMIT ? 'hidden lg:flex' : 'flex'
                     } ${
                       isNewest && isVeryRecent 
-                        ? 'animate-new-block bg-teal-50/40 border-l-4 border-l-[#016976] hover:bg-teal-50/60' 
+                        ? 'animate-new-block bg-petrol-50/40 border-l-4 border-l-petrol hover:bg-petrol-50/60' 
                         : 'hover:bg-slate-50/90'
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-50 border border-slate-200 items-center justify-center p-1.5 sm:p-2 group-hover:border-[#016976] transition-colors shrink-0">
+                      <div className="flex w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-50 border border-slate-200 items-center justify-center p-1.5 sm:p-2 group-hover:border-petrol transition-colors shrink-0">
                         <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-full h-full object-contain" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5">
-                          <span className="font-mono font-bold text-sm text-[#016976] group-hover:underline shrink-0">
+                          <span className="font-mono font-bold text-sm text-petrol group-hover:underline shrink-0">
                             #{block.number.toLocaleString()}
                           </span>
                           {isNewest && isVeryRecent && (
-                            <span className="inline-flex items-center px-1.5 py-px rounded text-[9px] font-bold bg-teal-100 text-[#016976] border border-teal-300 shrink-0">
+                            <span className="inline-flex items-center px-1.5 py-px rounded text-[9px] font-bold bg-petrol-100 text-petrol border border-petrol-300 shrink-0">
                               New
                             </span>
                           )}
@@ -448,7 +447,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               onSelectAddress(block.miner);
                             }}
                             title={block.miner}
-                            className="font-mono text-slate-700 hover:text-[#016976] hover:underline font-semibold truncate"
+                            className="font-mono text-slate-700 hover:text-petrol hover:underline font-semibold truncate"
                           >
                             {KNOWN_MINING_POOLS[(block.miner || '').toLowerCase()]?.category === 'known'
                               ? KNOWN_MINING_POOLS[block.miner.toLowerCase()].name
@@ -491,7 +490,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {recentBlocks.length > MOBILE_FEED_LIMIT && (
             <button
               onClick={onViewAllBlocks ? onViewAllBlocks : () => onSelectBlock(stats?.latestBlock || 0)}
-              className="lg:hidden w-full py-3 border-t border-slate-200 bg-slate-50 text-xs font-bold text-[#016976] flex items-center justify-center gap-1 cursor-pointer active:bg-slate-100"
+              className="lg:hidden w-full py-3 border-t border-slate-200 bg-slate-50 text-xs font-bold text-petrol flex items-center justify-center gap-1 cursor-pointer active:bg-slate-100"
             >
               View all blocks
               <ChevronRight className="w-3.5 h-3.5" />
@@ -504,7 +503,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="px-3.5 py-3 sm:p-5 border-b border-slate-200 bg-slate-50">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="hidden min-[400px]:flex w-10 h-10 rounded-xl bg-white border border-slate-200 items-center justify-center text-[#016976] shadow-xs shrink-0">
+                <div className="hidden min-[400px]:flex w-10 h-10 rounded-xl bg-white border border-slate-200 items-center justify-center text-petrol shadow-xs shrink-0">
                   <ArrowRightLeft className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
@@ -518,7 +517,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               <button
                 onClick={onViewAllTransactions}
-                className="shrink-0 text-xs font-bold text-[#016976] hover:text-[#014E58] flex items-center gap-1 cursor-pointer bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-lg transition-colors shadow-2xs"
+                className="shrink-0 text-xs font-bold text-petrol hover:text-[#014E58] flex items-center gap-1 cursor-pointer bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-lg transition-colors shadow-2xs"
               >
                 <span>View All</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -530,10 +529,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {(() => {
               const activeTxs = recentTxs;
 
+              if (activeTxs.length === 0 && loading) {
+                return <SkeletonList rows={6} label="Loading latest transactions" />;
+              }
               if (activeTxs.length === 0) {
                 return (
                   <div className="p-8 text-center space-y-2">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-[#016976] mx-auto shadow-2xs">
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-petrol mx-auto shadow-2xs">
                       <ArrowRightLeft className="w-5 h-5" />
                     </div>
                     <div className="text-xs font-semibold text-slate-500">
@@ -551,7 +553,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     index >= MOBILE_FEED_LIMIT ? 'hidden lg:flex' : 'flex'
                   }`}
                 >
-                  <div className="flex w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-50 border border-slate-200 items-center justify-center p-1.5 sm:p-2 group-hover:border-[#016976] transition-colors shrink-0 self-center">
+                  <div className="flex w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-50 border border-slate-200 items-center justify-center p-1.5 sm:p-2 group-hover:border-petrol transition-colors shrink-0 self-center">
                     <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-full h-full object-contain" />
                   </div>
                   <div className="min-w-0 flex-1 space-y-1">
@@ -587,7 +589,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             e.stopPropagation();
                             onSelectAddress(tx.from);
                           }}
-                          className="font-mono text-slate-800 hover:text-[#016976] hover:underline font-semibold cursor-pointer"
+                          className="font-mono text-slate-800 hover:text-petrol hover:underline font-semibold cursor-pointer"
                         >
                           {tx.from === '0x0000000000000000000000000000000000000000' ? 'Null Address (0x00...)' : truncateAddress(tx.from)}
                         </button>
@@ -599,13 +601,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               e.stopPropagation();
                               onSelectAddress(tx.to as string);
                             }}
-                            className="font-mono font-semibold text-slate-800 hover:text-[#016976] hover:underline cursor-pointer"
+                            className="font-mono font-semibold text-slate-800 hover:text-petrol hover:underline cursor-pointer"
                           >
                             {truncateAddress(tx.to)}
                           </button>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[#D97706] font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 text-[10px]">
-                            <FileCode className="w-3 h-3 text-[#D97706]" />
+                          <span className="inline-flex items-center gap-1 text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 text-[10px]">
+                            <FileCode className="w-3 h-3 text-amber-600" />
                             <span>Contract Creation</span>
                           </span>
                         )}
@@ -622,7 +624,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {onViewAllTransactions && (
             <button
               onClick={onViewAllTransactions}
-              className="lg:hidden w-full py-3 border-t border-slate-200 bg-slate-50 text-xs font-bold text-[#016976] flex items-center justify-center gap-1 cursor-pointer active:bg-slate-100"
+              className="lg:hidden w-full py-3 border-t border-slate-200 bg-slate-50 text-xs font-bold text-petrol flex items-center justify-center gap-1 cursor-pointer active:bg-slate-100"
             >
               View all transactions
               <ChevronRight className="w-3.5 h-3.5" />
@@ -643,8 +645,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs p-5 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-[#D97706] shadow-2xs">
-              <Trophy className="w-5 h-5 text-[#D97706]" />
+            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-2xs">
+              <Trophy className="w-5 h-5 text-amber-600" />
             </div>
             <div>
               <h3 className="text-base sm:text-lg font-bold text-slate-900">Top Accounts</h3>
@@ -659,7 +661,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {onViewRichList && (
             <button
               onClick={onViewRichList}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#016976] hover:bg-[#015661] text-white text-xs font-bold transition-all self-start sm:self-auto cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-petrol hover:bg-[#015661] text-white text-xs font-bold transition-all self-start sm:self-auto cursor-pointer shadow-xs"
             >
               <span>View top 50</span>
               <ArrowUpRight className="w-4 h-4" />
@@ -680,11 +682,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span
                   className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold shrink-0 ${
                     acc.rank === 1
-                      ? 'bg-[#D97706] text-white shadow-2xs'
+                      ? 'bg-amber-600 text-white shadow-2xs'
                       : acc.rank === 2
                       ? 'bg-slate-600 text-white shadow-2xs'
                       : acc.rank === 3
-                      ? 'bg-[#D68142] text-white shadow-2xs'
+                      ? 'bg-terracotta text-white shadow-2xs'
                       : 'bg-slate-100 text-slate-700 border border-slate-200'
                   }`}
                 >
@@ -711,7 +713,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-3.5 h-3.5" />
                   <span>{acc.balanceFormatted} BTN{!acc.balanceLive && ' (not live)'}</span>
                 </div>
-                <div className="text-[10px] text-[#016976] font-bold mt-0.5 flex items-center justify-end gap-0.5">
+                <div className="text-[10px] text-petrol font-bold mt-0.5 flex items-center justify-end gap-0.5">
                   <span>View</span>
                   <ArrowUpRight className="w-3 h-3" />
                 </div>
@@ -745,11 +747,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <span
                       className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold ${
                         acc.rank === 1
-                          ? 'bg-[#D97706] text-white shadow-2xs'
+                          ? 'bg-amber-600 text-white shadow-2xs'
                           : acc.rank === 2
                           ? 'bg-slate-600 text-white shadow-2xs'
                           : acc.rank === 3
-                          ? 'bg-[#D68142] text-white shadow-2xs'
+                          ? 'bg-terracotta text-white shadow-2xs'
                           : 'bg-slate-100 text-slate-700 border border-slate-200 font-bold'
                       }`}
                     >
@@ -758,7 +760,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </td>
                   <td 
                     title={acc.address}
-                    className="py-3 px-3 font-semibold text-slate-900 group-hover:text-[#016976] transition-colors whitespace-nowrap"
+                    className="py-3 px-3 font-semibold text-slate-900 group-hover:text-petrol transition-colors whitespace-nowrap"
                   >
                     {truncateAddress(acc.address)}
                   </td>
@@ -774,7 +776,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <td className="py-3 px-3 text-right text-slate-800 font-semibold whitespace-nowrap">
                     {acc.txCount !== null ? `${acc.txCount.toLocaleString()} sent` : '—'}
                   </td>
-                  <td className="py-3 px-3 text-center text-[#016976]">
+                  <td className="py-3 px-3 text-center text-petrol">
                     <span className="inline-flex items-center gap-1 group-hover:underline text-xs font-bold">
                       <span>View</span>
                       <ArrowUpRight className="w-3.5 h-3.5" />

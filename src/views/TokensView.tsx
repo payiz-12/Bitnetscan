@@ -123,11 +123,11 @@ export const TokensView: React.FC<TokensViewProps> = ({ onSelectAddress }) => {
       {/* Header Banner */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shadow-xs">
+          <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shadow-xs">
             <Coins className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-900">BTS-20 Token Explorer</h1>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">BTS-20 Token Explorer</h1>
           </div>
         </div>
 
@@ -138,12 +138,12 @@ export const TokensView: React.FC<TokensViewProps> = ({ onSelectAddress }) => {
             value={contractQuery}
             onChange={(e) => setContractQuery(e.target.value)}
             placeholder="Paste Token Contract Address (0x...)"
-            className="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#016976] focus:ring-1 focus:ring-[#016976] shadow-xs"
+            className="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-petrol focus:ring-1 focus:ring-petrol shadow-xs"
           />
           <button
             type="submit"
             disabled={loading}
-            className="px-5 py-2.5 rounded-xl bg-[#016976] hover:bg-[#01545e] text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+            className="px-5 py-2.5 rounded-xl bg-petrol hover:bg-[#01545e] text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
           >
             <Search className="w-4 h-4" />
             <span>{loading ? 'Inspecting...' : 'Inspect Contract'}</span>
@@ -159,10 +159,10 @@ export const TokensView: React.FC<TokensViewProps> = ({ onSelectAddress }) => {
         {tokenResult && (
           <div className="mt-6 p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 font-mono text-xs">
             <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-              <span className="text-[#016976] font-bold text-sm">Contract Verified On-Chain</span>
+              <span className="text-petrol font-bold text-sm">Contract Verified On-Chain</span>
               <button
                 onClick={() => onSelectAddress(tokenResult.address)}
-                className="text-xs text-slate-700 hover:text-[#016976] font-semibold flex items-center gap-1"
+                className="text-xs text-slate-700 hover:text-petrol font-semibold flex items-center gap-1"
               >
                 <span>View Full Details</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -175,7 +175,7 @@ export const TokensView: React.FC<TokensViewProps> = ({ onSelectAddress }) => {
               </div>
               <div>
                 <span className="text-slate-500 text-[11px] block font-sans">Symbol:</span>
-                <span className="text-[#016976] font-bold">{tokenResult.symbol}</span>
+                <span className="text-petrol font-bold">{tokenResult.symbol}</span>
               </div>
               <div>
                 <span className="text-slate-500 text-[11px] block font-sans">Decimals:</span>
@@ -205,7 +205,7 @@ export const TokensView: React.FC<TokensViewProps> = ({ onSelectAddress }) => {
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono font-black text-lg text-[#D68142]">{std.name}</span>
+                  <span className="font-mono font-black text-lg text-terracotta">{std.name}</span>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-200">Standard</span>
                 </div>
                 <h4 className="text-sm font-bold text-slate-900 mb-2">{std.type}</h4>
@@ -217,7 +217,7 @@ export const TokensView: React.FC<TokensViewProps> = ({ onSelectAddress }) => {
                   href={`https://github.com/${std.spec}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-[#016976] hover:text-[#01545e] font-bold"
+                  className="inline-flex items-center gap-1.5 text-xs text-petrol hover:text-[#01545e] font-bold"
                 >
                   <Code className="w-3.5 h-3.5" />
                   <span>View Solidity Source</span>

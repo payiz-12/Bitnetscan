@@ -166,11 +166,11 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       {/* Header Banner */}
       <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-100 p-2 flex items-center justify-center text-[#016976] shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-petrol-50 border border-petrol-100 p-2 flex items-center justify-center text-petrol shadow-xs">
             <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">Bitnet PoW & Mining Analytics</h1>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Bitnet PoW & Mining Analytics</h1>
           </div>
         </div>
 
@@ -178,7 +178,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mt-5 sm:mt-6">
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
             <span className="text-xs text-slate-500 block mb-1 font-medium">Estimated Hashrate</span>
-            <span className="text-xl font-black font-mono text-[#D68142]">
+            <span className="text-xl font-black font-mono text-terracotta">
               {stats?.hashrateEstimate || 'Unknown'}
             </span>
           </div>
@@ -193,7 +193,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
           </div>
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
             <span className="text-xs text-slate-500 block mb-1 font-medium">Block Subsidy</span>
-            <div className="text-xl font-black font-mono text-[#016976] flex items-center gap-1.5">
+            <div className="text-xl font-black font-mono text-petrol flex items-center gap-1.5">
               <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-4 h-4" />
               <span>1.0 BTN</span>
             </div>
@@ -243,7 +243,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       {/* Interactive Mining Profitability Calculator */}
       <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-6 shadow-sm">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-          <Calculator className="w-5 h-5 text-[#016976]" />
+          <Calculator className="w-5 h-5 text-petrol" />
           <h3 className="text-lg font-bold text-slate-900">Mining Profitability Calculator</h3>
         </div>
 
@@ -270,7 +270,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
               min={1}
               value={gpuCount}
               onChange={(e) => applyPreset(gpuPreset, e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-[#016976] shadow-xs"
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-petrol shadow-xs"
             />
           </div>
         </div>
@@ -286,7 +286,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
                 value={userHashrate}
                 onChange={(e) => { setUserHashrate(e.target.value); setGpuPreset(''); }}
                 placeholder="100"
-                className="flex-1 min-w-0 bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-[#016976] shadow-xs"
+                className="flex-1 min-w-0 bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-petrol shadow-xs"
               />
               <select
                 value={unit}
@@ -308,7 +308,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
               value={powerWatts}
               onChange={(e) => { setPowerWatts(e.target.value); setGpuPreset(''); }}
               placeholder="0"
-              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-[#016976] shadow-xs"
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-petrol shadow-xs"
             />
           </div>
           <div className="space-y-2">
@@ -320,7 +320,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
               step="0.01"
               value={electricityPrice}
               onChange={(e) => setElectricityPrice(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-[#016976] shadow-xs"
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-petrol shadow-xs"
             />
           </div>
           <div className="space-y-2">
@@ -333,7 +333,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
               step="0.1"
               value={poolFee}
               onChange={(e) => setPoolFee(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-[#016976] shadow-xs"
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-petrol shadow-xs"
             />
           </div>
         </div>
@@ -407,14 +407,14 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       {/* How to Mine Quickstart Guide */}
       <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm">
         <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <Terminal className="w-5 h-5 text-[#D68142]" />
+          <Terminal className="w-5 h-5 text-terracotta" />
           <span>How to Mine Bitnet (BTN)</span>
         </h3>
 
         <div className="space-y-3 text-xs text-slate-600 leading-relaxed">
           <p>
             Bitnet uses Ethash, so standard GPU miners (lolMiner, T-Rex, Gminer, TeamRedMiner) work. You can join a pool or mine solo with the{' '}
-            <a href="https://github.com/BitnetMoney/bitnet-desktop-node" target="_blank" rel="noopener noreferrer" className="text-[#016976] font-bold hover:underline">Bitnet Desktop Node</a>.
+            <a href="https://github.com/BitnetMoney/bitnet-desktop-node" target="_blank" rel="noopener noreferrer" className="text-petrol font-bold hover:underline">Bitnet Desktop Node</a>.
           </p>
 
           {poolGuides.length > 0 ? (
@@ -458,7 +458,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <Server className="w-5 h-5 text-[#016976]" />
+            <Server className="w-5 h-5 text-petrol" />
             <h3 className="text-lg font-bold text-slate-900">Bitnet Miners & Pools</h3>
           </div>
           <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
@@ -488,7 +488,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-bold">
                   {m.minersCount !== null ? (
-                    <span className="inline-flex items-center gap-1.5 text-[#016976] bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-md" title={`Reported by ${m.workersSource}`}>
+                    <span className="inline-flex items-center gap-1.5 text-petrol bg-petrol-50 border border-petrol-200 px-2 py-0.5 rounded-md" title={`Reported by ${m.workersSource}`}>
                       {m.minersCount} {m.minersCount === 1 ? 'Worker' : 'Workers'}
                       {m.poolHashrateGh !== undefined && ` · ${m.poolHashrateGh.toFixed(2)} GH/s`}
                       {' · '}{m.workersSource}
@@ -507,7 +507,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
               <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2">
                 <button
                   onClick={() => onSelectAddress?.(m.miner)}
-                  className="text-[10px] font-mono text-slate-400 hover:text-[#016976] hover:underline cursor-pointer"
+                  className="text-[10px] font-mono text-slate-400 hover:text-petrol hover:underline cursor-pointer"
                   title={`View address ${m.miner}`}
                 >
                   {m.miner.slice(0, 6)}...{m.miner.slice(-4)}
@@ -517,7 +517,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
                     href={m.poolUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs font-bold text-[#016976] hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-petrol hover:underline flex items-center gap-1"
                   >
                     <span>{m.poolUrl.replace(/^https?:\/\//, '')}</span>
                     <ExternalLink className="w-3 h-3" />

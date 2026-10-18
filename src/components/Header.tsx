@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Cpu, Layers, Coins, Image, Terminal, 
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Cpu, Layers, Coins, Image, Terminal,
   Activity, Menu, X, PlusCircle, CheckCircle2, Globe, Trophy,
-  FileCode, LineChart, PieChart
+  FileCode, LineChart, PieChart, Box, ArrowRightLeft, GitBranch, ChevronDown
 } from 'lucide-react';
 import { NetworkStats } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
@@ -74,88 +74,65 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
     }
   };
 
-  const navItems = [
-    { 
-      id: 'dashboard', 
-      label: 'Dashboard', 
-      icon: Layers,
-      iconBg: 'bg-teal-50 text-[#016976] border border-teal-200/60',
-      activeClass: 'bg-[#016976] text-white shadow-xs',
-      hoverClass: 'hover:bg-teal-50/70 hover:text-[#016976] text-slate-700'
+  type NavLink = { id: string; label: string; icon: React.ComponentType<{ className?: string }>; description?: string };
+  type NavGroup = { label: string; icon: React.ComponentType<{ className?: string }>; children: NavLink[] };
+  const navEntries: (NavLink | NavGroup)[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: Layers },
+    {
+      label: 'Blockchain',
+      icon: Box,
+      children: [
+        { id: 'blocks', label: 'Blocks', icon: Box, description: 'Latest blocks, miners and rewards' },
+        { id: 'transactions', label: 'Transactions', icon: ArrowRightLeft, description: 'The full transaction archive' },
+        { id: 'uncles', label: 'Uncle Blocks', icon: GitBranch, description: 'Uncles and uncle rate by miner' },
+        { id: 'rich-list', label: 'Rich List', icon: Trophy, description: 'Largest BTN balances' },
+      ],
     },
-    { 
-      id: 'rich-list', 
-      label: 'Rich List', 
-      icon: Trophy,
-      iconBg: 'bg-amber-50 text-[#D68142] border border-amber-200/60',
-      activeClass: 'bg-[#D68142] text-white shadow-xs',
-      hoverClass: 'hover:bg-amber-50/70 hover:text-amber-700 text-slate-700'
-    },
-    { 
-      id: 'tokens', 
-      label: 'BTS-20', 
+    {
+      label: 'Tokens',
       icon: Coins,
-      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200/60',
-      activeClass: 'bg-emerald-600 text-white shadow-xs',
-      hoverClass: 'hover:bg-emerald-50/70 hover:text-emerald-700 text-slate-700'
+      children: [
+        { id: 'tokens', label: 'BTS-20 Tokens', icon: Coins, description: 'Fungible tokens on Bitnet' },
+        { id: 'nfts', label: 'NFT Collections', icon: Image, description: 'BTS-721 collections and items' },
+        { id: 'contracts', label: 'Verified Contracts', icon: FileCode, description: 'Contracts with published source' },
+      ],
     },
-    { 
-      id: 'nfts', 
-      label: 'NFTs', 
-      icon: Image,
-      iconBg: 'bg-purple-50 text-purple-600 border border-purple-200/60',
-      activeClass: 'bg-purple-600 text-white shadow-xs',
-      hoverClass: 'hover:bg-purple-50/70 hover:text-purple-700 text-slate-700'
-    },
-    { 
-      id: 'contracts', 
-      label: 'Contracts', 
-      icon: FileCode,
-      iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-200/60',
-      activeClass: 'bg-indigo-600 text-white shadow-xs',
-      hoverClass: 'hover:bg-indigo-50/70 hover:text-indigo-700 text-slate-700'
-    },
-    { 
-      id: 'mining', 
-      label: 'Mining', 
-      icon: Cpu,
-      iconBg: 'bg-orange-50 text-orange-600 border border-orange-200/60',
-      activeClass: 'bg-orange-600 text-white shadow-xs',
-      hoverClass: 'hover:bg-orange-50/70 hover:text-orange-700 text-slate-700'
-    },
+    { id: 'mining', label: 'Mining', icon: Cpu },
+    { id: 'charts', label: 'Charts', icon: LineChart },
+    { id: 'supply', label: 'Supply', icon: PieChart },
     {
-      id: 'charts',
-      label: 'Charts',
-      icon: LineChart,
-      iconBg: 'bg-teal-50 text-teal-700 border border-teal-200/60',
-      activeClass: 'bg-teal-700 text-white shadow-xs',
-      hoverClass: 'hover:bg-teal-50/70 hover:text-teal-700 text-slate-700'
-    },
-    {
-      id: 'supply',
-      label: 'Supply',
-      icon: PieChart,
-      iconBg: 'bg-lime-50 text-lime-700 border border-lime-200/60',
-      activeClass: 'bg-lime-700 text-white shadow-xs',
-      hoverClass: 'hover:bg-lime-50/70 hover:text-lime-700 text-slate-700'
-    },
-    { 
-      id: 'console', 
-      label: 'Console', 
-      icon: Terminal,
-      iconBg: 'bg-sky-50 text-sky-600 border border-sky-200/60',
-      activeClass: 'bg-sky-600 text-white shadow-xs',
-      hoverClass: 'hover:bg-sky-50/70 hover:text-sky-700 text-slate-700'
-    },
-    { 
-      id: 'nodes', 
-      label: 'Network', 
+      label: 'Network',
       icon: Activity,
-      iconBg: 'bg-rose-50 text-rose-600 border border-rose-200/60',
-      activeClass: 'bg-rose-600 text-white shadow-xs',
-      hoverClass: 'hover:bg-rose-50/70 hover:text-rose-700 text-slate-700'
+      children: [
+        { id: 'nodes', label: 'Network & RPC', icon: Activity, description: 'Chain parameters, endpoints and API' },
+        { id: 'console', label: 'RPC Console', icon: Terminal, description: 'Send RPC calls to a Bitnet node' },
+      ],
     },
   ];
+  const allLinks = navEntries.flatMap((e) => ('children' in e ? e.children : [e]));
+  const isActive = (id: string) =>
+    currentView === id ||
+    (id === 'blocks' && currentView === 'block-detail') ||
+    (id === 'transactions' && currentView === 'tx-detail');
+
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const navRef = useRef<HTMLElement>(null);
+  useEffect(() => setOpenGroup(null), [routeKey]);
+  useEffect(() => {
+    if (!openGroup) return;
+    const onDown = (e: MouseEvent) => { if (!navRef.current?.contains(e.target as Node)) setOpenGroup(null); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpenGroup(null); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [openGroup]);
+
+  const tabClass = (active: boolean) =>
+    `relative flex items-center gap-1.5 px-3 h-10 text-[13px] font-semibold whitespace-nowrap cursor-pointer transition-colors ${
+      active
+        ? 'text-petrol after:absolute after:left-2 after:right-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-petrol'
+        : 'text-slate-600 hover:text-petrol'
+    }`;
 
   return (
     <>
@@ -252,7 +229,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
           </button>
 
           {/* Search bar in header with live previews */}
-          <div className="hidden md:flex flex-1 min-w-0 max-w-xs md:max-w-sm lg:max-w-md xl:max-w-xl mx-2">
+          <div className="hidden md:flex flex-1 min-w-0 max-w-xl lg:max-w-2xl mx-2 lg:mr-0">
             <SearchBox
               size="md"
               routeKey={routeKey}
@@ -261,36 +238,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
               onOpenPalette={() => setShowSearchModal(true)}
             />
           </div>
-
-          {/* Desktop Nav menu */}
-          {/* Icons with the current page named; other labels show on hover (title) so the search box keeps its width */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 text-xs font-semibold flex-shrink-0">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentView === item.id || (item.id === 'charts' && currentView === 'uncles');
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => onNavigate(item.id)}
-                  title={item.label}
-                  aria-label={item.label}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={`${isActive ? 'px-1.5 xl:px-2.5' : 'px-1.5'} py-1.5 rounded-xl flex items-center gap-1.5 transition-all text-xs font-bold cursor-pointer whitespace-nowrap ${
-                    isActive
-                      ? item.activeClass
-                      : `${item.hoverClass} hover:bg-slate-50`
-                  }`}
-                >
-                  <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-colors ${
-                    isActive ? 'bg-white/20 text-white' : item.iconBg
-                  }`}>
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  {isActive && <span className="hidden xl:inline">{item.label}</span>}
-                </button>
-              );
-            })}
-          </nav>
 
           {/* Mobile hamburger button */}
           <div className="flex lg:hidden items-center gap-2">
@@ -305,6 +252,65 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
             </button>
           </div>
         </div>
+
+        {/* Desktop navigation: every page named, related pages grouped in menus */}
+        <nav ref={navRef} className="hidden lg:flex items-center gap-0.5 -mb-2 mt-1.5 border-t border-slate-100" aria-label="Main">
+          {navEntries.map((entry) => {
+            const Icon = entry.icon;
+            if (!('children' in entry)) {
+              const active = isActive(entry.id);
+              return (
+                <button key={entry.id} onClick={() => onNavigate(entry.id)} aria-current={active ? 'page' : undefined} className={tabClass(active)}>
+                  <Icon className={`w-4 h-4 ${active ? 'text-petrol' : 'text-slate-400'}`} />
+                  {entry.label}
+                </button>
+              );
+            }
+            const active = entry.children.some((c) => isActive(c.id));
+            const open = openGroup === entry.label;
+            return (
+              <div key={entry.label} className="relative" onMouseLeave={() => open && setOpenGroup(null)}>
+                <button
+                  onClick={() => setOpenGroup(entry.label)}
+                  onMouseEnter={() => setOpenGroup(entry.label)}
+                  aria-haspopup="menu"
+                  aria-expanded={open}
+                  className={tabClass(active)}
+                >
+                  <Icon className={`w-4 h-4 ${active ? 'text-petrol' : 'text-slate-400'}`} />
+                  {entry.label}
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+                </button>
+                {open && (
+                  <div className="absolute left-0 top-full pt-1 z-50">
+                    <div role="menu" className="w-72 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-lg animate-fade-in">
+                      {entry.children.map((child) => {
+                        const ChildIcon = child.icon;
+                        const childActive = isActive(child.id);
+                        return (
+                          <button
+                            key={child.id}
+                            role="menuitem"
+                            onClick={() => { setOpenGroup(null); onNavigate(child.id); }}
+                            className={`w-full flex items-start gap-3 rounded-xl px-3 py-2.5 text-left cursor-pointer transition-colors ${childActive ? 'bg-petrol-50' : 'hover:bg-slate-50'}`}
+                          >
+                            <span className={`mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${childActive ? 'bg-petrol text-white' : 'bg-petrol-50 text-petrol'}`}>
+                              <ChildIcon className="w-4 h-4" />
+                            </span>
+                            <span className="min-w-0">
+                              <span className={`block text-[13px] font-bold ${childActive ? 'text-petrol' : 'text-slate-900'}`}>{child.label}</span>
+                              {child.description && <span className="block text-xs text-slate-500">{child.description}</span>}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
 
         {/* Mobile Search input with live previews */}
         <div className="mt-2 md:hidden">
@@ -322,9 +328,9 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
         {mobileMenuOpen && (
           <nav className="lg:hidden mt-2 pt-2 border-t border-slate-200 max-h-[calc(100dvh-8rem)] overflow-y-auto overscroll-contain" aria-label="Main">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-              {navItems.map((item) => {
+              {allLinks.map((item) => {
                 const Icon = item.icon;
-                const isActive = currentView === item.id || (item.id === 'charts' && currentView === 'uncles');
+                const active = isActive(item.id);
                 return (
                   <button
                     key={item.id}
@@ -332,15 +338,15 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
                       onNavigate(item.id);
                       setMobileMenuOpen(false);
                     }}
-                    aria-current={isActive ? 'page' : undefined}
+                    aria-current={active ? 'page' : undefined}
                     className={`px-3 py-2.5 rounded-xl flex items-center gap-2.5 transition-all text-xs font-bold cursor-pointer border ${
-                      isActive
-                        ? `${item.activeClass} border-transparent`
-                        : `${item.hoverClass} bg-white border-slate-200 hover:bg-slate-50`
+                      active
+                        ? 'bg-petrol text-white border-transparent shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-petrol-50 hover:text-petrol'
                     }`}
                   >
                     <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
-                      isActive ? 'bg-white/20 text-white' : item.iconBg
+                      active ? 'bg-white/20 text-white' : 'bg-petrol-50 text-petrol border border-petrol-100'
                     }`}>
                       <Icon className="w-4 h-4" />
                     </div>

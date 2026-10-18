@@ -3,6 +3,7 @@ import { LineChart as LineChartIcon, RefreshCw, GitBranch } from 'lucide-react';
 import { ChainHistory, HistoryRange, HISTORY_RANGES, MINER_GROUPS, SAMPLES_PER_BUCKET, getCachedHistory, loadHistory } from '../services/chainHistory';
 import { LineChart, StackedShareChart, Legend } from '../components/charts/ChartPrimitives';
 import { formatHashrate } from '../services/hashrate';
+import { SkeletonChart } from '../components/Skeleton';
 
 interface ChartsViewProps {
   onNavigate: (view: string) => void;
@@ -83,7 +84,7 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
       <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shrink-0">
               <LineChartIcon className="w-5 h-5" />
             </div>
             <div>
@@ -92,7 +93,7 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {loading && <RefreshCw className="w-4 h-4 animate-spin text-[#016976]" aria-label="Loading" />}
+            {loading && <RefreshCw className="w-4 h-4 animate-spin text-petrol" aria-label="Loading" />}
             <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-0.5" role="group" aria-label="Time range">
               {HISTORY_RANGES.map((r) => (
                 <button
@@ -100,7 +101,7 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
                   onClick={() => setRange(r.id)}
                   aria-pressed={range === r.id}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
-                    range === r.id ? 'bg-[#016976] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    range === r.id ? 'bg-petrol text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   {r.label}
@@ -129,9 +130,8 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
       </div>
 
       {buckets.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-slate-200 p-12 shadow-sm flex flex-col items-center gap-3 text-slate-500">
-          <RefreshCw className="w-6 h-6 animate-spin text-[#016976]" />
-          <span className="text-xs font-semibold">Reading block headers…</span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
+          {[0, 1, 2, 3].map((i) => <SkeletonChart key={i} />)}
         </div>
       ) : (
         <>
@@ -178,7 +178,7 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
                 describe={describe}
                 ariaLabel="Uncle rate over time"
               />
-              <button onClick={() => onNavigate('uncles')} className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#016976] hover:underline cursor-pointer">
+              <button onClick={() => onNavigate('uncles')} className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-petrol hover:underline cursor-pointer">
                 <GitBranch className="w-3.5 h-3.5" /> Recent uncles and uncle rate by miner
               </button>
             </ChartCard>

@@ -10,6 +10,7 @@ import { fetchSupplySnapshot, SupplySnapshot } from '../services/supply';
 import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
 import { AddressTag } from '../components/AddressTag';
 import { getAddressLabel } from '../services/addressLabels';
+import { SkeletonList } from '../components/Skeleton';
 
 interface RichListViewProps {
   onSelectAddress: (address: string) => void;
@@ -147,13 +148,13 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
             </div>
             <div>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-[#D97706] border border-amber-200 flex items-center gap-1.5">
-                  <Trophy className="w-3.5 h-3.5 text-[#D97706]" />
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200 flex items-center gap-1.5">
+                  <Trophy className="w-3.5 h-3.5 text-amber-600" />
                   <span>Top accounts by balance</span>
                 </span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
-                Bitnet <span className="text-[#016976]">Rich List</span>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                Bitnet <span className="text-petrol">Rich List</span>
               </h1>
             </div>
           </div>
@@ -232,7 +233,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
       {/* Check Any Address Rank Tool */}
       <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
         <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-          <Zap className="w-4 h-4 text-[#016976]" />
+          <Zap className="w-4 h-4 text-petrol" />
           <span>Check any address</span>
         </h3>
         <form onSubmit={handleCheckCustomWallet} className="flex flex-col sm:flex-row gap-3">
@@ -241,12 +242,12 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
             value={customAddress}
             onChange={(e) => setCustomAddress(e.target.value)}
             placeholder="Enter wallet address (0x...)"
-            className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[#016976]"
+            className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-petrol"
           />
           <button
             type="submit"
             disabled={customLoading}
-            className="px-5 py-2.5 rounded-xl bg-[#016976] hover:bg-[#015661] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+            className="px-5 py-2.5 rounded-xl bg-petrol hover:bg-[#015661] text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
           >
             {customLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
             <span>Check</span>
@@ -266,12 +267,12 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
             placeholder="Filter by address..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#016976] shadow-2xs"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-petrol shadow-2xs"
           />
         </div>
 
         <div className="text-xs text-slate-600 font-mono font-medium">
-          Accounts: <span className="text-[#016976] font-bold">{filteredAccounts.length}</span>
+          Accounts: <span className="text-petrol font-bold">{filteredAccounts.length}</span>
         </div>
       </div>
 
@@ -280,10 +281,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
         {/* Mobile View (sm:hidden): Dedicated responsive touch cards - Zero horizontal scrolling */}
         <div className="sm:hidden divide-y divide-slate-100 font-mono">
           {loading && accounts.length === 0 ? (
-            <div className="py-12 text-center text-slate-500 font-sans flex flex-col items-center gap-3">
-              <RefreshCw className="w-6 h-6 animate-spin text-[#016976]" />
-              <span className="text-xs">Loading rich list accounts...</span>
-            </div>
+            <SkeletonList rows={8} label="Loading top accounts" />
           ) : filteredAccounts.length === 0 ? (
             <div className="py-10 text-center text-slate-500 font-sans text-xs">
               No matching wallets found.
@@ -302,11 +300,11 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                     <span
                       className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
                         acc.rank === 1
-                          ? 'bg-[#D97706] text-white shadow-2xs'
+                          ? 'bg-amber-600 text-white shadow-2xs'
                           : acc.rank === 2
                           ? 'bg-slate-600 text-white shadow-2xs'
                           : acc.rank === 3
-                          ? 'bg-[#D68142] text-white shadow-2xs'
+                          ? 'bg-terracotta text-white shadow-2xs'
                           : 'bg-slate-100 border border-slate-200 text-slate-800'
                       }`}
                     >
@@ -332,11 +330,11 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                       <Copy className="w-3.5 h-3.5" />
                     </button>
                     {copiedKey === acc.address && (
-                      <span className="text-[10px] text-[#016976] font-bold">Copied</span>
+                      <span className="text-[10px] text-petrol font-bold">Copied</span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1 text-[#016976] text-xs font-bold shrink-0">
+                  <div className="flex items-center gap-1 text-petrol text-xs font-bold shrink-0">
                     <span>View</span>
                     <ArrowUpRight className="w-3.5 h-3.5" />
                   </div>
@@ -358,7 +356,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                   </div>
 
                   <div className="text-right shrink-0">
-                    <div className="inline-flex items-center px-2 py-0.5 rounded-md bg-teal-50 text-[#016976] text-[10px] font-bold border border-teal-200/60">
+                    <div className="inline-flex items-center px-2 py-0.5 rounded-md bg-petrol-50 text-petrol text-[10px] font-bold border border-petrol-200/60">
                       {acc.percentage} of {percentageBasis === 'supply' ? 'supply' : 'issuance'}
                     </div>
                     <div className="text-[10px] text-slate-500 font-sans font-medium mt-1">
@@ -387,11 +385,8 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
             <tbody className="divide-y divide-slate-100 font-mono">
               {loading && accounts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-16 text-center text-slate-500 font-sans">
-                    <div className="flex flex-col items-center gap-3">
-                      <RefreshCw className="w-6 h-6 animate-spin text-[#016976]" />
-                      <span>Fetching live balance ranking from Bitnet blockchain...</span>
-                    </div>
+                  <td colSpan={6} className="p-0">
+                    <SkeletonList rows={10} label="Loading top accounts" />
                   </td>
                 </tr>
               ) : filteredAccounts.length === 0 ? (
@@ -414,11 +409,11 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                         <span
                           className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${
                             acc.rank === 1
-                              ? 'bg-[#D97706] text-white shadow-2xs'
+                              ? 'bg-amber-600 text-white shadow-2xs'
                               : acc.rank === 2
                               ? 'bg-slate-600 text-white shadow-2xs'
                               : acc.rank === 3
-                              ? 'bg-[#D68142] text-white shadow-2xs'
+                              ? 'bg-terracotta text-white shadow-2xs'
                               : 'bg-slate-100 border border-slate-200 text-slate-800'
                           }`}
                         >
@@ -432,7 +427,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                       <div className="flex items-center gap-2">
                         <span 
                           title={acc.address}
-                          className="text-slate-900 group-hover:text-[#016976] transition-colors font-semibold whitespace-nowrap"
+                          className="text-slate-900 group-hover:text-petrol transition-colors font-semibold whitespace-nowrap"
                         >
                           {acc.address}
                         </span>
@@ -450,7 +445,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                           <Copy className="w-3.5 h-3.5" />
                         </button>
                         {copiedKey === acc.address && (
-                          <span className="text-[10px] text-[#016976] font-bold">Copied</span>
+                          <span className="text-[10px] text-petrol font-bold">Copied</span>
                         )}
                       </div>
                     </td>
@@ -478,7 +473,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
 
                     {/* Action */}
                     <td className="py-4 px-4 text-center">
-                      <span className="inline-flex items-center gap-1 text-xs text-[#016976] group-hover:underline font-bold">
+                      <span className="inline-flex items-center gap-1 text-xs text-petrol group-hover:underline font-bold">
                         <span>View</span>
                         <ArrowUpRight className="w-3.5 h-3.5" />
                       </span>

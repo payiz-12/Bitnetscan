@@ -6,6 +6,7 @@ import {
 import { Block } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
 import { blockRewardLabel } from '../services/blockReward';
+import { SkeletonList } from '../components/Skeleton';
 
 interface BlocksViewProps {
   latestBlockNumber: number;
@@ -143,11 +144,11 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-400">Dashboard</span>
               <span className="text-xs text-slate-300">/</span>
-              <span className="text-xs font-bold text-[#016976]">Blocks</span>
+              <span className="text-xs font-bold text-petrol">Blocks</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-0.5">
               <span>Bitnet L1 Blocks</span>
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-teal-50 text-[#016976] border border-teal-200/80">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-petrol-50 text-petrol border border-petrol-200/80">
                 PoW Mainnet
               </span>
             </h1>
@@ -166,7 +167,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
               onChange={(e) => setJumpBlockInput(e.target.value.replace(/[^0-9]/g, ''))}
               placeholder="Jump to block #"
               aria-label="Jump to block number"
-              className="w-full sm:w-36 min-w-0 px-3 py-1.5 bg-white border border-slate-300 rounded-l-xl text-xs font-mono font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-sans focus:outline-none focus:border-[#016976]"
+              className="w-full sm:w-36 min-w-0 px-3 py-1.5 bg-white border border-slate-300 rounded-l-xl text-xs font-mono font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-sans focus:outline-none focus:border-petrol"
             />
             <button
               type="submit"
@@ -191,7 +192,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
             disabled={loading}
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-900 text-xs font-bold border border-slate-200 cursor-pointer shadow-xs transition-colors"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-[#016976] ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-petrol ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
@@ -201,7 +202,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
           <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold mb-1">
-            <Box className="w-3.5 h-3.5 text-[#016976]" />
+            <Box className="w-3.5 h-3.5 text-petrol" />
             <span>Latest Block</span>
           </div>
           <div className="text-lg sm:text-xl font-black text-slate-900 font-mono">
@@ -289,10 +290,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
         {/* Mobile card list */}
         <div className={`sm:hidden divide-y divide-slate-100 transition-opacity ${loading && !showSpinner ? 'opacity-60' : ''}`}>
           {showSpinner ? (
-            <div className="py-14 flex flex-col items-center justify-center gap-2 text-slate-500">
-              <RefreshCw className="w-6 h-6 text-[#016976] animate-spin" />
-              <span className="font-semibold text-sm">Fetching blocks…</span>
-            </div>
+            <SkeletonList rows={8} label="Loading blocks" />
           ) : blocks.length === 0 ? (
             <div className="py-12 text-center text-slate-500 text-sm">No blocks found.</div>
           ) : (
@@ -309,7 +307,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
                   </div>
                   <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-mono font-bold text-sm text-[#016976]">#{block.number.toLocaleString()}</span>
+                    <span className="font-mono font-bold text-sm text-petrol">#{block.number.toLocaleString()}</span>
                     <span className="text-[11px] text-slate-500 font-mono flex items-center gap-1 shrink-0">
                       <Clock className="w-3 h-3 text-slate-400" />
                       {formatTimeAgo(block.timestamp)}
@@ -357,11 +355,8 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
             <tbody className="divide-y divide-slate-100 text-xs font-medium">
               {showSpinner ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-slate-500">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <RefreshCw className="w-6 h-6 text-[#016976] animate-spin" />
-                      <span className="font-semibold text-sm">Fetching blocks from Bitnet L1 RPC...</span>
-                    </div>
+                  <td colSpan={7} className="p-0">
+                    <SkeletonList rows={10} label="Loading blocks" />
                   </td>
                 </tr>
               ) : blocks.length === 0 ? (
@@ -383,7 +378,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
                       className="hover:bg-slate-50/90 transition-colors cursor-pointer group"
                     >
                       {/* Block Number */}
-                      <td className="py-3.5 px-4 sm:px-6 font-mono font-bold text-[#016976] group-hover:underline">
+                      <td className="py-3.5 px-4 sm:px-6 font-mono font-bold text-petrol group-hover:underline">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center p-1 flex-shrink-0">
                             <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-full h-full object-contain" />
@@ -415,7 +410,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
                               e.stopPropagation();
                               onSelectAddress(block.miner);
                             }}
-                            className="font-mono text-slate-800 hover:text-[#016976] hover:underline font-semibold"
+                            className="font-mono text-slate-800 hover:text-petrol hover:underline font-semibold"
                           >
                             {truncateAddress(block.miner)}
                           </span>

@@ -505,12 +505,12 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           onClick={onBack}
           className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all cursor-pointer shadow-xs"
         >
-          <ArrowLeft className="w-4 h-4 text-[#016976]" />
+          <ArrowLeft className="w-4 h-4 text-petrol" />
           <span>Back</span>
         </button>
 
-        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-teal-50 border border-teal-200 text-[#016976] text-xs font-mono font-bold shadow-2xs">
-          <span className="w-2 h-2 rounded-full bg-[#016976]"></span>
+        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-petrol-50 border border-petrol-200 text-petrol text-xs font-mono font-bold shadow-2xs">
+          <span className="w-2 h-2 rounded-full bg-petrol"></span>
           <span>
             {loading
               ? 'Querying Chain & Indexer…'
@@ -535,15 +535,15 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               isContract 
                 ? 'bg-purple-50 text-purple-600 border border-purple-200' 
                 : minedBlocks.length > 0
-                ? 'bg-amber-50 text-[#D97706] border border-amber-200'
-                : 'bg-teal-50 text-[#016976] border border-teal-200'
+                ? 'bg-amber-50 text-amber-600 border border-amber-200'
+                : 'bg-petrol-50 text-petrol border border-petrol-200'
             }`}>
               {isContract ? (
                 <FileCode className="w-7 h-7" />
               ) : minedBlocks.length > 0 ? (
-                <Pickaxe className="w-7 h-7 text-[#D97706]" />
+                <Pickaxe className="w-7 h-7 text-amber-600" />
               ) : (
-                <User className="w-7 h-7 text-[#016976]" />
+                <User className="w-7 h-7 text-petrol" />
               )}
             </div>
             <div className="min-w-0">
@@ -564,7 +564,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     ? 'bg-amber-100 text-amber-800 border border-amber-200'
                     : codeStatus === 'cached'
                     ? 'bg-slate-100 text-slate-700 border border-slate-300'
-                    : 'bg-teal-50 text-[#016976] border border-teal-200'
+                    : 'bg-petrol-50 text-petrol border border-petrol-200'
                 }`}>
                   {codeStatus === 'verified_contract'
                     ? 'Contract'
@@ -589,7 +589,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 >
                   <Copy className="w-3.5 h-3.5" />
                 </button>
-                {copied && <span className="text-[10px] text-[#016976] font-mono font-bold">Copied!</span>}
+                {copied && <span className="text-[10px] text-petrol font-mono font-bold">Copied!</span>}
                 <button
                   onClick={() => setShowQr(true)}
                   className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-800 cursor-pointer"
@@ -623,7 +623,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     : `≈ ${formatBtnInUsd(parseFloat(balance), priceData)} USD`}
                 </span>
                 {balance !== null && balanceStatus !== 'zero' && (
-                  <span className="text-[10px] text-[#016976] bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200 font-bold">
+                  <span className="text-[10px] text-petrol bg-petrol-50 px-1.5 py-0.5 rounded border border-petrol-200 font-bold">
                     {priceData.priceFormatted} ({priceData.exchange})
                   </span>
                 )}
@@ -683,7 +683,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             <span className="text-xs text-slate-500 font-semibold block mb-1">
               {(minedBlocksTotalCount > 0 || minedBlocks.length > 0) ? 'Mined PoW Blocks' : 'Network Protocol'}
             </span>
-            <div className="text-lg font-bold font-mono text-[#016976]">
+            <div className="text-lg font-bold font-mono text-petrol">
               {minedBlocksTotalCount > 0
                 ? `${minedBlocksTotalCount.toLocaleString()} Blocks`
                 : minedBlocks.length > 0 ? `${minedBlocks.length.toLocaleString()} recent` : 'Chain ID 210'}
@@ -703,7 +703,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
             View Category
           </span>
-          <span className="text-[11px] font-mono text-[#016976] font-bold">
+          <span className="text-[11px] font-mono text-petrol font-bold">
             {activeTab === 'overview' ? 'Transactions' :
              activeTab === 'nft-transfers' ? 'NFT Transfers' :
              activeTab === 'nft-holdings' ? 'NFT Portfolio' :
@@ -719,7 +719,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             onClick={() => setActiveTab('overview')}
             className={`p-3 rounded-2xl text-xs font-bold transition-all flex flex-col justify-between gap-1.5 cursor-pointer text-left ${
               activeTab === 'overview'
-                ? 'bg-[#016976] text-white shadow-sm ring-2 ring-[#016976]/30'
+                ? 'bg-petrol text-white shadow-sm ring-2 ring-petrol/30'
                 : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
             }`}
           >
@@ -739,7 +739,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             onClick={() => setActiveTab('nft-transfers')}
             className={`p-3 rounded-2xl text-xs font-bold transition-all flex flex-col justify-between gap-1.5 cursor-pointer text-left ${
               activeTab === 'nft-transfers'
-                ? 'bg-[#016976] text-white shadow-sm ring-2 ring-[#016976]/30'
+                ? 'bg-petrol text-white shadow-sm ring-2 ring-petrol/30'
                 : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
             }`}
           >
@@ -759,7 +759,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             onClick={() => setActiveTab('nft-holdings')}
             className={`p-3 rounded-2xl text-xs font-bold transition-all flex flex-col justify-between gap-1.5 cursor-pointer text-left ${
               activeTab === 'nft-holdings'
-                ? 'bg-[#016976] text-white shadow-sm ring-2 ring-[#016976]/30'
+                ? 'bg-petrol text-white shadow-sm ring-2 ring-petrol/30'
                 : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
             }`}
           >
@@ -779,7 +779,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             onClick={() => setActiveTab('tokens')}
             className={`p-3 rounded-2xl text-xs font-bold transition-all flex flex-col justify-between gap-1.5 cursor-pointer text-left ${
               activeTab === 'tokens'
-                ? 'bg-[#016976] text-white shadow-sm ring-2 ring-[#016976]/30'
+                ? 'bg-petrol text-white shadow-sm ring-2 ring-petrol/30'
                 : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
             }`}
           >
@@ -802,7 +802,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 !isContract ? 'col-span-2' : ''
               } ${
                 activeTab === 'mined-blocks'
-                  ? 'bg-[#D97706] text-white shadow-sm ring-2 ring-[#D97706]/30'
+                  ? 'bg-amber-600 text-white shadow-sm ring-2 ring-amber-600/30'
                   : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
               }`}
             >
@@ -840,7 +840,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 onClick={() => setActiveTab('read')}
                 className={`p-3 rounded-2xl text-xs font-bold transition-all flex flex-col justify-between gap-1.5 cursor-pointer text-left ${
                   activeTab === 'read'
-                    ? 'bg-[#016976] text-white shadow-sm ring-2 ring-[#016976]/30'
+                    ? 'bg-petrol text-white shadow-sm ring-2 ring-petrol/30'
                     : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
                 }`}
               >
@@ -861,7 +861,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           onClick={() => setActiveTab('overview')}
           className={`px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'overview'
-              ? 'bg-[#016976] text-white shadow-xs'
+              ? 'bg-petrol text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -879,7 +879,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           onClick={() => setActiveTab('nft-transfers')}
           className={`px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'nft-transfers'
-              ? 'bg-[#016976] text-white shadow-xs'
+              ? 'bg-petrol text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -897,7 +897,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           onClick={() => setActiveTab('nft-holdings')}
           className={`px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'nft-holdings'
-              ? 'bg-[#016976] text-white shadow-xs'
+              ? 'bg-petrol text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -915,7 +915,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           onClick={() => setActiveTab('tokens')}
           className={`px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'tokens'
-              ? 'bg-[#016976] text-white shadow-xs'
+              ? 'bg-petrol text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
@@ -933,7 +933,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             onClick={() => setActiveTab('mined-blocks')}
             className={`px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap relative ${
               activeTab === 'mined-blocks'
-                ? 'bg-[#D97706] text-white shadow-xs'
+                ? 'bg-amber-600 text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
@@ -964,7 +964,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               onClick={() => setActiveTab('read')}
               className={`px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
                 activeTab === 'read'
-                  ? 'bg-[#016976] text-white shadow-xs'
+                  ? 'bg-petrol text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
@@ -980,7 +980,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
         <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shadow-xs">
                 <ArrowRightLeft className="w-5 h-5" />
               </div>
               <div>
@@ -994,7 +994,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 onClick={() => setTxFilter('all')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   txFilter === 'all'
-                    ? 'bg-[#016976] text-white shadow-xs'
+                    ? 'bg-petrol text-white shadow-xs'
                     : 'bg-white text-slate-700 hover:text-slate-900 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -1014,7 +1014,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 onClick={() => setTxFilter('out')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   txFilter === 'out'
-                    ? 'bg-[#D68142] text-white shadow-xs'
+                    ? 'bg-terracotta text-white shadow-xs'
                     : 'bg-white text-slate-700 hover:text-slate-900 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -1027,7 +1027,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           {txsLoading ? (
             <div className="py-16 text-center text-slate-500">
               <div className="flex flex-col items-center gap-3">
-                <RefreshCw className="w-6 h-6 animate-spin text-[#016976]" />
+                <RefreshCw className="w-6 h-6 animate-spin text-petrol" />
                 <span className="text-xs font-medium">Fetching transaction history and ledger records...</span>
               </div>
             </div>
@@ -1166,7 +1166,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                             e.stopPropagation();
                             onSelectBlock(tx.blockNumber);
                           }}
-                          className="py-3.5 px-3 text-slate-900 font-semibold hover:text-[#016976] hover:underline"
+                          className="py-3.5 px-3 text-slate-900 font-semibold hover:text-petrol hover:underline"
                         >
                           #{tx.blockNumber.toLocaleString()}
                         </td>
@@ -1214,7 +1214,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                                   onSelectAddress(tx.from);
                                 }
                               }}
-                              className={`truncate ${onSelectAddress ? 'hover:text-[#016976] hover:underline cursor-pointer' : ''}`}
+                              className={`truncate ${onSelectAddress ? 'hover:text-petrol hover:underline cursor-pointer' : ''}`}
                               title={tx.from}
                             >
                               {tx.from.slice(0, 6)}...{tx.from.slice(-4)}
@@ -1234,7 +1234,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                                   onSelectAddress(tx.to);
                                 }
                               }}
-                              className={`truncate ${onSelectAddress ? 'hover:text-[#016976] hover:underline cursor-pointer' : ''}`}
+                              className={`truncate ${onSelectAddress ? 'hover:text-petrol hover:underline cursor-pointer' : ''}`}
                               title={tx.to}
                             >
                               {tx.to.slice(0, 6)}...{tx.to.slice(-4)}
@@ -1293,7 +1293,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 disabled={minedBlocksLoading}
                 className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${minedBlocksLoading ? 'animate-spin text-[#016976]' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${minedBlocksLoading ? 'animate-spin text-petrol' : ''}`} />
                 <span>Refresh</span>
               </button>
             </div>
@@ -1333,7 +1333,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     </div>
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono font-bold text-sm text-[#016976]">
+                        <span className="font-mono font-bold text-sm text-petrol">
                           #{blk.number.toLocaleString()}
                         </span>
                         <span className="flex items-center gap-1 font-mono font-bold text-xs text-emerald-700 shrink-0">
@@ -1376,7 +1376,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                         onClick={() => onSelectBlock(blk.number)}
                         className="hover:bg-slate-50 transition-colors cursor-pointer group"
                       >
-                        <td className="py-3 px-3 font-bold text-[#016976] group-hover:underline">
+                        <td className="py-3 px-3 font-bold text-petrol group-hover:underline">
                           #{blk.number.toLocaleString()}
                         </td>
                         <td className="py-3 px-3 text-slate-500" title={blk.hash}>
@@ -1443,7 +1443,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 <select
                   value={readFunctionName}
                   onChange={(e) => setReadFunctionName(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#016976]"
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-petrol"
                 >
                   <option value="name">name() → string</option>
                   <option value="symbol">symbol() → string</option>
@@ -1462,7 +1462,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     value={readArg}
                     onChange={(e) => setReadArg(e.target.value)}
                     placeholder="0x..."
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#016976]"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-petrol"
                   />
                 </div>
               )}
@@ -1471,7 +1471,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             <button
               onClick={handleReadCall}
               disabled={readLoading}
-              className="px-4 py-2 rounded-xl bg-[#016976] hover:bg-[#01545e] text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+              className="px-4 py-2 rounded-xl bg-petrol hover:bg-[#01545e] text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
             >
               {readLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               <span>Query Function</span>
@@ -1492,7 +1492,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
         <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shadow-xs">
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
@@ -1511,7 +1511,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 onClick={() => setNftFilter('all')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   nftFilter === 'all'
-                    ? 'bg-[#016976] text-white shadow-xs'
+                    ? 'bg-petrol text-white shadow-xs'
                     : 'bg-white text-slate-700 hover:text-slate-900 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -1541,7 +1541,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 onClick={() => setNftFilter('out')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   nftFilter === 'out'
-                    ? 'bg-[#D68142] text-white shadow-xs'
+                    ? 'bg-terracotta text-white shadow-xs'
                     : 'bg-white text-slate-700 hover:text-slate-900 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -1555,7 +1555,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           {nftLoading ? (
             <div className="py-16 text-center text-slate-500">
               <div className="flex flex-col items-center gap-3">
-                <RefreshCw className="w-6 h-6 animate-spin text-[#016976]" />
+                <RefreshCw className="w-6 h-6 animate-spin text-petrol" />
                 <span className="text-xs font-medium">Scanning BTS-721 NFT transfers on Bitnet L1...</span>
               </div>
             </div>
@@ -1579,7 +1579,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               {onNavigate && (
                 <button
                   onClick={() => onNavigate('nfts')}
-                  className="mt-2 px-4 py-2 rounded-xl bg-[#016976] hover:bg-[#01545e] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  className="mt-2 px-4 py-2 rounded-xl bg-petrol hover:bg-[#01545e] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Explore Bitnet NFT Hub</span>
@@ -1639,7 +1639,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                             e.stopPropagation();
                             onSelectBlock(tx.blockNumber);
                           }}
-                          className="py-3.5 px-3 text-slate-900 font-semibold hover:text-[#016976] hover:underline"
+                          className="py-3.5 px-3 text-slate-900 font-semibold hover:text-petrol hover:underline"
                         >
                           #{tx.blockNumber.toLocaleString()}
                         </td>
@@ -1689,7 +1689,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                               <NftImage src={tx.imageUrl} alt={tx.tokenName} className="w-full h-full" />
                             </div>
                             <div className="min-w-0 font-sans">
-                              <div className="font-bold text-slate-900 text-xs truncate group-hover:text-[#016976]">
+                              <div className="font-bold text-slate-900 text-xs truncate group-hover:text-petrol">
                                 {tx.tokenName}
                               </div>
                               <div className="text-[10px] text-slate-400 truncate">
@@ -1717,7 +1717,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                                   onSelectAddress(tx.from);
                                 }
                               }}
-                              className={`truncate ${onSelectAddress ? 'hover:text-[#016976] hover:underline cursor-pointer' : ''}`}
+                              className={`truncate ${onSelectAddress ? 'hover:text-petrol hover:underline cursor-pointer' : ''}`}
                               title={tx.from}
                             >
                               {truncateAddress(tx.from)}
@@ -1739,7 +1739,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                                   onSelectAddress(tx.to);
                                 }
                               }}
-                              className={`truncate ${onSelectAddress ? 'hover:text-[#016976] hover:underline cursor-pointer' : ''}`}
+                              className={`truncate ${onSelectAddress ? 'hover:text-petrol hover:underline cursor-pointer' : ''}`}
                               title={tx.to}
                             >
                               {truncateAddress(tx.to)}
@@ -1772,7 +1772,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
         <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shadow-xs">
                 <ImageIcon className="w-5 h-5" />
               </div>
               <div>
@@ -1785,7 +1785,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               </div>
             </div>
 
-            <span className="px-3 py-1 bg-teal-50 border border-teal-200 rounded-xl text-xs font-bold text-[#016976]">
+            <span className="px-3 py-1 bg-petrol-50 border border-petrol-200 rounded-xl text-xs font-bold text-petrol">
               {nftHoldings.length} Indexed Holdings
             </span>
           </div>
@@ -1794,7 +1794,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           {nftLoading ? (
             <div className="py-16 text-center text-slate-500">
               <div className="flex flex-col items-center gap-3">
-                <RefreshCw className="w-6 h-6 animate-spin text-[#016976]" />
+                <RefreshCw className="w-6 h-6 animate-spin text-petrol" />
                 <span className="text-xs font-medium">Fetching wallet NFT holdings...</span>
               </div>
             </div>
@@ -1812,7 +1812,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               {onNavigate && (
                 <button
                   onClick={() => onNavigate('nfts')}
-                  className="mt-2 px-4 py-2 rounded-xl bg-[#016976] hover:bg-[#01545e] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  className="mt-2 px-4 py-2 rounded-xl bg-petrol hover:bg-[#01545e] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Explore Bitnet NFT Hub</span>
@@ -1825,7 +1825,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 <div
                   key={`${h.collectionContract}-${h.tokenId}-${i}`}
                   onClick={() => setSelectedHolding(h)}
-                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md hover:border-[#016976] transition-all cursor-pointer group flex flex-col justify-between"
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md hover:border-petrol transition-all cursor-pointer group flex flex-col justify-between"
                 >
                   <div className="relative aspect-square overflow-hidden bg-slate-950">
                     <NftImage src={h.image} alt={h.name} className="w-full h-full group-hover:scale-105 transition-transform duration-300" />
@@ -1843,11 +1843,11 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
 
                   <div className="p-3.5 space-y-2.5">
                     <div>
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#016976]">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-petrol">
                         <span>{h.collectionName}</span>
                         <span className="text-slate-400 font-normal">({h.collectionSymbol})</span>
                       </div>
-                      <h4 className="text-sm font-black text-slate-900 truncate mt-0.5 group-hover:text-[#016976] transition-colors">
+                      <h4 className="text-sm font-black text-slate-900 truncate mt-0.5 group-hover:text-petrol transition-colors">
                         {h.name}
                       </h4>
                     </div>
@@ -1873,7 +1873,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
 
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
                       <span className="text-[10px] font-mono text-slate-400">BTS-721</span>
-                      <span className="font-bold text-[#016976] flex items-center gap-1 group-hover:underline">
+                      <span className="font-bold text-petrol flex items-center gap-1 group-hover:underline">
                         <span>View Details</span>
                         <Eye className="w-3.5 h-3.5" />
                       </span>
@@ -1891,7 +1891,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
         <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shadow-xs">
                 <Coins className="w-5 h-5" />
               </div>
               <div>
@@ -1900,7 +1900,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono bg-teal-50 text-[#016976] border border-teal-200 px-3 py-1 rounded-xl font-bold">
+              <span className="text-xs font-mono bg-petrol-50 text-petrol border border-petrol-200 px-3 py-1 rounded-xl font-bold">
                 Standard: BTS-20
               </span>
             </div>
@@ -1909,7 +1909,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           {tokensLoading ? (
             <div className="py-16 text-center text-slate-500">
               <div className="flex flex-col items-center gap-3">
-                <RefreshCw className="w-6 h-6 animate-spin text-[#016976]" />
+                <RefreshCw className="w-6 h-6 animate-spin text-petrol" />
                 <span className="text-xs font-medium">Querying on-chain BTS-20 token balances...</span>
               </div>
             </div>
@@ -1927,7 +1927,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               {onNavigate && (
                 <button
                   onClick={() => onNavigate('tokens')}
-                  className="mt-2 px-4 py-2 rounded-xl bg-[#016976] hover:bg-[#01545e] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  className="mt-2 px-4 py-2 rounded-xl bg-petrol hover:bg-[#01545e] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                 >
                   <Coins className="w-3.5 h-3.5" />
                   <span>Explore BTS-20 Standards</span>
@@ -1950,17 +1950,17 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   {tokens.map((tok) => (
                     <tr key={tok.address} className="hover:bg-slate-50 transition-colors">
                       <td className="py-3.5 px-3 font-bold text-slate-900 flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-teal-100 border border-teal-300 flex items-center justify-center text-[#016976] text-[10px] font-bold">
+                        <div className="w-6 h-6 rounded-full bg-petrol-100 border border-petrol-300 flex items-center justify-center text-petrol text-[10px] font-bold">
                           {tok.symbol ? tok.symbol.charAt(0) : '$'}
                         </div>
                         <span>{tok.name}</span>
                       </td>
-                      <td className="py-3.5 px-3 font-bold text-[#016976]">{tok.symbol}</td>
+                      <td className="py-3.5 px-3 font-bold text-petrol">{tok.symbol}</td>
                       <td className="py-3.5 px-3 text-slate-500">
                         {onSelectAddress ? (
                           <span
                             onClick={() => onSelectAddress(tok.address)}
-                            className="hover:text-[#016976] hover:underline cursor-pointer"
+                            className="hover:text-petrol hover:underline cursor-pointer"
                             title={tok.address}
                           >
                             {tok.address.slice(0, 10)}...{tok.address.slice(-8)}
@@ -2006,7 +2006,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             </button>
 
             <div className="flex items-center gap-3">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-teal-50 text-[#016976] border border-teal-200">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-petrol-50 text-petrol border border-petrol-200">
                 {selectedHolding.collectionSymbol}
               </span>
               <span className="text-xs font-mono text-slate-500">
@@ -2047,7 +2047,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
 
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
               <span className="text-slate-500">Contract Address:</span>
-              <span className="font-mono text-[#016976] font-bold">
+              <span className="font-mono text-petrol font-bold">
                 {selectedHolding.collectionContract.slice(0, 8)}...{selectedHolding.collectionContract.slice(-6)}
               </span>
             </div>
@@ -2058,7 +2058,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   setSelectedHolding(null);
                   onNavigate('nfts');
                 }}
-                className="w-full py-2.5 rounded-xl bg-[#016976] hover:bg-[#01545e] text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-petrol hover:bg-[#01545e] text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>View Collection in NFT Explorer</span>

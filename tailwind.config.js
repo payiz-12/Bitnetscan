@@ -15,23 +15,32 @@ export default {
           500: '#22c55e',
           600: '#16a34a',
         },
+        // Brand colors. petrol (#016976) is the primary color, terracotta (#D68142) the accent.
         petrol: {
           DEFAULT: '#016976',
           50: '#EBF6F7',
           100: '#D3ECEF',
           200: '#A7D9DF',
+          300: '#74BFC8',
+          400: '#3A98A4',
           500: '#016976',
           600: '#015661',
           700: '#01424B',
+          800: '#023239',
+          900: '#02242A',
         },
         terracotta: {
           DEFAULT: '#D68142',
           50: '#FDF8F4',
           100: '#FBF0E6',
           200: '#F6DCC4',
+          300: '#EEBD92',
+          400: '#E29E66',
           500: '#D68142',
           600: '#BD6E32',
           700: '#9C5622',
+          800: '#7A431B',
+          900: '#5C3215',
         },
         navy: {
           DEFAULT: '#1A2B3F',
@@ -67,6 +76,14 @@ export default {
           cardBorder: '#1f2937',
           muted: '#9ca3af',
         }
+      },
+      // Soft, slightly cool shadows; xs and 2xs are used across the app (not built into Tailwind 3).
+      boxShadow: {
+        '2xs': '0 1px 1px rgba(15, 23, 42, 0.04)',
+        xs: '0 1px 2px rgba(15, 23, 42, 0.05)',
+        sm: '0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 6px rgba(15, 23, 42, 0.04)',
+        md: '0 2px 4px rgba(15, 23, 42, 0.05), 0 8px 20px rgba(15, 23, 42, 0.06)',
+        lg: '0 4px 8px rgba(15, 23, 42, 0.05), 0 16px 36px rgba(15, 23, 42, 0.10)',
       },
       fontFamily: {
         mono: ['JetBrains Mono', 'Fira Code', 'Roboto Mono', 'monospace'],

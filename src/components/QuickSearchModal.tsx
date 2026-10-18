@@ -117,14 +117,14 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
           {(isAddress || isTx || isBlockNum) && (
             <div
               onClick={handleSubmit}
-              className="p-3 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-between cursor-pointer hover:bg-teal-100/70 transition-colors"
+              className="p-3 rounded-2xl bg-petrol-50 border border-petrol-200 flex items-center justify-between cursor-pointer hover:bg-petrol-100/70 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#016976] text-white flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-petrol text-white flex items-center justify-center">
                   {isAddress ? <Wallet className="w-4 h-4" /> : isTx ? <ArrowRight className="w-4 h-4" /> : <Hash className="w-4 h-4" />}
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#016976]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-petrol">
                     {isAddress ? 'Go to Address' : isTx ? 'Go to Transaction' : 'Go to Block'}
                   </span>
                   <div className="text-xs font-mono font-bold text-slate-900 truncate max-w-sm">
@@ -132,7 +132,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-xs text-[#016976] font-bold">
+              <div className="flex items-center gap-1 text-xs text-petrol font-bold">
                 <span>Go</span>
                 <CornerDownLeft className="w-3.5 h-3.5" />
               </div>
@@ -156,11 +156,11 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                 className="p-3 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all cursor-pointer flex items-center justify-between group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-slate-100 group-hover:bg-[#016976]/10 text-slate-600 group-hover:text-[#016976] flex items-center justify-center transition-colors">
+                  <div className="w-9 h-9 rounded-xl bg-slate-100 group-hover:bg-petrol/10 text-slate-600 group-hover:text-petrol flex items-center justify-center transition-colors">
                     <Icon className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-900 group-hover:text-[#016976] transition-colors">
+                    <div className="text-xs font-bold text-slate-900 group-hover:text-petrol transition-colors">
                       {link.label}
                     </div>
                     <div className="text-[11px] text-slate-500 font-medium">
@@ -168,7 +168,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
                     </div>
                   </div>
                 </div>
-                <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#016976] group-hover:translate-x-0.5 transition-all" />
+                <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-petrol group-hover:translate-x-0.5 transition-all" />
               </div>
             );
           })}

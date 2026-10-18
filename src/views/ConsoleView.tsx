@@ -74,11 +74,11 @@ export const ConsoleView: React.FC = () => {
       {/* Header */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shadow-xs">
+          <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shadow-xs">
             <Terminal className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-slate-900">Interactive JSON-RPC Console</h1>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Interactive JSON-RPC Console</h1>
           </div>
         </div>
 
@@ -89,7 +89,7 @@ export const ConsoleView: React.FC = () => {
             <button
               key={p.name}
               onClick={() => loadPreset(p)}
-              className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono font-medium text-slate-700 hover:text-[#016976] hover:border-slate-300 transition-colors shadow-2xs cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono font-medium text-slate-700 hover:text-petrol hover:border-slate-300 transition-colors shadow-2xs cursor-pointer"
             >
               {p.name}
             </button>
@@ -111,7 +111,7 @@ export const ConsoleView: React.FC = () => {
               type="text"
               value={method}
               onChange={(e) => setMethod(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono text-xs text-[#016976] font-bold focus:outline-none focus:border-[#016976] focus:ring-1 focus:ring-[#016976] shadow-xs"
+              className="w-full bg-white border border-slate-300 rounded-xl p-2.5 font-mono text-xs text-petrol font-bold focus:outline-none focus:border-petrol focus:ring-1 focus:ring-petrol shadow-xs"
             />
           </div>
 
@@ -123,14 +123,14 @@ export const ConsoleView: React.FC = () => {
               rows={5}
               value={paramsInput}
               onChange={(e) => setParamsInput(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-xl p-3 font-mono text-xs text-slate-900 focus:outline-none focus:border-[#016976] focus:ring-1 focus:ring-[#016976] shadow-xs"
+              className="w-full bg-white border border-slate-300 rounded-xl p-3 font-mono text-xs text-slate-900 focus:outline-none focus:border-petrol focus:ring-1 focus:ring-petrol shadow-xs"
             />
           </div>
 
           <button
             onClick={() => handleRunRpc()}
             disabled={loading}
-            className="w-full py-2.5 rounded-xl bg-[#016976] hover:bg-[#01545e] text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+            className="w-full py-2.5 rounded-xl bg-petrol hover:bg-[#01545e] text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
           >
             {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
             <span>Execute RPC Request</span>
@@ -143,7 +143,7 @@ export const ConsoleView: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-slate-900">Response Output</span>
               {latency !== null && (
-                <span className="text-[11px] font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                <span className="text-[11px] font-mono font-bold text-petrol-600 bg-petrol-50 px-2 py-0.5 rounded border border-petrol-200">
                   {latency}ms
                 </span>
               )}

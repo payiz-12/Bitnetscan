@@ -60,7 +60,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
             <p className="text-slate-500 text-xs">
               Bitnet Money (BTN) L1 Block Explorer
             </p>
-            <div className={`flex items-center gap-2 font-mono text-[11px] font-bold ${healthy ? 'text-[#016976]' : 'text-amber-700'}`}>
+            <div className={`flex items-center gap-2 font-mono text-[11px] font-bold ${healthy ? 'text-petrol' : 'text-amber-700'}`}>
               <span className={`w-2 h-2 rounded-full ${blockAge === null ? 'bg-slate-300' : healthy ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
               <span>
                 {latestBlock
@@ -82,7 +82,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
               </li>
               <li className="flex justify-between border-b border-slate-100 pb-1">
                 <span className="text-slate-500">Native Asset:</span>
-                <span className="text-[#016976] font-bold">Bitnet (BTN)</span>
+                <span className="text-petrol font-bold">Bitnet (BTN)</span>
               </li>
               <li className="flex justify-between border-b border-slate-100 pb-1">
                 <span className="text-slate-500">Consensus:</span>
@@ -110,7 +110,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
                   href="https://github.com/payiz-12/Bitnetscan" 
                   target="_blank" 
                   rel="noreferrer"
-                  className="flex items-center gap-2 text-slate-700 hover:text-[#016976] transition-colors"
+                  className="flex items-center gap-2 text-slate-700 hover:text-petrol transition-colors"
                 >
                   <Github className="w-3.5 h-3.5 text-slate-800" />
                   <span>BitnetScan Explorer (Source Code)</span>
@@ -122,7 +122,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
                   href="https://github.com/BitnetMoney/bitnet" 
                   target="_blank" 
                   rel="noreferrer"
-                  className="flex items-center gap-2 text-slate-700 hover:text-[#016976] transition-colors"
+                  className="flex items-center gap-2 text-slate-700 hover:text-petrol transition-colors"
                 >
                   <Github className="w-3.5 h-3.5 text-slate-800" />
                   <span>Bitnet Core (Golang Geth)</span>
@@ -134,7 +134,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
                   href="https://github.com/BitnetMoney/contract-standards" 
                   target="_blank" 
                   rel="noreferrer"
-                  className="flex items-center gap-2 text-slate-700 hover:text-[#016976] transition-colors"
+                  className="flex items-center gap-2 text-slate-700 hover:text-petrol transition-colors"
                 >
                   <Code className="w-3.5 h-3.5 text-slate-800" />
                   <span>Bitnet Contract Standards</span>
@@ -146,7 +146,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
                   href="https://github.com/BitnetMoney/bitnet-desktop-node" 
                   target="_blank" 
                   rel="noreferrer"
-                  className="flex items-center gap-2 text-slate-700 hover:text-[#016976] transition-colors"
+                  className="flex items-center gap-2 text-slate-700 hover:text-petrol transition-colors"
                 >
                   <Cpu className="w-3.5 h-3.5 text-slate-800" />
                   <span>Desktop Node & Miner GUI</span>
@@ -158,7 +158,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
                   href="https://github.com/BitnetMoney/btips" 
                   target="_blank" 
                   rel="noreferrer"
-                  className="flex items-center gap-2 text-slate-700 hover:text-[#016976] transition-colors"
+                  className="flex items-center gap-2 text-slate-700 hover:text-petrol transition-colors"
                 >
                   <FileText className="w-3.5 h-3.5 text-slate-800" />
                   <span>BTIPs (Improvement Proposals)</span>
@@ -186,12 +186,12 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
             </button>
             <span className="text-slate-300 hidden sm:inline">•</span>
             <span className="flex items-center gap-1 text-slate-600">
-              <Server className="w-3 h-3 text-[#016976]" />
+              <Server className="w-3 h-3 text-petrol" />
               <span>RPC: {rpcLabel(activeRpc)}</span>
             </span>
             <span className="text-slate-300 hidden sm:inline">•</span>
             <span className="flex items-center gap-1 text-slate-600">
-              <ShieldCheck className="w-3 h-3 text-[#016976]" />
+              <ShieldCheck className="w-3 h-3 text-petrol" />
               <span>Open Source / MIT</span>
             </span>
           </div>
@@ -252,7 +252,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
                 </span>
                 <button
                   onClick={handleCopy}
-                  className="px-3 py-1.5 rounded-lg bg-[#016976] hover:bg-[#015661] text-white text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  className="px-3 py-1.5 rounded-lg bg-petrol hover:bg-[#015661] text-white text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   {copied ? (
                     <>

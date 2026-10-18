@@ -166,7 +166,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
   if (loading) {
     return (
       <div className="py-20 text-center space-y-4">
-        <div className="w-12 h-12 border-4 border-[#016976]/20 border-t-[#016976] rounded-full animate-spin mx-auto"></div>
+        <div className="w-12 h-12 border-4 border-petrol/20 border-t-petrol rounded-full animate-spin mx-auto"></div>
         <p className="text-slate-600 font-medium text-sm">Decoding Bitnet transaction details...</p>
       </div>
     );
@@ -182,7 +182,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
         <p className="text-sm text-slate-500">{error || 'Could not locate transaction on the Bitnet network.'}</p>
         <button
           onClick={onBack}
-          className="px-4 py-2 rounded-xl bg-[#016976] hover:bg-[#01545e] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+          className="px-4 py-2 rounded-xl bg-petrol hover:bg-[#01545e] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
         >
           Back to Dashboard
         </button>
@@ -283,7 +283,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
         onClick={onBack}
         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all cursor-pointer shadow-xs"
       >
-        <ArrowLeft className="w-4 h-4 text-[#016976]" />
+        <ArrowLeft className="w-4 h-4 text-petrol" />
         <span>Back</span>
       </button>
 
@@ -291,7 +291,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-[#016976] shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-petrol-50 border border-petrol-200 flex items-center justify-center text-petrol shadow-xs">
               <ArrowRightLeft className="w-6 h-6" />
             </div>
             <div>
@@ -308,7 +308,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
                 >
                   <Copy className="w-3.5 h-3.5" />
                 </button>
-                {copiedKey === 'txhash' && <span className="text-[10px] text-[#016976] font-bold">Copied!</span>}
+                {copiedKey === 'txhash' && <span className="text-[10px] text-petrol font-bold">Copied!</span>}
               </div>
             </div>
           </div>
@@ -343,7 +343,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
           {/* Block Number */}
           <div className="py-3.5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
             <span className="text-slate-500 font-semibold flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-[#016976]" />
+              <Layers className="w-4 h-4 text-petrol" />
               Block Height:
             </span>
             <div className="sm:col-span-2 mt-1 sm:mt-0 flex items-center gap-2">
@@ -351,7 +351,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
                 <>
                   <span
                     onClick={() => onSelectBlock(tx.blockNumber!)}
-                    className="font-mono text-[#016976] hover:underline cursor-pointer font-bold text-sm"
+                    className="font-mono text-petrol hover:underline cursor-pointer font-bold text-sm"
                   >
                     #{tx.blockNumber.toLocaleString()}
                   </span>
@@ -373,7 +373,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
           {blockTimestamp != null && (
             <div className="py-3.5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
               <span className="text-slate-500 font-semibold flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-[#016976]" />
+                <Clock className="w-4 h-4 text-petrol" />
                 Timestamp:
               </span>
               <div className="sm:col-span-2 mt-1 sm:mt-0 flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-800">
@@ -396,7 +396,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
             <div className="sm:col-span-2 mt-1 sm:mt-0 flex items-center gap-2">
               <span
                 onClick={() => onSelectAddress(tx.from)}
-                className="font-mono text-slate-900 hover:text-[#016976] hover:underline cursor-pointer break-all font-semibold"
+                className="font-mono text-slate-900 hover:text-petrol hover:underline cursor-pointer break-all font-semibold"
               >
                 {tx.from}
               </span>
@@ -407,7 +407,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
               >
                 <Copy className="w-3.5 h-3.5" />
               </button>
-              {copiedKey === 'from' && <span className="text-[10px] text-[#016976] font-bold">Copied!</span>}
+              {copiedKey === 'from' && <span className="text-[10px] text-petrol font-bold">Copied!</span>}
             </div>
           </div>
 
@@ -422,7 +422,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
                 <>
                   <span
                     onClick={() => onSelectAddress(tx.to!)}
-                    className="font-mono text-slate-900 hover:text-[#016976] hover:underline cursor-pointer break-all font-semibold"
+                    className="font-mono text-slate-900 hover:text-petrol hover:underline cursor-pointer break-all font-semibold"
                   >
                     {tx.to}
                   </span>
@@ -433,12 +433,12 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
                   >
                     <Copy className="w-3.5 h-3.5" />
                   </button>
-                  {copiedKey === 'to' && <span className="text-[10px] text-[#016976] font-bold">Copied!</span>}
+                  {copiedKey === 'to' && <span className="text-[10px] text-petrol font-bold">Copied!</span>}
                 </>
               ) : (
                 <div className="flex flex-col gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-[#D97706] border border-amber-200 text-xs font-bold w-fit">
-                    <FileCode className="w-4 h-4 text-[#D97706]" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-600 border border-amber-200 text-xs font-bold w-fit">
+                    <FileCode className="w-4 h-4 text-amber-600" />
                     <span>Contract Deployment</span>
                   </span>
                   {receipt?.contractAddress && (
@@ -446,7 +446,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
                       <span className="text-xs text-slate-500 font-semibold">Created Contract Address:</span>
                       <span
                         onClick={() => onSelectAddress(receipt.contractAddress!)}
-                        className="font-mono text-[#016976] hover:underline cursor-pointer font-bold text-xs"
+                        className="font-mono text-petrol hover:underline cursor-pointer font-bold text-xs"
                       >
                         {receipt.contractAddress}
                       </span>
@@ -476,14 +476,14 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
               >
                 <Copy className="w-3.5 h-3.5" />
               </button>
-              {copiedKey === 'value' && <span className="text-[10px] text-[#016976] font-bold">Copied!</span>}
+              {copiedKey === 'value' && <span className="text-[10px] text-petrol font-bold">Copied!</span>}
             </div>
           </div>
 
           {/* Transaction Fee */}
           <div className="py-3.5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
             <span className="text-slate-500 font-semibold flex items-center gap-1.5">
-              <Flame className="w-4 h-4 text-[#D97706]" />
+              <Flame className="w-4 h-4 text-amber-600" />
               Transaction Fee:
             </span>
             <div className="sm:col-span-2 mt-1 sm:mt-0 font-mono text-slate-900 font-bold">
@@ -533,7 +533,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-[#016976]">
+            <div className="w-9 h-9 rounded-xl bg-petrol-50 border border-petrol-200 flex items-center justify-center text-petrol">
               <Code className="w-5 h-5" />
             </div>
             <div>
@@ -545,7 +545,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
             <button
               onClick={() => setInputViewMode('decoded')}
               className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center truncate ${
-                inputViewMode === 'decoded' ? 'bg-[#016976] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                inputViewMode === 'decoded' ? 'bg-petrol text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span className="sm:hidden">Decoded</span>
@@ -554,7 +554,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
             <button
               onClick={() => setInputViewMode('hex')}
               className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center truncate ${
-                inputViewMode === 'hex' ? 'bg-[#016976] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                inputViewMode === 'hex' ? 'bg-petrol text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span className="sm:hidden">Raw Hex</span>
@@ -563,7 +563,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
             <button
               onClick={() => setInputViewMode('utf8')}
               className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center truncate ${
-                inputViewMode === 'utf8' ? 'bg-[#016976] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                inputViewMode === 'utf8' ? 'bg-petrol text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span className="sm:hidden">UTF-8</span>
@@ -618,10 +618,10 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
               <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#016976]"></span>
+                    <span className="w-2 h-2 rounded-full bg-petrol"></span>
                     EVM State Transition & Value Flow Trace
                   </span>
-                  <span className="text-[11px] font-mono text-[#016976] font-bold bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
+                  <span className="text-[11px] font-mono text-petrol font-bold bg-petrol-50 px-2 py-0.5 rounded-md border border-petrol-200">
                     Direct BTN Transfer
                   </span>
                 </div>
@@ -663,10 +663,10 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                 <div>
                   <span className="text-slate-500 font-medium">Invoked Contract Method: </span>
-                  <span className="text-[#016976] font-bold text-sm ml-1">{decodedInput.methodName}</span>
+                  <span className="text-petrol font-bold text-sm ml-1">{decodedInput.methodName}</span>
                   <span className="text-slate-400 ml-2">({decodedInput.methodId})</span>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-[#016976] border border-teal-200">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-petrol-50 text-petrol border border-petrol-200">
                   Decoded
                 </span>
               </div>
@@ -678,7 +678,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
                     {decodedInput.parameters.map((param, i) => (
                       <div key={i} className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <div className="text-slate-500 font-medium">
-                          <span className="text-[#016976] font-bold">{param.name}</span>{' '}
+                          <span className="text-petrol font-bold">{param.name}</span>{' '}
                           <span className="text-slate-400">({param.type})</span>
                         </div>
                         <div className="sm:col-span-2 text-slate-900 break-all font-bold">
@@ -705,7 +705,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
               <span>Raw Calldata Hex ({tx.input && tx.input !== '0x' ? `${(tx.input.length - 2) / 2} Bytes` : '0 Bytes'}):</span>
               <button
                 onClick={() => copyToClipboard(tx.input || '0x', 'input-hex')}
-                className="inline-flex items-center gap-1.5 text-[#016976] hover:underline font-bold cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-petrol hover:underline font-bold cursor-pointer"
               >
                 <Copy className="w-3.5 h-3.5" />
                 <span>{copiedKey === 'input-hex' ? 'Copied!' : 'Copy Hex'}</span>
@@ -722,7 +722,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
               {tx.input && tx.input !== '0x' && hexToUtf8(tx.input) && (
                 <button
                   onClick={() => copyToClipboard(hexToUtf8(tx.input), 'input-utf8')}
-                  className="inline-flex items-center gap-1.5 text-[#016976] hover:underline font-bold cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-petrol hover:underline font-bold cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" />
                   <span>{copiedKey === 'input-utf8' ? 'Copied!' : 'Copy Text'}</span>
@@ -742,7 +742,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
       {receipt?.logs && receipt.logs.length > 0 && (
         <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-200">
-            <FileText className="w-5 h-5 text-[#016976]" />
+            <FileText className="w-5 h-5 text-petrol" />
             <h3 className="text-base sm:text-lg font-bold text-slate-900">
               Event Logs ({receipt.logs.length})
             </h3>
@@ -754,7 +754,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
               return (
                 <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 font-mono text-xs">
                   <div className="flex items-center justify-between text-slate-500 border-b border-slate-200 pb-2">
-                    <span className="text-[#016976] font-bold">Log #{idx}: {decoded?.name || 'Raw Event'}</span>
+                    <span className="text-petrol font-bold">Log #{idx}: {decoded?.name || 'Raw Event'}</span>
                     <span className="text-slate-600 font-semibold">Contract: {log.address}</span>
                   </div>
                   {decoded?.params && Object.keys(decoded.params).length > 0 && (

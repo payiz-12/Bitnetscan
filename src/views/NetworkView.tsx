@@ -33,7 +33,7 @@ const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, ch
 const Card: React.FC<{ title: string; icon: React.ComponentType<{ className?: string }>; children: React.ReactNode }> = ({ title, icon: Icon, children }) => (
   <section className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-sm">
     <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 pb-3 mb-1 border-b border-slate-100">
-      <Icon className="w-4 h-4 text-[#016976]" />
+      <Icon className="w-4 h-4 text-petrol" />
       {title}
     </h2>
     {children}
@@ -87,7 +87,7 @@ export const NetworkView: React.FC<{ stats: NetworkStats | null }> = ({ stats })
     <div className="space-y-5 sm:space-y-6 w-full animate-fade-in">
       <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shrink-0">
             <Activity className="w-5 h-5" />
           </div>
           <div>
@@ -142,10 +142,10 @@ export const NetworkView: React.FC<{ stats: NetworkStats | null }> = ({ stats })
         {EXPLORERS.map((e) => <Row key={e.url} label={e.name}>{e.url} <span className="text-slate-400">(/tx, /address, /block, /token)</span></Row>)}
         <Row label="BitnetScan API">
           <div className="space-y-1">
-            <div><a className="text-[#016976] hover:underline" href="/api/stats" target="_blank" rel="noopener noreferrer">/api/stats</a> <span className="text-slate-500 font-sans">— live chain stats (JSON)</span></div>
-            <div><a className="text-[#016976] hover:underline" href="/api/supply" target="_blank" rel="noopener noreferrer">/api/supply</a> <span className="text-slate-500 font-sans">— circulating supply (plain text)</span></div>
-            <div><a className="text-[#016976] hover:underline" href="/api/supply?q=total" target="_blank" rel="noopener noreferrer">/api/supply?q=total</a> <span className="text-slate-500 font-sans">— total supply (plain text)</span></div>
-            <div><a className="text-[#016976] hover:underline" href="/api/supply?format=json" target="_blank" rel="noopener noreferrer">/api/supply?format=json</a> <span className="text-slate-500 font-sans">— snapshot with block range</span></div>
+            <div><a className="text-petrol hover:underline" href="/api/stats" target="_blank" rel="noopener noreferrer">/api/stats</a> <span className="text-slate-500 font-sans">— live chain stats (JSON)</span></div>
+            <div><a className="text-petrol hover:underline" href="/api/supply" target="_blank" rel="noopener noreferrer">/api/supply</a> <span className="text-slate-500 font-sans">— circulating supply (plain text)</span></div>
+            <div><a className="text-petrol hover:underline" href="/api/supply?q=total" target="_blank" rel="noopener noreferrer">/api/supply?q=total</a> <span className="text-slate-500 font-sans">— total supply (plain text)</span></div>
+            <div><a className="text-petrol hover:underline" href="/api/supply?format=json" target="_blank" rel="noopener noreferrer">/api/supply?format=json</a> <span className="text-slate-500 font-sans">— snapshot with block range</span></div>
           </div>
         </Row>
         <div className="pt-3">
@@ -180,16 +180,16 @@ export const NetworkView: React.FC<{ stats: NetworkStats | null }> = ({ stats })
             ) : (
               <span className="font-sans text-slate-500">Loading…</span>
             )}
-            <a href={site} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[#016976] font-sans text-xs font-bold hover:underline mt-1">
+            <a href={site} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-petrol font-sans text-xs font-bold hover:underline mt-1">
               {site.replace('https://', '')} <ExternalLink className="w-3 h-3" />
             </a>
           </Row>
         ))}
         <Row label="Node software">
           <div className="space-y-1 font-sans">
-            <a href="https://github.com/BitnetMoney/bitnet" target="_blank" rel="noopener noreferrer" className="text-[#016976] hover:underline">Bitnet Core (Geth fork)</a>
+            <a href="https://github.com/BitnetMoney/bitnet" target="_blank" rel="noopener noreferrer" className="text-petrol hover:underline">Bitnet Core (Geth fork)</a>
             {' · '}
-            <a href="https://github.com/BitnetMoney/bitnet-desktop-node" target="_blank" rel="noopener noreferrer" className="text-[#016976] hover:underline">Bitnet Desktop Node</a>
+            <a href="https://github.com/BitnetMoney/bitnet-desktop-node" target="_blank" rel="noopener noreferrer" className="text-petrol hover:underline">Bitnet Desktop Node</a>
           </div>
         </Row>
       </Card>

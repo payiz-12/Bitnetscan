@@ -39,8 +39,8 @@ const ShareBar: React.FC<{ label: string; share: number }> = ({ label, share }) 
       <span className="font-semibold text-slate-700">{label}</span>
       <span className="font-bold text-slate-900">{(share * 100).toFixed(1)}%</span>
     </div>
-    <div className="h-2 rounded-full bg-teal-100 overflow-hidden">
-      <div className="h-full rounded-full bg-[#016976]" style={{ width: `${Math.min(100, share * 100)}%` }} />
+    <div className="h-2 rounded-full bg-petrol-100 overflow-hidden">
+      <div className="h-full rounded-full bg-petrol" style={{ width: `${Math.min(100, share * 100)}%` }} />
     </div>
   </div>
 );
@@ -136,7 +136,7 @@ export const SupplyView: React.FC<SupplyViewProps> = ({ stats, onNavigate }) => 
           <Row label="Premine" value="0 BTN" note="No balances at genesis" />
           <p className="text-[11px] text-slate-500 pt-2">
             Snapshot {supply ? new Date(supply.updatedAt).toLocaleString('en-US', { timeZone: 'UTC', hour12: false }) + ' UTC' : '…'} ·{' '}
-            <a href="/api/supply?format=json" target="_blank" rel="noopener noreferrer" className="text-[#016976] font-semibold hover:underline">/api/supply</a>
+            <a href="/api/supply?format=json" target="_blank" rel="noopener noreferrer" className="text-petrol font-semibold hover:underline">/api/supply</a>
           </p>
         </Card>
 
@@ -156,7 +156,7 @@ export const SupplyView: React.FC<SupplyViewProps> = ({ stats, onNavigate }) => 
                 label="Uncle rewards"
                 value={uncleShareNow !== null ? `${(uncleShareNow * 100).toFixed(1)}% of new BTN` : '…'}
                 note={
-                  <button onClick={() => onNavigate('uncles')} className="text-[#016976] font-semibold hover:underline cursor-pointer">
+                  <button onClick={() => onNavigate('uncles')} className="text-petrol font-semibold hover:underline cursor-pointer">
                     See uncle blocks
                   </button>
                 }
@@ -194,13 +194,13 @@ export const SupplyView: React.FC<SupplyViewProps> = ({ stats, onNavigate }) => 
         <Card title="Distribution" subtitle="Share of circulating supply held by the largest addresses (pools and exchanges included).">
           {top10 === null || top50 === null ? (
             <p className="text-xs text-slate-500 py-4 flex items-center gap-2">
-              <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#016976]" /> Loading the top accounts…
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-petrol" /> Loading the top accounts…
             </p>
           ) : (
             <div className="space-y-4 pt-2">
               <ShareBar label="Top 10 addresses" share={top10} />
               <ShareBar label="Top 50 addresses" share={top50} />
-              <button onClick={() => onNavigate('rich-list')} className="inline-flex items-center gap-1 text-xs font-bold text-[#016976] hover:underline cursor-pointer">
+              <button onClick={() => onNavigate('rich-list')} className="inline-flex items-center gap-1 text-xs font-bold text-petrol hover:underline cursor-pointer">
                 Top accounts <ExternalLink className="w-3 h-3" />
               </button>
             </div>
@@ -224,7 +224,7 @@ export const SupplyView: React.FC<SupplyViewProps> = ({ stats, onNavigate }) => 
             </div>
           ))}
         </div>
-        <a href="https://trade.nestex.one/spot/BTN" target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#016976] hover:underline">
+        <a href="https://trade.nestex.one/spot/BTN" target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-petrol hover:underline">
           trade.nestex.one <ExternalLink className="w-3 h-3" />
         </a>
       </section>
