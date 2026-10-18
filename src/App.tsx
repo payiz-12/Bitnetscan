@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { DashboardView } from './views/DashboardView';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { Analytics } from '@vercel/analytics/react';
 
 // Secondary pages load on first visit so the dashboard bundle stays small.
 const BlockDetailView = lazy(() => import('./views/BlockDetailView').then((m) => ({ default: m.BlockDetailView })));
@@ -386,6 +387,14 @@ export const App: React.FC = () => {
     : currentView === 'address-detail' ? `address:${selectedAddress}`
     : currentView;
 
+  // Vercel Web Analytics: pages live in the URL hash, so each view is reported as its own path.
+  const [analyticsRoute, analyticsPath] =
+    currentView === 'dashboard' ? ['/', '/']
+    : currentView === 'block-detail' ? ['/block/[id]', `/block/${selectedBlock}`]
+    : currentView === 'tx-detail' ? ['/tx/[hash]', `/tx/${selectedTx}`]
+    : currentView === 'address-detail' ? ['/address/[address]', `/address/${selectedAddress}`]
+    : [`/${currentView}`, `/${currentView}`];
+
   return (
     <div className="min-h-screen flex flex-col bg-canvas-warm text-slate-900 font-sans selection:bg-petrol-100 selection:text-petrol-800">
       <Header
@@ -529,6 +538,7 @@ export const App: React.FC = () => {
       </main>
 
       <Footer latestBlock={recentBlocks[0]} />
+      <Analytics route={analyticsRoute} path={analyticsPath} />
     </div>
   );
 };

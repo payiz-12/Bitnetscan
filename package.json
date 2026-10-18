@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@helia/verified-fetch": "^7.2.16",
+    "@vercel/analytics": "2.0.1",
     "ethers": "^6.13.2",
     "lucide-react": "^0.441.0",
     "react": "^18.3.1",
