@@ -8,6 +8,8 @@ import { explorerApiService } from '../services/explorerApi';
 import { RichAccount, TopAccountsResult, fetchTopAccounts } from '../data/richList';
 import { fetchSupplySnapshot, SupplySnapshot } from '../services/supply';
 import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
+import { AddressTag } from '../components/AddressTag';
+import { getAddressLabel } from '../services/addressLabels';
 
 interface RichListViewProps {
   onSelectAddress: (address: string) => void;
@@ -316,7 +318,8 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                     >
                       {acc.address.slice(0, 6)}...{acc.address.slice(-4)}
                     </span>
-                    {(acc.name || acc.isContract) && (
+                    <AddressTag address={acc.address} />
+                    {!getAddressLabel(acc.address) && (acc.name || acc.isContract) && (
                       <span className="shrink-0 px-1.5 py-px rounded-md bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-700 font-sans truncate max-w-[8rem]">
                         {acc.name || 'Contract'}
                       </span>
@@ -424,7 +427,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                       </div>
                     </td>
 
-                    {/* Address without arbitrary labels */}
+                    {/* Address with its label when the address is known */}
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
                         <span 
@@ -433,7 +436,8 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                         >
                           {acc.address}
                         </span>
-                        {(acc.name || acc.isContract) && (
+                        <AddressTag address={acc.address} />
+                        {!getAddressLabel(acc.address) && (acc.name || acc.isContract) && (
                           <span className="shrink-0 px-1.5 py-px rounded-md bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-700 font-sans truncate max-w-[8rem]">
                             {acc.name || 'Contract'}
                           </span>

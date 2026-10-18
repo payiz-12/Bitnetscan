@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Cpu, Layers, Coins, Image, Terminal, 
   Activity, Menu, X, PlusCircle, CheckCircle2, Globe, Trophy,
-  FileCode
+  FileCode, LineChart, PieChart
 } from 'lucide-react';
 import { NetworkStats } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
@@ -122,6 +122,22 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
       iconBg: 'bg-orange-50 text-orange-600 border border-orange-200/60',
       activeClass: 'bg-orange-600 text-white shadow-xs',
       hoverClass: 'hover:bg-orange-50/70 hover:text-orange-700 text-slate-700'
+    },
+    {
+      id: 'charts',
+      label: 'Charts',
+      icon: LineChart,
+      iconBg: 'bg-teal-50 text-teal-700 border border-teal-200/60',
+      activeClass: 'bg-teal-700 text-white shadow-xs',
+      hoverClass: 'hover:bg-teal-50/70 hover:text-teal-700 text-slate-700'
+    },
+    {
+      id: 'supply',
+      label: 'Supply',
+      icon: PieChart,
+      iconBg: 'bg-lime-50 text-lime-700 border border-lime-200/60',
+      activeClass: 'bg-lime-700 text-white shadow-xs',
+      hoverClass: 'hover:bg-lime-50/70 hover:text-lime-700 text-slate-700'
     },
     { 
       id: 'console', 
@@ -247,10 +263,11 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
           </div>
 
           {/* Desktop Nav menu */}
+          {/* Icons with the current page named; other labels show on hover (title) so the search box keeps its width */}
           <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 text-xs font-semibold flex-shrink-0">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentView === item.id;
+              const isActive = currentView === item.id || (item.id === 'charts' && currentView === 'uncles');
               return (
                 <button
                   key={item.id}
@@ -258,7 +275,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
                   title={item.label}
                   aria-label={item.label}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`px-1.5 xl:px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all text-xs font-bold cursor-pointer whitespace-nowrap ${
+                  className={`${isActive ? 'px-1.5 xl:px-2.5' : 'px-1.5'} py-1.5 rounded-xl flex items-center gap-1.5 transition-all text-xs font-bold cursor-pointer whitespace-nowrap ${
                     isActive
                       ? item.activeClass
                       : `${item.hoverClass} hover:bg-slate-50`
@@ -269,7 +286,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
                   }`}>
                     <Icon className="w-3.5 h-3.5" />
                   </div>
-                  <span className="hidden xl:inline">{item.label}</span>
+                  {isActive && <span className="hidden xl:inline">{item.label}</span>}
                 </button>
               );
             })}
@@ -307,7 +324,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = currentView === item.id;
+                const isActive = currentView === item.id || (item.id === 'charts' && currentView === 'uncles');
                 return (
                   <button
                     key={item.id}

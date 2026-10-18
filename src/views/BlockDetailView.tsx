@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   Box, ArrowLeft, ArrowRight, Clock, Shield, CheckCircle2, 
-  Copy, Layers, Cpu, Flame, Database, FileText, ChevronLeft, ChevronRight, User, FileCode 
+  Copy, Layers, Cpu, Flame, Database, FileText, ChevronLeft, ChevronRight, User, FileCode, GitBranch
 } from 'lucide-react';
 import { Block, Transaction } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
@@ -75,6 +75,19 @@ export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
   // Exact miner reward: 1 BTN + 1/32 BTN per uncle + fees from the transaction receipts.
   const [reward, setReward] = useState<{ total: string; fees: string } | null>(null);
   const [rewardError, setRewardError] = useState(false);
+  const [uncles, setUncles] = useState<{ hash: string; number: number; miner: string }[] | null>(null);
+
+  useEffect(() => {
+    if (!block || !block.uncles?.length) { setUncles(null); return; }
+    let active = true;
+    rpcService
+      .batch(block.uncles.map((_, i) => ({ method: 'eth_getUncleByBlockNumberAndIndex', params: ['0x' + block.number.toString(16), '0x' + i.toString(16)] })))
+      .then((res) => {
+        if (active) setUncles(res.filter(Boolean).map((u: any) => ({ hash: u.hash, number: parseInt(u.number, 16), miner: u.miner })));
+      })
+      .catch(() => { if (active) setUncles([]); });
+    return () => { active = false; };
+  }, [block]);
 
   useEffect(() => {
     if (!block) return;
@@ -297,6 +310,34 @@ export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
               )}
             </div>
           </div>
+
+          {/* Uncles included by this block */}
+          {block.uncles?.length > 0 && (
+            <div className="py-3.5 sm:grid sm:grid-cols-3 sm:gap-4 items-start">
+              <span className="text-slate-500 font-semibold flex items-center gap-1.5">
+                <GitBranch className="w-4 h-4 text-amber-500" />
+                Uncles:
+              </span>
+              <div className="sm:col-span-2 mt-1 sm:mt-0 space-y-1.5">
+                {(uncles ?? block.uncles.map((hash) => ({ hash, number: 0, miner: '' }))).map((u) => (
+                  <div key={u.hash} className="text-xs font-mono flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    {u.number > 0 && <span className="font-bold text-slate-900">#{u.number.toLocaleString()}</span>}
+                    <span className="text-slate-500 break-all">{u.hash.slice(0, 18)}…</span>
+                    {u.miner && (
+                      <button onClick={() => onSelectAddress(u.miner)} className="text-[#016976] font-semibold hover:underline cursor-pointer">
+                        {u.miner.slice(0, 8)}…{u.miner.slice(-4)}
+                      </button>
+                    )}
+                    {u.number > 0 && (
+                      <span className="text-emerald-700 font-bold">
+                        +{(8 - (block.number - u.number)) / 8} BTN to uncle miner
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Difficulty & Hashrate */}
           <div className="py-3.5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">

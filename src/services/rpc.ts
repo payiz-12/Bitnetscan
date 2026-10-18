@@ -168,6 +168,35 @@ class BitnetRpcService {
     return numbers.map((n) => this.blockCache.get(n)).filter((b): b is Block => !!b);
   }
 
+  /**
+   * Block headers for arbitrary heights, in the order given (unknown heights are skipped).
+   * Missing headers are fetched in JSON-RPC batches of 100, four batches at a time.
+   * With `cache: false` (long historical samples) the fetched headers are not kept in memory.
+   */
+  public async getBlockHeadersByNumbers(numbers: number[], { cache = true }: { cache?: boolean } = {}): Promise<Block[]> {
+    const wanted = numbers.filter((n) => Number.isInteger(n) && n >= 0);
+    const fetched = new Map<number, Block>();
+    const missing = [...new Set(wanted.filter((n) => !this.blockCache.has(n)))];
+    const chunks: number[][] = [];
+    for (let i = 0; i < missing.length; i += 100) chunks.push(missing.slice(i, i + 100));
+    const worker = async () => {
+      for (let chunk = chunks.shift(); chunk; chunk = chunks.shift()) {
+        const results = await this.batch(chunk.map((n) => ({ method: 'eth_getBlockByNumber', params: ['0x' + n.toString(16), false] })), 15000);
+        results.forEach((raw) => {
+          if (!raw) return;
+          const block = this.parseRawBlock(raw);
+          fetched.set(block.number, block);
+          if (!cache) return;
+          // Headers carry no transaction objects; never let one replace a cached full block.
+          if (!this.blockCache.has(block.number)) this.blockCache.set(block.number, block);
+          if (!this.blockCache.has(block.hash.toLowerCase())) this.blockCache.set(block.hash.toLowerCase(), block);
+        });
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(4, chunks.length) }, worker));
+    return wanted.map((n) => this.blockCache.get(n) ?? fetched.get(n)).filter((b): b is Block => !!b);
+  }
+
   private async rawRequest(method: string, params: any[] = [], timeoutMs = 2500): Promise<any> {
     // In-flight request deduplication for identical concurrent queries
     const dedupKey = `${method}:${JSON.stringify(params)}:${timeoutMs}`;

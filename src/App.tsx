@@ -17,6 +17,9 @@ const ConsoleView = lazy(() => import('./views/ConsoleView').then((m) => ({ defa
 const NetworkView = lazy(() => import('./views/NetworkView').then((m) => ({ default: m.NetworkView })));
 const RichListView = lazy(() => import('./views/RichListView').then((m) => ({ default: m.RichListView })));
 const ContractsView = lazy(() => import('./views/ContractsView').then((m) => ({ default: m.ContractsView })));
+const ChartsView = lazy(() => import('./views/ChartsView').then((m) => ({ default: m.ChartsView })));
+const UnclesView = lazy(() => import('./views/UnclesView').then((m) => ({ default: m.UnclesView })));
+const SupplyView = lazy(() => import('./views/SupplyView').then((m) => ({ default: m.SupplyView })));
 
 const PageFallback: React.FC = () => (
   <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-500" role="status">
@@ -69,6 +72,9 @@ const parseHash = (): { view: string; param?: string | number } => {
   if (route === 'contracts' || route === 'contract') return { view: 'contracts' };
   if (route === 'mining' || route === 'miner') return { view: 'mining' };
   if (route === 'console') return { view: 'console' };
+  if (route === 'charts' || route === 'stats') return { view: 'charts' };
+  if (route === 'uncles' || route === 'uncle') return { view: 'uncles' };
+  if (route === 'supply' || route === 'market') return { view: 'supply' };
   if (route === 'nodes' || route === 'network' || route === 'rpc' || route === 'rpc-status') return { view: 'nodes' };
 
   return { view: 'dashboard' };
@@ -417,6 +423,7 @@ export const App: React.FC = () => {
               onBack={handleBack}
               onSelectBlock={handleSelectBlock}
               onSelectAddress={handleSelectAddress}
+              onViewUncles={() => navigateTo('uncles')}
             />
           )}
 
@@ -500,6 +507,22 @@ export const App: React.FC = () => {
 
           {currentView === 'nodes' && (
             <NetworkView stats={stats} />
+          )}
+
+          {currentView === 'charts' && (
+            <ChartsView onNavigate={(view) => navigateTo(view)} />
+          )}
+
+          {currentView === 'uncles' && (
+            <UnclesView
+              onSelectBlock={handleSelectBlock}
+              onSelectAddress={handleSelectAddress}
+              onNavigate={(view) => navigateTo(view)}
+            />
+          )}
+
+          {currentView === 'supply' && (
+            <SupplyView stats={stats} onNavigate={(view) => navigateTo(view)} />
           )}
           </Suspense>
         </ErrorBoundary>

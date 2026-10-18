@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search, X, Box, ArrowRightLeft, Wallet, FileCode, Coins, Image as ImageIcon, Cpu, Trophy,
-  Layers, Terminal, Activity, Loader2, CornerDownLeft, SearchX,
+  Layers, Terminal, Activity, Loader2, CornerDownLeft, SearchX, LineChart, GitBranch, PieChart,
 } from 'lucide-react';
 import { rpcService } from '../services/rpc';
 import { KNOWN_BTS20_TOKENS } from '../services/explorerApi';
@@ -62,7 +62,10 @@ const PAGES: { view: string; label: string; keywords: string; icon: IconType }[]
   { view: 'contracts', label: 'Verified Contracts', keywords: 'contract source code', icon: FileCode },
   { view: 'mining', label: 'Mining & Hashrate', keywords: 'miner pool hashrate difficulty', icon: Cpu },
   { view: 'console', label: 'JSON-RPC Console', keywords: 'rpc developer console', icon: Terminal },
-  { view: 'nodes', label: 'Network & RPC', keywords: 'network node rpc status health chain id epoch dag pool api supply', icon: Activity },
+  { view: 'nodes', label: 'Network & RPC', keywords: 'network node rpc status health chain id epoch dag pool api', icon: Activity },
+  { view: 'charts', label: 'Network Charts', keywords: 'charts history hashrate difficulty block time uncle rate miner share', icon: LineChart },
+  { view: 'uncles', label: 'Uncle Blocks', keywords: 'uncle uncles ommer stale orphan', icon: GitBranch },
+  { view: 'supply', label: 'Supply & Market', keywords: 'supply market cap circulating inflation issuance price emission', icon: PieChart },
 ];
 
 // Named, locally known addresses that can be found by name, symbol or address prefix.

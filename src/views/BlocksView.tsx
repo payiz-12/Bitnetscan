@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   Box, ArrowLeft, RefreshCw, ChevronLeft, ChevronRight, Clock, 
-  Copy, Check, Layers, Cpu, Flame, ExternalLink, ArrowRight
+  Copy, Check, Layers, Cpu, Flame, ExternalLink, ArrowRight, GitBranch
 } from 'lucide-react';
 import { Block } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
@@ -12,6 +12,7 @@ interface BlocksViewProps {
   onBack: () => void;
   onSelectBlock: (blockNumber: number) => void;
   onSelectAddress: (address: string) => void;
+  onViewUncles?: () => void;
 }
 
 export const BlocksView: React.FC<BlocksViewProps> = ({
@@ -19,6 +20,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
   onBack,
   onSelectBlock,
   onSelectAddress,
+  onViewUncles,
 }) => {
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -173,6 +175,16 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
               Go
             </button>
           </form>
+
+          {onViewUncles && (
+            <button
+              onClick={onViewUncles}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-900 text-xs font-bold border border-slate-200 cursor-pointer shadow-xs transition-colors shrink-0"
+            >
+              <GitBranch className="w-3.5 h-3.5 text-amber-600" />
+              <span>Uncles</span>
+            </button>
+          )}
 
           <button
             onClick={handleRefresh}

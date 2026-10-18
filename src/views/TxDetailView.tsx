@@ -8,6 +8,7 @@ import { rpcService } from '../services/rpc';
 import { explorerApiService } from '../services/explorerApi';
 import { decodeTransactionInput, decodeEventLog } from '../services/decoder';
 import { ethers } from 'ethers';
+import { AddressTag } from '../components/AddressTag';
 
 interface TxDetailViewProps {
   txHash: string;
@@ -399,6 +400,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
               >
                 {tx.from}
               </span>
+              <AddressTag address={tx.from} />
               <button
                 onClick={() => copyToClipboard(tx.from, 'from')}
                 className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-800 transition-colors"
@@ -424,6 +426,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
                   >
                     {tx.to}
                   </span>
+                  <AddressTag address={tx.to} />
                   <button
                     onClick={() => copyToClipboard(tx.to!, 'to')}
                     className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-800 transition-colors"

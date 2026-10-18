@@ -12,6 +12,8 @@ import { statsHistoryService } from '../services/statsHistory';
 import { NetworkActivityCharts } from '../components/NetworkActivityCharts';
 import { priceService, BtnPriceData } from '../services/priceService';
 import { isPageHidden } from '../services/pageVisibility';
+import { AddressTag } from '../components/AddressTag';
+import { getAddressLabel } from '../services/addressLabels';
 
 interface DashboardViewProps {
   stats: NetworkStats | null;
@@ -695,8 +697,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   >
                     {truncateAddress(acc.address)}
                   </span>
-                  <span className="text-[10px] text-slate-500 font-sans block mt-0.5">
-                    {acc.name || (acc.isContract ? 'Contract' : 'Wallet')}{acc.txCount !== null ? ` · ${acc.txCount.toLocaleString()} sent` : ''}
+                  <span className="text-[10px] text-slate-500 font-sans flex items-center gap-1 mt-0.5 min-w-0">
+                    {getAddressLabel(acc.address)
+                      ? <AddressTag address={acc.address} />
+                      : <span>{acc.name || (acc.isContract ? 'Contract' : 'Wallet')}</span>}
+                    {acc.txCount !== null && <span className="truncate">· {acc.txCount.toLocaleString()} sent</span>}
                   </span>
                 </div>
               </div>

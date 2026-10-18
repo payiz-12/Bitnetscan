@@ -30,7 +30,12 @@ BitnetScan is a block explorer for the Bitnet Money proof-of-work EVM chain (cha
 - **Addresses** – balance, nonce, transaction history, BTS-20 tokens, NFTs, mined blocks, contract bytecode and a read-only contract caller.
 - **Top accounts** – ranking by balance from the Bitnet explorer, with each balance read live from the RPC.
 - **Tokens, NFTs and contracts** – BTS-20 tokens, NFT collections (IPFS content verified against its CID) and verified contracts.
-- **Mining** – miner share of the last 200 blocks, Nakamoto coefficient, worker counts published by pools, pool servers and a reward calculator.
+- **Mining** – miner share of the last 200 blocks, Nakamoto coefficient, worker counts published by pools, pool servers and a profitability calculator (GPU presets, power cost, pool fee, break-even price).
+- **Charts** – hashrate, difficulty, block time, uncle rate and miner share over 7 days, 30 days, 1 year or all time, computed from block headers.
+- **Uncles** – uncles in the last 2,000 blocks with depth and reward, and the uncle share of each miner. Uncles are read over RPC because the explorer indexer lists only some of them.
+- **Supply & market** – total, circulating and burned supply, issuance measured from recent blocks, annual inflation, a projection, top-holder concentration and NestEx market data.
+- **Address labels** – pools, solo miners, burn addresses, tokens and verified contracts, plus addresses that received recent payouts from a pool.
+- **Installable** – a web app manifest and a service worker, so the site can be added to a phone's home screen.
 - **Network** – chain parameters, Ethash epoch and DAG size, reward rules, endpoints and wallet config for pool and node operators.
 - **Developer tools** – JSON-RPC console, RPC endpoint status and a public API.
 

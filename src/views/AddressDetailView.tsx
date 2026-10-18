@@ -15,6 +15,7 @@ import {
 } from '../services/nftSyncService';
 import { NftImage } from '../components/NftImage';
 import { blockRewardLabel } from '../services/blockReward';
+import { AddressTag } from '../components/AddressTag';
 import { ethers } from 'ethers';
 
 interface AddressDetailViewProps {
@@ -575,6 +576,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     ? 'Checking…'
                     : 'EOA Wallet'}
                 </span>
+                <AddressTag address={address} className="!text-[11px] !px-2 !py-0.5 !rounded-full" />
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <span className="font-mono text-xs sm:text-sm text-slate-900 font-bold break-all">

@@ -7,6 +7,27 @@ import { KNOWN_MINING_POOLS } from '../data/miningPools';
 import { isPageHidden } from '../services/pageVisibility';
 import { loadMinerSample, getCachedMinerSample } from '../services/minerSample';
 import { COOLPOOL_ADDR, GTPOOL_ADDR } from '../services/miningPoolStats';
+import { loadRecentScan, getCachedRecentScan, RecentScan, issuancePerBlock, scanBlockTime } from '../services/chainScan';
+import { ETHASH_EPOCH_LENGTH, ethashDagSize } from '../services/ethash';
+
+// Typical tuned Ethash hashrate and power draw (full-hashrate, non-LHR cards). Real cards vary.
+const GPU_PRESETS = [
+  { name: 'NVIDIA RTX 4090', mhs: 130, watts: 300 },
+  { name: 'NVIDIA RTX 3090', mhs: 120, watts: 290 },
+  { name: 'NVIDIA RTX 3080', mhs: 97, watts: 230 },
+  { name: 'NVIDIA RTX 3070', mhs: 61, watts: 120 },
+  { name: 'NVIDIA RTX 3060 Ti', mhs: 60, watts: 120 },
+  { name: 'NVIDIA RTX 2080 Ti', mhs: 57, watts: 200 },
+  { name: 'NVIDIA GTX 1080 Ti', mhs: 45, watts: 200 },
+  { name: 'NVIDIA GTX 1660 Super', mhs: 31, watts: 80 },
+  { name: 'AMD RX 6900 XT', mhs: 64, watts: 150 },
+  { name: 'AMD RX 6800 XT', mhs: 63, watts: 150 },
+  { name: 'AMD RX 6800', mhs: 62, watts: 140 },
+  { name: 'AMD RX 6700 XT', mhs: 47, watts: 110 },
+  { name: 'AMD RX 6600 XT', mhs: 32, watts: 60 },
+  { name: 'AMD RX 5700 XT', mhs: 54, watts: 130 },
+  { name: 'AMD RX 580 8GB', mhs: 31, watts: 120 },
+];
 
 interface MiningViewProps {
   stats: NetworkStats | null;
@@ -17,6 +38,29 @@ interface MiningViewProps {
 export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onSelectAddress }) => {
   const [userHashrate, setUserHashrate] = useState('100'); // in MH/s
   const [unit, setUnit] = useState<'MH' | 'GH'>('MH');
+  const [gpuPreset, setGpuPreset] = useState('');
+  const [gpuCount, setGpuCount] = useState('1');
+  const [powerWatts, setPowerWatts] = useState('');
+  const [electricityPrice, setElectricityPrice] = useState('0.10');
+  const [poolFee, setPoolFee] = useState('0');
+  const [scan, setScan] = useState<RecentScan | null>(() => getCachedRecentScan());
+
+  React.useEffect(() => {
+    let active = true;
+    loadRecentScan().then((s) => { if (active) setScan(s); }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  const applyPreset = (name: string, count: string) => {
+    setGpuPreset(name);
+    setGpuCount(count);
+    const gpu = GPU_PRESETS.find((g) => g.name === name);
+    const n = Math.max(1, Math.floor(Number(count) || 1));
+    if (!gpu) return;
+    setUnit('MH');
+    setUserHashrate(String(gpu.mhs * n));
+    setPowerWatts(String(gpu.watts * n));
+  };
   const [priceData, setPriceData] = useState<BtnPriceData>(priceService.getCachedPrice());
 
   React.useEffect(() => {
@@ -87,10 +131,15 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
     return [...miningSummary.miners, ...idle];
   }, [miningSummary, poolStats]);
 
-  // PoW calculations from the measured average block time (1 BTN base subsidy per block).
-  const avgBlockTime = stats?.avgBlockTimeSeconds && stats.avgBlockTimeSeconds > 0 ? stats.avgBlockTimeSeconds : null;
+  // Block time and BTN created per block over the last 2,000 blocks (subsidy + uncle rewards);
+  // until that scan is in, the 120-block average and the 1 BTN subsidy alone.
+  const scanTime = scan ? scanBlockTime(scan) : null;
+  const avgBlockTime = scanTime ?? (stats?.avgBlockTimeSeconds && stats.avgBlockTimeSeconds > 0 ? stats.avgBlockTimeSeconds : null);
   const blocksPerDay = avgBlockTime ? Math.round(86400 / avgBlockTime) : null;
-  const dailyTotalReward = (blocksPerDay ?? 0) * 1.0;
+  const rewardPerBlock = scan ? issuancePerBlock(scan) : 1.0;
+  const dailyTotalReward = (blocksPerDay ?? 0) * rewardPerBlock;
+  const epoch = stats?.latestBlock ? Math.floor(stats.latestBlock / ETHASH_EPOCH_LENGTH) : null;
+  const dagGiB = epoch !== null ? ethashDagSize(epoch) / 2 ** 30 : null;
 
   // Estimate user share:
   const numericHashrate = Math.max(0, parseFloat(userHashrate) || 0);
@@ -100,9 +149,17 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
   const netRateInH = stats?.hashrateHps ?? 0;
   const userShare = netRateInH > 0 ? userRateInH / (netRateInH + userRateInH) : 0;
   const canEstimate = netRateInH > 0 && blocksPerDay !== null;
-  const estimatedDailyBtn = canEstimate ? (userShare * dailyTotalReward).toFixed(2) : '—';
-  const estimatedWeeklyBtn = canEstimate ? (userShare * dailyTotalReward * 7).toFixed(2) : '—';
-  const estimatedMonthlyBtn = canEstimate ? (userShare * dailyTotalReward * 30).toFixed(2) : '—';
+  const feeFactor = 1 - Math.min(100, Math.max(0, Number(poolFee) || 0)) / 100;
+  const dailyBtn = canEstimate ? userShare * dailyTotalReward * feeFactor : null;
+  const estimatedDailyBtn = dailyBtn !== null ? dailyBtn.toFixed(2) : '—';
+  const estimatedWeeklyBtn = dailyBtn !== null ? (dailyBtn * 7).toFixed(2) : '—';
+  const estimatedMonthlyBtn = dailyBtn !== null ? (dailyBtn * 30).toFixed(2) : '—';
+  const watts = Math.max(0, Number(powerWatts) || 0);
+  const dailyPowerCost = (watts * 24 / 1000) * Math.max(0, Number(electricityPrice) || 0);
+  const dailyRevenueUsd = dailyBtn !== null && priceData.available ? dailyBtn * priceData.priceUsd : null;
+  const dailyProfitUsd = dailyRevenueUsd !== null ? dailyRevenueUsd - dailyPowerCost : null;
+  const breakEvenPrice = dailyBtn && dailyBtn > 0 && dailyPowerCost > 0 ? dailyPowerCost / dailyBtn : null;
+  const money = (v: number) => `${v < 0 ? '−' : ''}$${Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <div className="space-y-5 sm:space-y-8 w-full animate-fade-in">
@@ -190,40 +247,109 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
           <h3 className="text-lg font-bold text-slate-900">Mining Profitability Calculator</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-          <div className="md:col-span-2 space-y-2">
-            <label className="block text-xs font-semibold text-slate-700">
-              Your Mining Device Hashrate
-            </label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="sm:col-span-2 space-y-2">
+            <label htmlFor="gpu-preset" className="block text-xs font-semibold text-slate-700">GPU (optional)</label>
+            <select
+              id="gpu-preset"
+              value={gpuPreset}
+              onChange={(e) => applyPreset(e.target.value, gpuCount)}
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-slate-900 text-sm font-semibold shadow-xs cursor-pointer"
+            >
+              <option value="">Enter hashrate and power yourself</option>
+              {GPU_PRESETS.map((g) => (
+                <option key={g.name} value={g.name}>{g.name} · {g.mhs} MH/s · {g.watts} W</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="gpu-count" className="block text-xs font-semibold text-slate-700">Number of GPUs</label>
+            <input
+              id="gpu-count"
+              type="number"
+              min={1}
+              value={gpuCount}
+              onChange={(e) => applyPreset(gpuPreset, e.target.value)}
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-[#016976] shadow-xs"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+          <div className="space-y-2">
+            <label htmlFor="calc-hashrate" className="block text-xs font-semibold text-slate-700">Hashrate</label>
             <div className="flex gap-2">
               <input
+                id="calc-hashrate"
                 type="number"
+                min={0}
                 value={userHashrate}
-                onChange={(e) => setUserHashrate(e.target.value)}
+                onChange={(e) => { setUserHashrate(e.target.value); setGpuPreset(''); }}
                 placeholder="100"
-                className="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-[#016976] shadow-xs"
+                className="flex-1 min-w-0 bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-[#016976] shadow-xs"
               />
               <select
                 value={unit}
-                onChange={(e) => setUnit(e.target.value as any)}
-                className="bg-white border border-slate-300 rounded-xl px-4 py-2.5 font-mono text-slate-900 text-sm font-bold shadow-xs cursor-pointer"
+                onChange={(e) => setUnit(e.target.value as 'MH' | 'GH')}
+                aria-label="Hashrate unit"
+                className="bg-white border border-slate-300 rounded-xl px-2 py-2.5 font-mono text-slate-900 text-sm font-bold shadow-xs cursor-pointer"
               >
                 <option value="MH">MH/s</option>
                 <option value="GH">GH/s</option>
               </select>
             </div>
           </div>
-
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-            <span className="text-xs text-slate-500 block font-medium">Estimated Network Share</span>
-            <span className="text-xl font-black font-mono text-[#016976]">
-              {(userShare * 100).toFixed(3)}%
-            </span>
+          <div className="space-y-2">
+            <label htmlFor="calc-power" className="block text-xs font-semibold text-slate-700">Power draw (W)</label>
+            <input
+              id="calc-power"
+              type="number"
+              min={0}
+              value={powerWatts}
+              onChange={(e) => { setPowerWatts(e.target.value); setGpuPreset(''); }}
+              placeholder="0"
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-[#016976] shadow-xs"
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="calc-electricity" className="block text-xs font-semibold text-slate-700">Electricity ($ per kWh)</label>
+            <input
+              id="calc-electricity"
+              type="number"
+              min={0}
+              step="0.01"
+              value={electricityPrice}
+              onChange={(e) => setElectricityPrice(e.target.value)}
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-[#016976] shadow-xs"
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="calc-fee" className="block text-xs font-semibold text-slate-700">Pool fee (%)</label>
+            <input
+              id="calc-fee"
+              type="number"
+              min={0}
+              max={100}
+              step="0.1"
+              value={poolFee}
+              onChange={(e) => setPoolFee(e.target.value)}
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 font-mono text-slate-900 text-sm focus:outline-none focus:border-[#016976] shadow-xs"
+            />
           </div>
         </div>
 
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500">
+          <span>Network share: <span className="font-bold text-slate-900">{(userShare * 100).toFixed(3)}%</span></span>
+          <span>
+            Reward per block: <span className="font-bold text-slate-900">{rewardPerBlock.toFixed(4)} BTN</span>
+            {scan ? ` (subsidy + uncle rewards, last ${(scan.to - scan.from + 1).toLocaleString()} blocks)` : ' (subsidy only, loading uncle data)'}
+          </span>
+          {coolPool?.feePercent !== undefined && <span>CoolPool fee: {coolPool.feePercent}%</span>}
+          {dagGiB !== null && <span>DAG: {dagGiB.toFixed(2)} GiB (epoch {epoch}); the GPU needs more memory than this</span>}
+        </div>
+
         {/* Reward Outcomes */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-center">
             <span className="text-xs text-emerald-800 block mb-1 font-semibold uppercase tracking-wider">Estimated Daily Rewards</span>
             <span className="text-2xl font-black font-mono text-emerald-700">
@@ -252,6 +378,30 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
             </span>
           </div>
         </div>
+
+        {/* Costs and profit */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+            <span className="text-xs text-slate-500 block font-semibold">Electricity per day</span>
+            <span className="text-xl font-black font-mono text-slate-900">{watts > 0 ? money(dailyPowerCost) : '—'}</span>
+            <span className="text-[11px] text-slate-500 block">{watts > 0 ? `${((watts * 24) / 1000).toFixed(2)} kWh` : 'Enter the power draw'}</span>
+          </div>
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+            <span className="text-xs text-slate-500 block font-semibold">Profit per day</span>
+            <span className="text-xl font-black font-mono text-slate-900">{dailyProfitUsd !== null ? money(dailyProfitUsd) : '—'}</span>
+            <span className={`text-[11px] font-semibold block ${dailyProfitUsd === null ? 'text-slate-500' : dailyProfitUsd >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+              {dailyProfitUsd === null ? (priceData.available ? 'Waiting for network data' : 'No NestEx price') : dailyProfitUsd >= 0 ? '▲ Rewards exceed electricity' : '▼ Electricity costs more than the rewards'}
+            </span>
+          </div>
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+            <span className="text-xs text-slate-500 block font-semibold">Break-even BTN price</span>
+            <span className="text-xl font-black font-mono text-slate-900">{breakEvenPrice !== null ? `$${breakEvenPrice.toPrecision(3)}` : '—'}</span>
+            <span className="text-[11px] text-slate-500 block">{priceData.available ? `NestEx now: ${priceData.priceFormatted}` : 'Price at which profit is zero'}</span>
+          </div>
+        </div>
+        <p className="text-[11px] text-slate-500">
+          Estimates assume the current network hashrate, block time and uncle rate stay the same. GPU figures are typical tuned Ethash values; your card may differ.
+        </p>
       </div>
 
       {/* How to Mine Quickstart Guide */}
