@@ -15,6 +15,7 @@ import { isPageHidden } from '../services/pageVisibility';
 import { AddressTag } from '../components/AddressTag';
 import { getAddressLabel } from '../services/addressLabels';
 import { SkeletonList } from '../components/Skeleton';
+import { MiningPickaxe } from '../components/MiningPickaxe';
 
 interface DashboardViewProps {
   stats: NetworkStats | null;
@@ -156,8 +157,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="grid grid-cols-2 min-[360px]:grid-cols-3 gap-1.5 sm:gap-4 mt-4 sm:mt-8">
           {/* Card 01: Latest Block */}
           <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-slate-200 hover:border-petrol hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 group">
-            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-petrol-50 border border-petrol-100 text-petrol flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-petrol group-hover:text-white group-hover:rotate-6 transition-all duration-300">
-              <Layers className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
+            <div className="relative w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center flex-shrink-0 shadow-2xs">
+              <MiningPickaxe />
             </div>
             <div className="min-w-0 flex-1 w-full">
               <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight sm:tracking-wider block truncate">
