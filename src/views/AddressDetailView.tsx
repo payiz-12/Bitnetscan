@@ -16,6 +16,7 @@ import {
 import { NftImage } from '../components/NftImage';
 import { blockRewardLabel } from '../services/blockReward';
 import { AddressTag } from '../components/AddressTag';
+import { Pickaxe3D } from '../components/Pickaxe3D';
 import { ethers } from 'ethers';
 
 interface AddressDetailViewProps {
@@ -541,7 +542,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               {isContract ? (
                 <FileCode className="w-7 h-7" />
               ) : minedBlocks.length > 0 ? (
-                <Pickaxe className="w-7 h-7 text-amber-600" />
+                <Pickaxe3D className="w-7 h-7" />
               ) : (
                 <User className="w-7 h-7 text-petrol" />
               )}
@@ -807,7 +808,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               }`}
             >
               <div className="flex items-center justify-between w-full">
-                <Pickaxe className="w-4 h-4" />
+                <Pickaxe3D className="w-4 h-4" />
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                   activeTab === 'mined-blocks' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
                 }`}>
@@ -937,7 +938,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <Pickaxe className="w-3.5 h-3.5" />
+            <Pickaxe3D className="w-3.5 h-3.5" />
             <span>Mined Blocks ({(minedBlocksTotalCount || minedBlocks.length).toLocaleString()})</span>
             {liveSyncFlash ? (
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
@@ -1270,7 +1271,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-xs">
-                <Pickaxe className="w-5 h-5 text-amber-600" />
+                <Pickaxe3D className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-slate-900">Mined Blocks</h3>
@@ -1309,7 +1310,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           ) : minedBlocks.length === 0 ? (
             <div className="p-12 text-center text-slate-500 text-xs border border-dashed border-slate-200 rounded-2xl space-y-3 bg-slate-50/50">
               <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-                <Pickaxe className="w-6 h-6" />
+                <Pickaxe3D className="w-6 h-6" />
               </div>
               <p className="font-bold text-slate-800 text-sm">
                 No mined blocks found for this wallet.
@@ -1329,7 +1330,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     className="py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0">
-                      <Pickaxe className="w-4 h-4 text-amber-600" />
+                      <Pickaxe3D className="w-4 h-4" />
                     </div>
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center justify-between gap-2">
