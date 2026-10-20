@@ -463,6 +463,7 @@ export const App: React.FC = () => {
               onBack={handleBack}
               onSelectBlock={handleSelectBlock}
               onSelectAddress={handleSelectAddress}
+              onNavigate={(view) => navigateTo(view)}
             />
           )}
 

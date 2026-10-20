@@ -17,6 +17,7 @@ import { NftImage } from '../components/NftImage';
 import { blockRewardLabel } from '../services/blockReward';
 import { AddressTag } from '../components/AddressTag';
 import { Pickaxe3D } from '../components/Pickaxe3D';
+import { BalanceHistory } from '../components/BalanceHistory';
 import { ethers } from 'ethers';
 
 interface AddressDetailViewProps {
@@ -697,6 +698,9 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Balance over time, from the archive node */}
+      <BalanceHistory address={address} />
 
       {/* Mobile Segmented Action Grid (sm:hidden) - Zero horizontal scrolling */}
       <div className="sm:hidden space-y-2">

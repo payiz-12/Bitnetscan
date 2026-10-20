@@ -81,14 +81,14 @@ export function getCachedHistory(range: HistoryRange): ChainHistory | null {
   return null;
 }
 
-async function header(n: number): Promise<Block> {
+export async function header(n: number): Promise<Block> {
   const [b] = await rpcService.getBlockHeadersByNumbers([n], { cache: false });
   if (!b) throw new Error(`Block ${n} unavailable`);
   return b;
 }
 
 /** Height of the last block mined at or before `target` (unix seconds), to within ~30 minutes. */
-async function blockAtTime(target: number, first: Block, last: Block): Promise<number> {
+export async function blockAtTime(target: number, first: Block, last: Block): Promise<number> {
   let lo = first;
   let hi = last;
   for (let step = 0; step < 30 && hi.number - lo.number > 1; step++) {

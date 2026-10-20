@@ -12,6 +12,10 @@ export const KNOWN_METHOD_SIGNATURES: Record<string, { name: string; params: str
   '0x06fdde03': { name: 'name', params: [] },
   '0x95d89b41': { name: 'symbol', params: [] },
 
+  // Wrapped Bitnet (WBTN, WETH9 interface)
+  '0xd0e30db0': { name: 'deposit', params: [] },
+  '0x2e1a7d4d': { name: 'withdraw', params: ['uint256 amount'] },
+
   // BTS-721 / ERC-721 (NFTs)
   '0x40c10f19': { name: 'mint', params: ['address to', 'uint256 tokenId'] },
   '0x42842e0e': { name: 'safeTransferFrom', params: ['address from', 'address to', 'uint256 tokenId'] },

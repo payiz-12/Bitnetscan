@@ -9,12 +9,15 @@ import { explorerApiService } from '../services/explorerApi';
 import { decodeTransactionInput, decodeEventLog } from '../services/decoder';
 import { ethers } from 'ethers';
 import { AddressTag } from '../components/AddressTag';
+import { TxConfirmations } from '../components/TxConfirmations';
+import { TxTrace } from '../components/TxTrace';
 
 interface TxDetailViewProps {
   txHash: string;
   onBack: () => void;
   onSelectBlock: (num: number) => void;
   onSelectAddress: (addr: string) => void;
+  onNavigate?: (view: string) => void;
 }
 
 export const TxDetailView: React.FC<TxDetailViewProps> = ({
@@ -22,6 +25,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
   onBack,
   onSelectBlock,
   onSelectAddress,
+  onNavigate,
 }) => {
   const [tx, setTx] = useState<Transaction | null>(null);
   const [receipt, setReceipt] = useState<any | null>(null);
@@ -369,6 +373,19 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
             </div>
           </div>
 
+          {/* Confirmations */}
+          {tx.blockNumber != null && (
+            <div className="py-3.5 sm:grid sm:grid-cols-3 sm:gap-4 items-start">
+              <span className="text-slate-500 font-semibold flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-petrol" />
+                Confirmations:
+              </span>
+              <div className="sm:col-span-2 mt-1 sm:mt-0">
+                <TxConfirmations blockNumber={tx.blockNumber} onNavigate={onNavigate} />
+              </div>
+            </div>
+          )}
+
           {/* Timestamp */}
           {blockTimestamp != null && (
             <div className="py-3.5 sm:grid sm:grid-cols-3 sm:gap-4 items-center">
@@ -606,7 +623,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
               {txStatus === 'success' ? 'Status 1: Success' : txStatus === 'pending' ? 'Status: Pending' : txStatus === 'failed' ? 'Status 0: Reverted' : 'Status: Unknown'}
             </span>
             <span className="text-[10px] text-slate-400 mt-1 block">
-              {tx.blockNumber != null ? `Block #${tx.blockNumber} Confirmed` : 'Pending Confirmation'}
+              {tx.blockNumber != null ? `Included in block #${tx.blockNumber.toLocaleString()}` : 'Pending Confirmation'}
             </span>
           </div>
         </div>
@@ -653,7 +670,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
                 <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 flex items-center justify-between font-mono shadow-2xs">
                   <span>EVM Execution: <strong className="text-slate-900">0x (No Calldata - Native Value Transfer)</strong></span>
                   <span className={`font-bold ${isSuccess ? 'text-emerald-700' : txStatus === 'pending' ? 'text-amber-600' : 'text-rose-700'}`}>
-                    {isSuccess ? '100% Finalized • No Revert Risk' : txStatus === 'pending' ? 'Pending Confirmation' : 'Transaction Failed'}
+                    {isSuccess ? 'Executed successfully' : txStatus === 'pending' ? 'Pending Confirmation' : 'Transaction Failed'}
                   </span>
                 </div>
               </div>
@@ -737,6 +754,9 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
           </div>
         )}
       </div>
+
+      {/* Internal transactions (call trace) */}
+      {tx.blockNumber != null && <TxTrace hash={tx.hash} onSelectAddress={onSelectAddress} />}
 
       {/* Event Logs Section if logs exist */}
       {receipt?.logs && receipt.logs.length > 0 && (
