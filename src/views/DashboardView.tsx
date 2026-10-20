@@ -16,6 +16,7 @@ import { AddressTag } from '../components/AddressTag';
 import { getAddressLabel } from '../services/addressLabels';
 import { SkeletonList } from '../components/Skeleton';
 import { MiningPickaxe } from '../components/MiningPickaxe';
+import { NextBlockRhythm } from '../components/NextBlockRhythm';
 
 interface DashboardViewProps {
   stats: NetworkStats | null;
@@ -120,8 +121,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }, [!!stats?.latestBlock]);
 
   const avgBlockTime = stats?.avgBlockTimeSeconds && stats.avgBlockTimeSeconds > 0 ? stats.avgBlockTimeSeconds : null;
-  const sinceLastBlock = recentBlocks[0] ? Math.max(0, nowSec - recentBlocks[0].timestamp) : 0;
-  const nextBlockProgress = avgBlockTime ? Math.min(100, Math.round((sinceLastBlock / avgBlockTime) * 100)) : null;
 
   return (
     <div className="space-y-5 sm:space-y-8 animate-fade-in">
@@ -347,57 +346,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <div className="divide-y divide-slate-100 lg:max-h-[560px] lg:overflow-y-auto">
-            {/* Upcoming Block Dashed Mining Slot */}
+            {/* Next block: the chain's recent block times with the block being mined growing live */}
             {(recentBlocks[0]?.number || stats?.latestBlock) && (
-              <div className="p-3 bg-petrol-50/20 border-b border-slate-100">
-                <div className="relative overflow-hidden rounded-xl border-2 border-dashed border-petrol/40 bg-white/85 p-3 shadow-2xs">
-                  {/* Time since the last block relative to the measured average block time */}
-                  {nextBlockProgress !== null && (
-                    <div
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-petrol-400/10 via-emerald-500/15 to-petrol-400/20 transition-all duration-1000 ease-linear pointer-events-none"
-                      style={{ width: `${nextBlockProgress}%` }}
-                    />
-                  )}
-
-                  <div className="relative z-10 flex items-center justify-between gap-3">
-                    {/* Left: Animated Icon & Next Block info */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl border-2 border-dashed border-petrol/60 bg-petrol-50/60 flex items-center justify-center text-petrol flex-shrink-0">
-                        <Box className="w-4 h-4 sm:w-5 sm:h-5 text-petrol" />
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-bold text-sm text-slate-800 tracking-tight">
-                            #{((recentBlocks[0]?.number || stats?.latestBlock || 0) + 1).toLocaleString()}
-                          </span>
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/90">
-                            Next block
-                          </span>
-                        </div>
-                        <div className="text-xs text-slate-500 font-mono mt-0.5">
-                          <span className="text-petrol-600 font-semibold">{sinceLastBlock}s</span> since last block
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right: Block Progress Meter */}
-                    {nextBlockProgress !== null && avgBlockTime && (
-                      <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
-                        <span className="font-mono font-bold text-xs text-petrol">
-                          {sinceLastBlock}s / {avgBlockTime.toFixed(1)}s
-                        </span>
-                        <div className="w-20 sm:w-28 bg-slate-200/80 rounded-full h-2 overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-petrol via-petrol-400 to-emerald-400 rounded-full transition-all duration-1000 ease-linear"
-                            style={{ width: `${nextBlockProgress}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <NextBlockRhythm
+                recentBlocks={recentBlocks}
+                latestBlock={stats?.latestBlock || 0}
+                nowSec={nowSec}
+                avgBlockTime={avgBlockTime}
+                onSelectBlock={onSelectBlock}
+              />
             )}
             {recentBlocks.length === 0 ? (
               <SkeletonList rows={6} label="Loading latest blocks" />
