@@ -11,6 +11,7 @@ import { ethers } from 'ethers';
 import { AddressTag } from '../components/AddressTag';
 import { TxConfirmations } from '../components/TxConfirmations';
 import { TxTrace } from '../components/TxTrace';
+import { ShareButton } from '../components/ShareButton';
 
 interface TxDetailViewProps {
   txHash: string;
@@ -317,7 +318,11 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
             </div>
           </div>
 
-          <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <ShareButton
+              path={`/tx/${tx.hash}`}
+              text={`Bitnet transaction: ${exactValueBtn} BTN on BitnetScan`}
+            />
             {txStatus === 'pending' ? (
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
                 <Clock className="w-4 h-4 text-amber-600 animate-pulse" />

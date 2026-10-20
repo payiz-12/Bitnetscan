@@ -7,6 +7,7 @@ import { Block, Transaction } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
 import { explorerApiService } from '../services/explorerApi';
 import { ethers } from 'ethers';
+import { ShareButton } from '../components/ShareButton';
 
 interface BlockDetailViewProps {
   blockNumberOrHash: number | string;
@@ -216,10 +217,10 @@ export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
       {/* Main Block Specs Card */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex items-center gap-3.5 pb-5 border-b border-slate-200">
-          <div className="w-12 h-12 rounded-2xl bg-petrol-50 border border-petrol-200 flex items-center justify-center text-petrol shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-petrol-50 border border-petrol-200 flex items-center justify-center text-petrol shadow-xs shrink-0">
             <Box className="w-6 h-6" />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
               Block <span className="font-mono text-petrol">#{block.number}</span>
               {block.number === 0 && (
@@ -231,6 +232,9 @@ export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
             <p className="text-xs text-slate-500 font-mono break-all mt-0.5 font-medium">
               Hash: {block.hash}
             </p>
+          </div>
+          <div className="self-start shrink-0">
+            <ShareButton path={`/block/${block.number}`} text={`Bitnet block #${block.number.toLocaleString('en-US')} on BitnetScan`} />
           </div>
         </div>
 

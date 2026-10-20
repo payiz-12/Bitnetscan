@@ -19,6 +19,7 @@ import { AddressTag } from '../components/AddressTag';
 import { Pickaxe3D } from '../components/Pickaxe3D';
 import { BalanceHistory } from '../components/BalanceHistory';
 import { ethers } from 'ethers';
+import { ShareButton } from '../components/ShareButton';
 
 interface AddressDetailViewProps {
   address: string;
@@ -599,6 +600,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 >
                   <QrCode className="w-3.5 h-3.5" />
                 </button>
+                <ShareButton path={`/address/${address}`} text={`Bitnet address ${address.slice(0, 6)}…${address.slice(-4)} on BitnetScan`} />
               </div>
             </div>
           </div>

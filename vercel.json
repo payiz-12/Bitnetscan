@@ -5,9 +5,14 @@
     }
   },
   "functions": {
-    "api/reorgs.js": { "maxDuration": 60 }
+    "api/reorgs.js": { "maxDuration": 60 },
+    "api/og.js": { "includeFiles": "api/_fonts/**" }
   },
   "rewrites": [
+    { "source": "/tx/:id", "destination": "/api/share?type=tx&id=:id" },
+    { "source": "/block/:id", "destination": "/api/share?type=block&id=:id" },
+    { "source": "/address/:id", "destination": "/api/share?type=address&id=:id" },
+    { "source": "/token/:id", "destination": "/api/share?type=address&id=:id" },
     { "source": "/api/coolpool/:path*", "destination": "https://coolpool.top/:path*" },
     {
       "source": "/api/rpc2/:path*",
