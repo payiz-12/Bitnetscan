@@ -533,6 +533,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
       {/* Main Address Card */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200">
+          <div className="min-w-0 space-y-3 sm:space-y-0">
           <div className="flex items-start gap-4">
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xs ${
               isContract 
@@ -581,7 +582,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 </span>
                 <AddressTag address={address} className="!text-[11px] !px-2 !py-0.5 !rounded-full" />
               </div>
-              <div className="flex items-center gap-2 mt-2">
+              <div className="hidden sm:flex items-center gap-2 mt-2">
                 <span className="font-mono text-xs sm:text-sm text-slate-900 font-bold break-all">
                   {address}
                 </span>
@@ -603,6 +604,31 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 <ShareButton path={`/address/${address}`} text={`Bitnet address ${address.slice(0, 6)}…${address.slice(-4)} on BitnetScan`} />
               </div>
             </div>
+          </div>
+
+          {/* Phones: the address gets the full card width, actions sit below it */}
+          <div className="sm:hidden space-y-2">
+            <div className="font-mono text-[11px] tracking-tight leading-relaxed text-slate-900 font-bold break-all bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+              {address}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => copyToClipboard(address)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:border-petrol hover:text-petrol cursor-pointer"
+              >
+                {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+              <button
+                onClick={() => setShowQr(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white text-slate-700 border border-slate-200 hover:border-petrol hover:text-petrol cursor-pointer"
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                QR code
+              </button>
+              <ShareButton path={`/address/${address}`} text={`Bitnet address ${address.slice(0, 6)}…${address.slice(-4)} on BitnetScan`} />
+            </div>
+          </div>
           </div>
 
           <div className="flex items-center gap-3">
