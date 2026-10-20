@@ -1,4 +1,4 @@
-// Share card layout (1200×630) for @vercel/og, written as plain element objects.
+// Share card layout (1200×630) for satori, written as plain element objects.
 import { readFile } from 'node:fs/promises';
 
 const h = (type, style, ...children) => ({
@@ -13,27 +13,35 @@ const BADGE = {
   Pending: ['#FFFBEB', '#B45309', '#FDE68A'],
 };
 
-let fontsJob = null;
-/** Inter 400/700/800 and JetBrains Mono 500, bundled in api/_fonts (SIL Open Font License). */
-export function loadFonts() {
-  if (!fontsJob) {
-    const file = (name) => readFile(new URL(`../_fonts/${name}.woff`, import.meta.url));
-    fontsJob = Promise.all([
-      file('inter-latin-400-normal'),
-      file('inter-latin-700-normal'),
-      file('inter-latin-800-normal'),
-      file('jetbrains-mono-latin-500-normal'),
-    ]).then(([r, b, x, m]) => [
-      { name: 'Inter', data: r, weight: 400, style: 'normal' },
-      { name: 'Inter', data: b, weight: 700, style: 'normal' },
-      { name: 'Inter', data: x, weight: 800, style: 'normal' },
-      { name: 'Mono', data: m, weight: 500, style: 'normal' },
-    ]);
+let assetsJob = null;
+/**
+ * Inter 400/700/800 and JetBrains Mono 500 (SIL Open Font License) from api/_fonts and the
+ * BitnetScan logo from api/_assets, read once per function instance.
+ */
+export function loadAssets() {
+  if (!assetsJob) {
+    const file = (path) => readFile(new URL(path, import.meta.url));
+    assetsJob = Promise.all([
+      file('../_fonts/inter-latin-400-normal.woff'),
+      file('../_fonts/inter-latin-700-normal.woff'),
+      file('../_fonts/inter-latin-800-normal.woff'),
+      file('../_fonts/jetbrains-mono-latin-500-normal.woff'),
+      file('../_assets/bitnetscan-icon.png'),
+    ]).then(([r, b, x, m, logo]) => ({
+      fonts: [
+        { name: 'Inter', data: r, weight: 400, style: 'normal' },
+        { name: 'Inter', data: b, weight: 700, style: 'normal' },
+        { name: 'Inter', data: x, weight: 800, style: 'normal' },
+        { name: 'Mono', data: m, weight: 500, style: 'normal' },
+      ],
+      logo: `data:image/png;base64,${logo.toString('base64')}`,
+    }));
+    assetsJob.catch(() => { assetsJob = null; });
   }
-  return fontsJob;
+  return assetsJob;
 }
 
-export function renderCard(card, origin) {
+export function renderCard(card, origin, assets) {
   const size = card.headline.length > 26 ? 50 : card.headline.length > 18 ? 62 : 76;
   const [badgeBg, badgeText, badgeBorder] = BADGE[card.badge] || ['#EBF6F7', '#016976', '#D3ECEF'];
   const host = origin.replace(/^https?:\/\//, '');
@@ -49,7 +57,7 @@ export function renderCard(card, origin) {
       h(
         'div',
         { display: 'flex', alignItems: 'center' },
-        h('div', { display: 'flex', width: 64, height: 64, borderRadius: 18, background: '#FFFFFF', border: '2px solid #E2E8F0', alignItems: 'center', justifyContent: 'center' }, img(`${origin}/bitnetscan-icon.png`, { width: 46, height: 46 })),
+        h('div', { display: 'flex', width: 64, height: 64, borderRadius: 18, background: '#FFFFFF', border: '2px solid #E2E8F0', alignItems: 'center', justifyContent: 'center' }, img(assets.logo, { width: 46, height: 46 })),
         h('div', { display: 'flex', marginLeft: 18, fontSize: 40, fontWeight: 800, color: '#162334' }, 'Bitnet', h('span', { color: '#016976' }, 'Scan'))
       ),
       h('div', { display: 'flex', fontSize: 24, fontWeight: 700, color: '#016976', background: '#EBF6F7', border: '2px solid #D3ECEF', borderRadius: 999, padding: '8px 22px' }, 'Bitnet · Chain 210')
@@ -59,7 +67,7 @@ export function renderCard(card, origin) {
       'div',
       { display: 'flex', flexDirection: 'column', flex: 1, marginTop: 28, background: '#FFFFFF', border: '2px solid #E2E8F0', borderRadius: 32, padding: '34px 44px', position: 'relative', overflow: 'hidden' },
       // Faint brand mark filling the right side of the card
-      img(`${origin}/bitnetscan-icon.png`, { position: 'absolute', right: -40, top: 40, width: 360, height: 360, opacity: 0.06 }),
+      img(assets.logo, { position: 'absolute', right: -40, top: 40, width: 360, height: 360, opacity: 0.06 }),
       h(
         'div',
         { display: 'flex', alignItems: 'center' },

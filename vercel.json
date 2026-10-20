@@ -6,7 +6,10 @@
   },
   "functions": {
     "api/reorgs.js": { "maxDuration": 60 },
-    "api/og.js": { "includeFiles": "api/_fonts/**" }
+    "api/og.js": {
+      "maxDuration": 30,
+      "includeFiles": "{api/_fonts/**,api/_assets/**,node_modules/@resvg/resvg-wasm/index_bg.wasm}"
+    }
   },
   "rewrites": [
     { "source": "/tx/:id", "destination": "/api/share?type=tx&id=:id" },
