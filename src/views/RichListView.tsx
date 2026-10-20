@@ -316,7 +316,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                     >
                       {acc.address.slice(0, 6)}...{acc.address.slice(-4)}
                     </span>
-                    <AddressTag address={acc.address} />
+                    <AddressTag address={acc.address} hide={['solo']} />
                     {!getAddressLabel(acc.address) && (acc.name || acc.isContract) && (
                       <span className="shrink-0 px-1.5 py-px rounded-md bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-700 font-sans truncate max-w-[8rem]">
                         {acc.name || 'Contract'}
@@ -431,7 +431,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
                         >
                           {acc.address}
                         </span>
-                        <AddressTag address={acc.address} />
+                        <AddressTag address={acc.address} hide={['solo']} />
                         {!getAddressLabel(acc.address) && (acc.name || acc.isContract) && (
                           <span className="shrink-0 px-1.5 py-px rounded-md bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-700 font-sans truncate max-w-[8rem]">
                             {acc.name || 'Contract'}

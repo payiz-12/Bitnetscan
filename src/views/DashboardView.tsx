@@ -701,7 +701,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     {truncateAddress(acc.address)}
                   </span>
                   <span className="text-[10px] text-slate-500 font-sans flex items-center gap-1 mt-0.5 min-w-0">
-                    {getAddressLabel(acc.address)
+                    {getAddressLabel(acc.address) && getAddressLabel(acc.address)?.kind !== 'solo'
                       ? <AddressTag address={acc.address} />
                       : <span>{acc.name || (acc.isContract ? 'Contract' : 'Wallet')}</span>}
                     {acc.txCount !== null && <span className="truncate">· {acc.txCount.toLocaleString()} sent</span>}

@@ -10,10 +10,13 @@ const KIND_STYLES: Record<AddressLabelKind, string> = {
   contract: 'bg-indigo-50 border-indigo-200 text-indigo-700',
 };
 
-/** Small badge naming a known address (pool, miner, burn address, token or verified contract). */
-export const AddressTag: React.FC<{ address: string | null | undefined; className?: string }> = ({ address, className = '' }) => {
+/**
+ * Small badge naming a known address (pool, miner, burn address, token or verified contract).
+ * `hide` leaves out the listed kinds, e.g. the solo-miner label in the rich list.
+ */
+export const AddressTag: React.FC<{ address: string | null | undefined; className?: string; hide?: AddressLabelKind[] }> = ({ address, className = '', hide }) => {
   const label = useAddressLabel(address);
-  if (!label) return null;
+  if (!label || hide?.includes(label.kind)) return null;
   return (
     <span
       title={label.detail}
