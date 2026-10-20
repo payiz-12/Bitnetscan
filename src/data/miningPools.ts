@@ -7,6 +7,8 @@ export interface MiningEntityInfo {
   categoryLabel: string;
   badge: string;
   description: string;
+  /** Solo-mode pool: each miner gets the whole reward of the blocks it finds, nothing is shared. */
+  soloMode?: boolean;
 }
 
 export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
@@ -31,6 +33,7 @@ export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
     categoryLabel: 'Known Mining',
     badge: 'Known Pool',
     description: 'Active public mining pool for Bitnet Ethash PoW.',
+    soloMode: true, // coolpool.top/api/coin/btnsolo reports type "solo"
   },
   // 3. Unknown Mining: Solo Miner / Node
   '0x6afcdfec8066a7fbf1295f10c4907924e99e72a4': {

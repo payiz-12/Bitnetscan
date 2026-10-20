@@ -73,7 +73,9 @@ export function loadPoolPayoutLabels(): Promise<Map<string, AddressLabel>> {
       }
       for (const [addr, n] of counts) {
         if (n >= MIN_PAYOUTS && !staticLabels.has(addr) && !labels.has(addr)) {
-          labels.set(addr, { name: `${pool.name} miner`, kind: 'miner', detail: `Received ${n} payouts from the ${pool.name} pool address in its recent transactions` });
+          labels.set(addr, pool.soloMode
+            ? { name: `${pool.name} solo miner`, kind: 'solo', detail: `Mines solo through ${pool.name}: received ${n} block rewards from the ${pool.name} address in its recent transactions` }
+            : { name: `${pool.name} miner`, kind: 'miner', detail: `Received ${n} payouts from the ${pool.name} pool address in its recent transactions` });
         }
       }
     }));
