@@ -33,6 +33,7 @@ BitnetScan is a block explorer for the Bitnet Money proof-of-work EVM chain (cha
 - **Mining** – miner share of the last 200 blocks, Nakamoto coefficient, worker counts published by pools, pool servers and a profitability calculator (GPU presets, power cost, pool fee, break-even price).
 - **Charts** – hashrate, difficulty, block time, uncle rate and miner share over 7 days, 30 days, 1 year or all time, computed from block headers.
 - **Uncles** – uncles in the last 2,000 blocks with depth and reward, and the uncle share of each miner. Uncles are read over RPC because the explorer indexer lists only some of them.
+- **Chain security** – share of the largest miners over the last 100 to 2,000 blocks and 30 days, Nakamoto coefficient, the largest miner's share over time, confirmations to wait against a given hashrate share (Bitcoin paper, section 11), uncle depth, reorganizations recorded by the explorer and a live reorganization watch, and hashrate against its 30-day average.
 - **Supply & market** – total, circulating and burned supply, issuance measured from recent blocks, annual inflation, a projection, top-holder concentration and NestEx market data.
 - **Address labels** – pools, solo miners, burn addresses, tokens and verified contracts, plus addresses that received recent payouts from a pool.
 - **Installable** – a web app manifest and a service worker, so the site can be added to a phone's home screen.
@@ -61,6 +62,7 @@ Values that cannot be read are shown as unknown rather than estimated.
 | [`/api/supply`](https://bitnetscan.vercel.app/api/supply) | Circulating supply in BTN as plain text |
 | [`/api/supply?q=total`](https://bitnetscan.vercel.app/api/supply?q=total) | Total supply in BTN as plain text |
 | [`/api/supply?format=json`](https://bitnetscan.vercel.app/api/supply?format=json) | The supply snapshot with block range and method |
+| [`/api/reorgs`](https://bitnetscan.vercel.app/api/reorgs) | Blocks the explorer indexer saw replaced by a chain reorganization (cached 15 min) |
 
 Supply is the sum of all account balances indexed by the explorer, recomputed every hour by `.github/workflows/supply-snapshot.yml` (`scripts/supply-snapshot.mjs`) and stored on the `data` branch. Block height alone undercounts supply because Bitnet pays uncle rewards ((8 − depth) / 8 BTN to the uncle miner, 1/32 BTN to the including miner). Circulating supply excludes the balances of `0x0…0` and `0x…dEaD`.
 

@@ -69,10 +69,14 @@ interface LineChartProps {
   describe: (i: number) => React.ReactNode;
   ariaLabel: string;
   height?: number;
+  /** Fixed top of the y axis (otherwise rounded up from the data). */
+  yMax?: number;
+  /** A labelled horizontal threshold line. */
+  reference?: { y: number; label: string; color: string };
 }
 
 /** Single-series line with a 10% area wash, hairline grid, crosshair and tooltip. */
-export const LineChart: React.FC<LineChartProps> = ({ points, color, formatY, formatAxisY, formatX, describe, ariaLabel, height = 200 }) => {
+export const LineChart: React.FC<LineChartProps> = ({ points, color, formatY, formatAxisY, formatX, describe, ariaLabel, height = 200, yMax, reference }) => {
   const [ref, width] = useWidth();
   const [hover, setHover] = useState<number | null>(null);
   const pad = { left: 52, right: 10, top: 10, bottom: 24 };
@@ -83,7 +87,7 @@ export const LineChart: React.FC<LineChartProps> = ({ points, color, formatY, fo
 
   const minX = points[0].x;
   const maxX = points[points.length - 1].x;
-  const { top, step } = niceScale(Math.max(...points.map((p) => p.y)));
+  const { top, step } = yMax ? { top: yMax, step: yMax / 4 } : niceScale(Math.max(...points.map((p) => p.y), reference?.y ?? 0));
   const sx = (x: number) => pad.left + (maxX > minX ? ((x - minX) / (maxX - minX)) * plotW : plotW / 2);
   const sy = (y: number) => pad.top + plotH - (y / top) * plotH;
   const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.x).toFixed(1)},${sy(p.y).toFixed(1)}`).join(' ');
@@ -126,6 +130,12 @@ export const LineChart: React.FC<LineChartProps> = ({ points, color, formatY, fo
             {formatX(points[i].x)}
           </text>
         ))}
+        {reference && (
+          <g>
+            <line x1={pad.left} x2={width - pad.right} y1={sy(reference.y)} y2={sy(reference.y)} stroke={reference.color} strokeWidth={1} />
+            <text x={width - pad.right} y={sy(reference.y) - 4} textAnchor="end" fontSize={10} fill={AXIS_TEXT}>{reference.label}</text>
+          </g>
+        )}
         <path d={area} fill={color} opacity={0.1} />
         <path d={line} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
         {hover === null && <circle cx={sx(last.x)} cy={sy(last.y)} r={4} fill={color} stroke={SURFACE} strokeWidth={2} />}

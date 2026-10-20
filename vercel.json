@@ -4,6 +4,9 @@
       "data": false
     }
   },
+  "functions": {
+    "api/reorgs.js": { "maxDuration": 60 }
+  },
   "rewrites": [
     { "source": "/api/coolpool/:path*", "destination": "https://coolpool.top/:path*" },
     {

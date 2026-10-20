@@ -47,6 +47,8 @@ export interface HistoryBucket {
   sampleSize: number;
   /** Sampled block counts by miner group id. */
   miners: Record<string, number>;
+  /** Sampled block counts by miner address (lowercase). */
+  addresses: Record<string, number>;
 }
 
 export interface ChainHistory {
@@ -56,7 +58,7 @@ export interface ChainHistory {
   updatedAt: number;
 }
 
-const STORAGE_KEY = 'btn-chain-history-v1:';
+const STORAGE_KEY = 'btn-chain-history-v2:';
 const FRESH_MS = 10 * 60 * 1000;
 const memory = new Map<HistoryRange, ChainHistory>();
 const jobs = new Map<HistoryRange, Promise<ChainHistory>>();
@@ -148,9 +150,12 @@ export function loadHistory(range: HistoryRange): Promise<ChainHistory> {
         work = (sampled.reduce((s, x) => s + Number(BigInt(x.difficulty)), 0) / sampled.length) * n;
       }
       const miners: Record<string, number> = {};
+      const addresses: Record<string, number> = {};
       for (const x of sampled) {
         const g = minerGroupOf(x.miner);
         miners[g] = (miners[g] || 0) + 1;
+        const a = (x.miner || '').toLowerCase();
+        addresses[a] = (addresses[a] || 0) + 1;
       }
       buckets.push({
         fromBlock: a.number,
@@ -163,6 +168,7 @@ export function loadHistory(range: HistoryRange): Promise<ChainHistory> {
         uncleRate: sampled.reduce((s, x) => s + x.uncles.length, 0) / sampled.length,
         sampleSize: sampled.length,
         miners,
+        addresses,
       });
     }
     if (buckets.length < 2) throw new Error('Not enough history');

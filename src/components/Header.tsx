@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Cpu, Layers, Coins, Image, Terminal,
   Activity, Menu, X, PlusCircle, CheckCircle2, Globe, Trophy,
-  FileCode, LineChart, PieChart, Box, ArrowRightLeft, GitBranch, ChevronDown
+  FileCode, LineChart, PieChart, Box, ArrowRightLeft, GitBranch, ChevronDown, ShieldCheck
 } from 'lucide-react';
 import { NetworkStats } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
@@ -98,6 +98,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
       ],
     },
     { id: 'mining', label: 'Mining', icon: Cpu },
+    { id: 'security', label: 'Security', icon: ShieldCheck },
     { id: 'charts', label: 'Charts', icon: LineChart },
     { id: 'supply', label: 'Supply', icon: PieChart },
     {

@@ -21,6 +21,7 @@ const ContractsView = lazy(() => import('./views/ContractsView').then((m) => ({ 
 const ChartsView = lazy(() => import('./views/ChartsView').then((m) => ({ default: m.ChartsView })));
 const UnclesView = lazy(() => import('./views/UnclesView').then((m) => ({ default: m.UnclesView })));
 const SupplyView = lazy(() => import('./views/SupplyView').then((m) => ({ default: m.SupplyView })));
+const SecurityView = lazy(() => import('./views/SecurityView').then((m) => ({ default: m.SecurityView })));
 
 const PageFallback: React.FC = () => (
   <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-500" role="status">
@@ -76,6 +77,7 @@ const parseHash = (): { view: string; param?: string | number } => {
   if (route === 'charts' || route === 'stats') return { view: 'charts' };
   if (route === 'uncles' || route === 'uncle') return { view: 'uncles' };
   if (route === 'supply' || route === 'market') return { view: 'supply' };
+  if (route === 'security' || route === 'decentralization') return { view: 'security' };
   if (route === 'nodes' || route === 'network' || route === 'rpc' || route === 'rpc-status') return { view: 'nodes' };
 
   return { view: 'dashboard' };
@@ -526,6 +528,14 @@ export const App: React.FC = () => {
             <UnclesView
               onSelectBlock={handleSelectBlock}
               onSelectAddress={handleSelectAddress}
+              onNavigate={(view) => navigateTo(view)}
+            />
+          )}
+
+          {currentView === 'security' && (
+            <SecurityView
+              onSelectAddress={handleSelectAddress}
+              onSelectBlock={handleSelectBlock}
               onNavigate={(view) => navigateTo(view)}
             />
           )}
