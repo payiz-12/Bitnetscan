@@ -492,14 +492,14 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           <span className="w-2 h-2 rounded-full bg-petrol"></span>
           <span>
             {loading
-              ? 'Querying Chain & Indexer…'
+              ? 'Reading the chain…'
               : verificationSource === 'rpc'
-              ? 'Bitnet L1 JSON-RPC Verified'
+              ? 'Balance read live from the RPC'
               : verificationSource === 'explorer'
-              ? 'Explorer Indexer Verified'
+              ? 'Balance from the explorer index (RPC unavailable)'
               : verificationSource === 'snapshot'
-              ? 'Verified Ledger Snapshot'
-              : 'On-Chain Address Verified'}
+              ? 'Saved snapshot (chain unavailable)'
+              : 'Read from the chain'}
           </span>
         </div>
       </div>
@@ -627,7 +627,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   {balance === null
                     ? (loading ? 'Reading from the RPC…' : 'RPC / Indexer unreachable')
                     : balanceStatus === 'zero'
-                    ? 'Verified 0.0000 on-chain'
+                    ? 'Zero balance, read from the RPC'
                     : balanceStatus === 'cached'
                     ? `Cached (${cachedSnapshotDate})`
                     : `≈ ${formatBtnInUsd(parseFloat(balance), priceData)} USD`}
@@ -656,7 +656,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
               {balanceStatus === 'zero'
-                ? 'Verified 0 on-chain'
+                ? 'Read from the RPC'
                 : balanceStatus === 'cached'
                 ? `Cached snapshot (${cachedSnapshotDate})`
                 : balance === null
@@ -674,7 +674,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
               {totalTransactions !== null
-                ? `${transactions.length} loaded on-chain`
+                ? `${transactions.length} listed below`
                 : `${transactions.length} transactions loaded`}
             </span>
           </div>
@@ -1906,7 +1906,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                     <th className="py-3 px-3">Symbol</th>
                     <th className="py-3 px-3">Contract Address</th>
                     <th className="py-3 px-3">Standard</th>
-                    <th className="py-3 px-3 text-right">Verified Balance</th>
+                    <th className="py-3 px-3 text-right">Balance</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

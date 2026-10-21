@@ -592,41 +592,55 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
           </div>
         </div>
 
-        {/* 4 Metric Execution Overview Cards */}
+        {/* Kind of transaction, input size, gas and status */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-            <span className="text-[11px] text-slate-500 font-semibold block">EVM Call Type</span>
+            <span className="text-[11px] text-slate-500 font-semibold block">Type</span>
             <span className="text-xs sm:text-sm font-bold font-mono text-slate-900 mt-0.5 block truncate">
-              {!tx.input || tx.input === '0x' ? 'CALL (Native Value)' : tx.to ? 'CALL (Contract)' : 'CREATE (Deploy)'}
+              {!tx.input || tx.input === '0x' ? (tx.to ? 'BTN transfer' : 'Contract creation') : tx.to ? 'Contract call' : 'Contract creation'}
             </span>
-            <span className="text-[10px] text-slate-400 mt-1 block">Opcode: 0xF1 (Depth: 0)</span>
+            <span className="text-[10px] text-slate-400 mt-1 block truncate">
+              {!tx.to
+                ? (receipt?.contractAddress ? `Created ${receipt.contractAddress.slice(0, 10)}…` : 'Deploys new contract code')
+                : !tx.input || tx.input === '0x'
+                ? 'No input data'
+                : `Function ${tx.input.slice(0, 10)}`}
+            </span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-            <span className="text-[11px] text-slate-500 font-semibold block">Payload Size</span>
+            <span className="text-[11px] text-slate-500 font-semibold block">Input Data</span>
             <span className="text-xs sm:text-sm font-bold font-mono text-slate-900 mt-0.5 block">
-              {!tx.input || tx.input === '0x' ? '0 Bytes (No Data)' : `${Math.floor((tx.input.length - 2) / 2)} Bytes`}
+              {!tx.input || tx.input === '0x' ? 'None' : `${Math.floor((tx.input.length - 2) / 2).toLocaleString()} bytes`}
             </span>
             <span className="text-[10px] text-slate-400 mt-1 block">
-              {!tx.input || tx.input === '0x' ? 'Direct transfer' : `${(tx.input.length - 2) / 64} EVM Words`}
+              {!tx.input || tx.input === '0x'
+                ? 'Plain value transfer'
+                : !tx.to
+                ? 'Contract code and constructor arguments'
+                : (tx.input.length - 10) % 64 === 0
+                ? `4-byte selector + ${(tx.input.length - 10) / 64} × 32-byte words`
+                : 'Selector and encoded arguments'}
             </span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-            <span className="text-[11px] text-slate-500 font-semibold block">Gas Efficiency</span>
+            <span className="text-[11px] text-slate-500 font-semibold block">Gas Used</span>
             <span className="text-xs sm:text-sm font-bold font-mono text-slate-900 mt-0.5 block">
-              {gasUsed != null ? (gasUsed === 21000 ? '21,000 (Standard)' : `${gasUsed.toLocaleString()} Gas`) : 'Unknown'}
+              {gasUsed != null ? gasUsed.toLocaleString() : 'Unknown'}
             </span>
-            <span className="text-[10px] text-slate-400 mt-1 block">Standard EVM Base</span>
+            <span className="text-[10px] text-slate-400 mt-1 block">
+              {gasUsed != null && tx.gas ? `${((gasUsed / tx.gas) * 100).toFixed(1)}% of the ${tx.gas.toLocaleString()} gas limit` : 'From the receipt'}
+            </span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-            <span className="text-[11px] text-slate-500 font-semibold block">State Transition</span>
+            <span className="text-[11px] text-slate-500 font-semibold block">Status</span>
             <span className={`text-xs sm:text-sm font-bold font-mono mt-0.5 block ${txStatus === 'success' ? 'text-emerald-700' : txStatus === 'pending' ? 'text-amber-600' : txStatus === 'failed' ? 'text-rose-700' : 'text-slate-600'}`}>
-              {txStatus === 'success' ? 'Status 1: Success' : txStatus === 'pending' ? 'Status: Pending' : txStatus === 'failed' ? 'Status 0: Reverted' : 'Status: Unknown'}
+              {txStatus === 'success' ? 'Success' : txStatus === 'pending' ? 'Pending' : txStatus === 'failed' ? 'Failed (reverted)' : 'Unknown'}
             </span>
             <span className="text-[10px] text-slate-400 mt-1 block">
-              {tx.blockNumber != null ? `Included in block #${tx.blockNumber.toLocaleString()}` : 'Pending Confirmation'}
+              {tx.blockNumber != null ? `In block #${tx.blockNumber.toLocaleString()}` : 'Not in a block yet'}
             </span>
           </div>
         </div>
@@ -636,46 +650,56 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
           !tx.input || tx.input === '0x' ? (
             <div className="space-y-4">
               <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-petrol"></span>
-                    EVM State Transition & Value Flow Trace
-                  </span>
-                  <span className="text-[11px] font-mono text-petrol font-bold bg-petrol-50 px-2 py-0.5 rounded-md border border-petrol-200">
-                    Direct BTN Transfer
-                  </span>
-                </div>
+                {(() => {
+                  // Balance changes of a plain transfer. A failed transaction moves no value; the
+                  // sender still pays the fee. Bitnet has no base fee, so the whole fee goes to the miner.
+                  const moved = txStatus === 'failed' ? 0n : BigInt(valueWeiStr);
+                  const debit = totalFeeWei !== null ? moved + totalFeeWei : null;
+                  return (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-petrol"></span>
+                          Balance changes
+                        </span>
+                        <span className="text-[11px] font-mono text-petrol font-bold bg-petrol-50 px-2 py-0.5 rounded-md border border-petrol-200">
+                          {txStatus === 'pending' ? 'Expected once mined' : 'BTN transfer'}
+                        </span>
+                      </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs pt-1">
-                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1 shadow-2xs">
-                    <span className="text-slate-500 text-[10px] font-semibold block">1. Sender Account Debited:</span>
-                    <div className="font-extrabold text-rose-700 text-sm">-{exactValueBtn} BTN</div>
-                    <div className="text-[11px] text-slate-600 truncate font-semibold">{tx.from}</div>
-                  </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs pt-1">
+                        <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1 shadow-2xs">
+                          <span className="text-slate-500 text-[10px] font-semibold block">Sender (value + fee)</span>
+                          <div className="font-extrabold text-rose-700 text-sm">{debit !== null ? `-${ethers.formatEther(debit)} BTN` : `-${exactValueBtn} BTN + fee`}</div>
+                          <div className="text-[11px] text-slate-600 truncate font-semibold">{tx.from}</div>
+                        </div>
 
-                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1 shadow-2xs">
-                    <span className="text-slate-500 text-[10px] font-semibold block">2. Recipient Account Credited:</span>
-                    <div className="font-extrabold text-emerald-700 text-sm">+{exactValueBtn} BTN</div>
-                    <div className="text-[11px] text-slate-600 truncate font-semibold">{tx.to || 'New Contract'}</div>
-                  </div>
+                        <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1 shadow-2xs">
+                          <span className="text-slate-500 text-[10px] font-semibold block">Recipient</span>
+                          <div className="font-extrabold text-emerald-700 text-sm">+{ethers.formatEther(moved)} BTN</div>
+                          <div className="text-[11px] text-slate-600 truncate font-semibold">{tx.to || 'New contract'}</div>
+                        </div>
 
-                  <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1 shadow-2xs">
-                    <span className="text-slate-500 text-[10px] font-semibold block">3. Miner Gas Fee:</span>
-                    <div className="font-extrabold text-slate-900 text-sm">
-                      {totalFeeBtn ? `+${totalFeeBtn} BTN` : 'Unknown'}
-                    </div>
-                    <div className="text-[11px] text-slate-500">
-                      {gasUsed != null && gasPriceGwei ? `${gasUsed.toLocaleString()} gas @ ${gasPriceGwei} Gwei` : 'Fee details unknown'}
-                    </div>
-                  </div>
-                </div>
+                        <div className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1 shadow-2xs">
+                          <span className="text-slate-500 text-[10px] font-semibold block">Miner (fee)</span>
+                          <div className="font-extrabold text-slate-900 text-sm">
+                            {totalFeeBtn ? `+${totalFeeBtn} BTN` : 'Unknown'}
+                          </div>
+                          <div className="text-[11px] text-slate-500">
+                            {gasUsed != null && gasPriceGwei ? `${gasUsed.toLocaleString()} gas × ${gasPriceGwei} Gwei` : 'Fee details unknown'}
+                          </div>
+                        </div>
+                      </div>
 
-                <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 flex items-center justify-between font-mono shadow-2xs">
-                  <span>EVM Execution: <strong className="text-slate-900">0x (No Calldata - Native Value Transfer)</strong></span>
-                  <span className={`font-bold ${isSuccess ? 'text-emerald-700' : txStatus === 'pending' ? 'text-amber-600' : 'text-rose-700'}`}>
-                    {isSuccess ? 'Executed successfully' : txStatus === 'pending' ? 'Pending Confirmation' : 'Transaction Failed'}
-                  </span>
-                </div>
+                      <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 flex items-center justify-between font-mono shadow-2xs">
+                        <span>Input data: <strong className="text-slate-900">none</strong></span>
+                        <span className={`font-bold ${isSuccess ? 'text-emerald-700' : txStatus === 'pending' ? 'text-amber-600' : 'text-rose-700'}`}>
+                          {isSuccess ? 'Succeeded' : txStatus === 'pending' ? 'Pending' : 'Failed: no value moved'}
+                        </span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           ) : (

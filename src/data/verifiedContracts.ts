@@ -1,5 +1,5 @@
 import { rpcService } from '../services/rpc';
-import { decodeStringOrBytes32 } from '../services/abiText';
+import { loadVerifiedContract } from '../services/contractAbi';
 import { ethers } from 'ethers';
 
 export interface VerifiedContractItem {
@@ -17,7 +17,8 @@ export interface VerifiedContractItem {
   bytecodeLength?: number;
 }
 
-// 28 authentic verified contracts from Bitnet L1 Blockscout explorer
+// Verified contracts stored with the site, shown until the current list loads from the Bitnet
+// explorer (and when the explorer cannot be reached).
 export const OFFICIAL_BITNET_VERIFIED_CONTRACTS: VerifiedContractItem[] = [
   {
     address: '0x637A1EFde216e372cF308A1e88337C03541c7D1a',
@@ -318,157 +319,87 @@ export const OFFICIAL_BITNET_VERIFIED_CONTRACTS: VerifiedContractItem[] = [
     language: 'solidity',
     isVerified: true,
   },
-  {
-    address: '0xd03B179692303741393ee9A26E34e5ef4593741f',
-    name: 'BitnetPunks',
-    coinBalance: '0.0000',
-    txCount: 42,
-    compilerVersion: 'v0.8.20+commit.a1b79de6',
-    optimization: true,
-    hasConstructorArgs: true,
-    verifiedAt: '2024-08-04T12:00:00.000000Z',
-    license: 'MIT',
-    language: 'solidity',
-    isVerified: true,
-  },
-  {
-    address: '0x155Fe91ce99862df12906eaf199B48872Ca5B709',
-    name: 'Milestone',
-    coinBalance: '0.0000',
-    txCount: 28,
-    compilerVersion: 'v0.8.20+commit.a1b79de6',
-    optimization: true,
-    hasConstructorArgs: true,
-    verifiedAt: '2024-09-15T12:00:00.000000Z',
-    license: 'MIT',
-    language: 'solidity',
-    isVerified: true,
-  },
-  {
-    address: '0x2142c6DdbFA7Ae9e283D0FBFfffbE14E502D6265',
-    name: 'TheVillage',
-    coinBalance: '0.0000',
-    txCount: 35,
-    compilerVersion: 'v0.8.19+commit.7dd66c89',
-    optimization: true,
-    hasConstructorArgs: true,
-    verifiedAt: '2024-09-20T12:00:00.000000Z',
-    license: 'MIT',
-    language: 'solidity',
-    isVerified: true,
-  },
-  {
-    address: '0x34F75c8CbE518bbBD6363E4F840c26bB54C9c5Ee',
-    name: 'Xenwave',
-    coinBalance: '0.0000',
-    txCount: 19,
-    compilerVersion: 'v0.8.20+commit.a1b79de6',
-    optimization: true,
-    hasConstructorArgs: true,
-    verifiedAt: '2024-08-02T12:00:00.000000Z',
-    license: 'MIT',
-    language: 'solidity',
-    isVerified: true,
-  },
-  {
-    address: '0xa0a92050D3082Ee4cf97a5F167f3dcEE1184F8dB',
-    name: 'BabyChimpGang',
-    coinBalance: '0.0000',
-    txCount: 22,
-    compilerVersion: 'v0.8.20+commit.a1b79de6',
-    optimization: true,
-    hasConstructorArgs: true,
-    verifiedAt: '2024-08-28T12:00:00.000000Z',
-    license: 'MIT',
-    language: 'solidity',
-    isVerified: true,
-  },
-  {
-    address: '0xca11bde05977b3631167028862be2a173976ca11',
-    name: 'Multicall3',
-    coinBalance: '0.0000',
-    txCount: 1450,
-    compilerVersion: 'v0.8.12+commit.f00d7308',
-    optimization: true,
-    hasConstructorArgs: false,
-    verifiedAt: '2023-07-15T10:00:00.000000Z',
-    license: 'MIT',
-    language: 'solidity',
-    isVerified: true,
-  },
 ];
 
-/**
- * Loads verified contracts with real-time JSON-RPC on-chain balance, bytecode, and transaction count verification.
- * Fetches exclusively from the Bitnet L1 JSON-RPC node; never relies on external website scrapers.
- */
-export async function fetchLiveVerifiedContracts(): Promise<VerifiedContractItem[]> {
-  const enriched = await Promise.all(
-    OFFICIAL_BITNET_VERIFIED_CONTRACTS.map(async (c) => {
-      try {
-        const [code, balStr, count] = await Promise.all([
-          rpcService.getCode(c.address),
-          rpcService.getBalance(c.address),
-          rpcService.getTransactionCount(c.address),
-        ]);
+const INDEXER_BASES = ['/api/explorer', 'https://explorer.bitnetmoney.com'];
 
-        const hasBytecode = !!code && code !== '0x';
-        const bytecodeLength = hasBytecode ? Math.max(0, Math.floor(code.length / 2) - 1) : 0;
-        const balNum = parseFloat(balStr);
-
-        return {
-          ...c,
-          isVerified: hasBytecode,
-          bytecodeLength: bytecodeLength > 0 ? bytecodeLength : c.bytecodeLength,
-          coinBalance: !isNaN(balNum) ? balNum.toFixed(4) : c.coinBalance,
-          txCount: typeof count === 'number' && count > 0 ? count : c.txCount,
-        };
-      } catch {
-        return c;
+async function explorerList(path: string, maxPages: number): Promise<any[]> {
+  for (const base of INDEXER_BASES) {
+    try {
+      const items: any[] = [];
+      let next: Record<string, string> | null = null;
+      for (let i = 0; i < maxPages; i++) {
+        const qs = new URLSearchParams(next ?? {}).toString();
+        const res = await fetch(`${base}${path}${qs ? `?${qs}` : ''}`, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(12000) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const d = await res.json();
+        items.push(...(d.items ?? []));
+        next = d.next_page_params ?? null;
+        if (!next) break;
       }
-    })
-  );
-
-  return enriched;
+      return items;
+    } catch {
+      // try the next base
+    }
+  }
+  throw new Error('The Bitnet explorer could not be reached');
 }
 
 /**
- * Inspects and verifies any contract address in real-time via Bitnet JSON-RPC
+ * Contracts whose source code is verified on the Bitnet explorer (verification happens there),
+ * with each contract's balance and code size read from the chain. Throws when the explorer
+ * cannot be reached; the page then keeps the list stored with the site.
  */
-export async function inspectAndVerifyContract(rawAddress: string): Promise<VerifiedContractItem> {
-  const addr = rawAddress.trim();
-  const code = await rpcService.getCode(addr);
-  if (!code || code === '0x') {
-    throw new Error('No smart contract bytecode found at this address (Regular user wallet).');
-  }
+export async function fetchLiveVerifiedContracts(): Promise<VerifiedContractItem[]> {
+  const items = await explorerList('/api/v2/smart-contracts', 10);
+  return Promise.all(items.map(async (c) => {
+    const address = String(c.address?.hash || '');
+    const [code, balance] = await Promise.all([
+      rpcService.getCode(address).catch(() => null),
+      rpcService.getBalance(address).catch(() => null),
+    ]);
+    const balNum = balance !== null ? parseFloat(balance) : NaN;
+    return {
+      address,
+      name: String(c.address?.name || 'Contract'),
+      coinBalance: !isNaN(balNum) ? balNum.toFixed(4) : ethers.formatEther(BigInt(c.coin_balance || '0')),
+      txCount: Number(c.transaction_count ?? c.transactions_count ?? 0),
+      compilerVersion: String(c.compiler_version || ''),
+      optimization: Boolean(c.optimization_enabled),
+      hasConstructorArgs: Boolean(c.has_constructor_args),
+      verifiedAt: String(c.verified_at || ''),
+      license: String(c.license_type || 'none'),
+      language: String(c.language || 'solidity'),
+      isVerified: true,
+      bytecodeLength: code && code !== '0x' ? Math.floor((code.length - 2) / 2) : undefined,
+    };
+  }));
+}
 
-  const [balStr, count] = await Promise.all([
-    rpcService.getBalance(addr),
-    rpcService.getTransactionCount(addr),
-  ]);
+export type ContractCheck =
+  | { kind: 'none' }
+  | { kind: 'unverified'; bytecodeLength: number }
+  | { kind: 'verified'; name: string; compilerVersion: string; optimization: boolean; verifiedAt: string | null; balance: string | null; bytecodeLength: number };
 
-  const balNum = parseFloat(balStr);
-  const bytecodeLength = Math.max(0, Math.floor(code.length / 2) - 1);
-
-  let name = `Contract_${addr.slice(2, 8)}`;
-  try {
-    const nameHex = await rpcService.call(addr, '0x06fdde03');
-    const dec = decodeStringOrBytes32(nameHex);
-    if (dec) name = dec;
-  } catch {}
-
+/**
+ * Whether an address holds contract code (read from the chain) and whether its source code is
+ * verified on the Bitnet explorer.
+ */
+export async function checkContract(rawAddress: string): Promise<ContractCheck> {
+  const address = rawAddress.trim();
+  const code = await rpcService.getCode(address);
+  if (!code || code === '0x') return { kind: 'none' };
+  const bytecodeLength = Math.floor((code.length - 2) / 2);
+  const verified = await loadVerifiedContract(address);
+  if (!verified) return { kind: 'unverified', bytecodeLength };
+  const balance = await rpcService.getBalance(address).catch(() => null);
   return {
-    address: addr,
-    name,
-    coinBalance: !isNaN(balNum) ? balNum.toFixed(4) : '0.0000',
-    txCount: typeof count === 'number' ? count : 0,
-    compilerVersion: 'v0.8.28+commit.7893614a',
-    optimization: true,
-    hasConstructorArgs: false,
-    verifiedAt: new Date().toISOString(),
-    license: 'none',
-    language: 'solidity',
-    isVerified: true,
+    kind: 'verified',
+    name: verified.name,
+    compilerVersion: verified.compilerVersion,
+    optimization: verified.optimization.enabled,
+    verifiedAt: verified.verifiedAt,
+    balance: balance !== null ? parseFloat(balance).toFixed(4) : null,
     bytecodeLength,
   };
 }
