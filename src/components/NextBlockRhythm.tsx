@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Block } from '../types/blockchain';
 import { loadMinerSample, getCachedMinerSample } from '../services/minerSample';
+import { MiningPickaxe } from './MiningPickaxe';
 
 const BARS = 24;
 const PAST = 'var(--chart-past)';
@@ -58,9 +59,9 @@ export const NextBlockRhythm: React.FC<NextBlockRhythmProps> = ({ recentBlocks, 
       <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-2xs">
         <div className="flex items-baseline justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="relative flex w-2 h-2" aria-hidden="true">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping motion-reduce:animate-none" />
-              <span className="relative inline-flex w-2 h-2 rounded-full bg-emerald-500" />
+            {/* Same wall-clock phase as the other pickaxes on the page, so they all strike together */}
+            <span className="relative w-6 h-6 shrink-0 -my-0.5">
+              <MiningPickaxe />
             </span>
             <span className="font-mono font-bold text-sm text-slate-900 tracking-tight">#{next.toLocaleString()}</span>
             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-petrol-50 text-petrol border border-petrol-200">Next block</span>
