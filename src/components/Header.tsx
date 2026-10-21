@@ -181,12 +181,12 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
               className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-2 py-0.5 sm:px-2.5 rounded-lg border border-slate-700 text-xs transition-colors cursor-pointer group shrink-0"
               title="View Bitnet RPC & Node Health Status"
             >
-              <span className={`w-2 h-2 rounded-full shrink-0 ${rpcLatency !== null ? 'bg-emerald-400' : 'bg-slate-500'}`}></span>
+              <span className={`w-2 h-2 rounded-full shrink-0 ${rpcLatency !== null ? 'bg-petrol-400' : 'bg-slate-500'}`}></span>
               <span className="text-white font-bold text-[11px] sm:text-xs">
                 <span className="sm:hidden">Bitnet (210)</span>
                 <span className="hidden sm:inline">Bitnet Mainnet (Chain 210)</span>
               </span>
-              <span className="text-emerald-400 text-[10px] font-mono font-bold bg-slate-900/60 px-1.5 py-0.5 rounded group-hover:bg-slate-900 text-center inline-flex items-center justify-center tabular-nums">
+              <span className="text-petrol-300 text-[10px] font-mono font-bold bg-slate-900/60 px-1.5 py-0.5 rounded group-hover:bg-slate-900 text-center inline-flex items-center justify-center tabular-nums">
                 {rpcLatency !== null ? `${rpcLatency}ms` : '…'}
               </span>
             </button>
