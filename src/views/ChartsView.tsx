@@ -4,6 +4,7 @@ import { ChainHistory, HistoryRange, HISTORY_RANGES, MINER_GROUPS, SAMPLES_PER_B
 import { LineChart, StackedShareChart, Legend } from '../components/charts/ChartPrimitives';
 import { formatHashrate } from '../services/hashrate';
 import { SkeletonChart } from '../components/Skeleton';
+import { NetworkUsageCharts } from '../components/NetworkUsageCharts';
 
 interface ChartsViewProps {
   onNavigate: (view: string) => void;
@@ -89,7 +90,7 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Network Charts</h1>
-              <p className="text-xs sm:text-sm text-slate-500">Hashrate, difficulty, block time, uncles and miner share, read from block headers.</p>
+              <p className="text-xs sm:text-sm text-slate-500">Hashrate, difficulty, block time, uncles, miner share and daily usage, computed from the chain.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -128,6 +129,8 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
         )}
         {error && <div role="alert" className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">{error}</div>}
       </div>
+
+      <NetworkUsageCharts range={range} />
 
       {buckets.length === 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">

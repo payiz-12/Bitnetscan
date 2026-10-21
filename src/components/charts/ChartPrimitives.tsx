@@ -250,6 +250,67 @@ export const StackedShareChart: React.FC<StackedShareChartProps> = ({ columns, g
   );
 };
 
+interface BarChartProps {
+  values: number[];
+  /** Bars still in progress (the current day or period), drawn lighter. */
+  partial?: boolean[];
+  color: string;
+  formatY: (v: number) => string;
+  formatX: (i: number) => string;
+  describe: (i: number) => React.ReactNode;
+  ariaLabel: string;
+  height?: number;
+}
+
+/** One series of columns on a clean scale, with hover highlight and a tooltip per column. */
+export const BarChart: React.FC<BarChartProps> = ({ values, partial, color, formatY, formatX, describe, ariaLabel, height = 200 }) => {
+  const [ref, width] = useWidth();
+  const [hover, setHover] = useState<number | null>(null);
+  const pad = { left: 44, right: 6, top: 10, bottom: 24 };
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  const slot = plotW / Math.max(1, values.length);
+  const barW = Math.max(1, Math.min(22, slot - (slot > 4 ? 2 : 0.5)));
+  const { top, step } = niceScale(Math.max(1, ...values));
+  const sy = (v: number) => pad.top + plotH - (v / top) * plotH;
+  const ticks = [0, 1, 2, 3, 4].map((i) => i * step);
+
+  return (
+    <div ref={ref} className="relative w-full select-none">
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={ariaLabel} onPointerLeave={() => setHover(null)} className="block touch-pan-y">
+        {ticks.map((t) => (
+          <g key={t}>
+            <line x1={pad.left} x2={width - pad.right} y1={sy(t)} y2={sy(t)} stroke={GRID} strokeWidth={1} />
+            <text x={pad.left - 6} y={sy(t) + 3} textAnchor="end" fontSize={10} fill={AXIS_TEXT} style={{ fontVariantNumeric: 'tabular-nums' }}>{formatY(t)}</text>
+          </g>
+        ))}
+        {values.map((v, i) => {
+          const x = pad.left + i * slot + (slot - barW) / 2;
+          const h = Math.max(v > 0 ? 1.5 : 0, sy(0) - sy(v));
+          return (
+            <g key={i} opacity={hover === null || hover === i ? 1 : 0.45}>
+              {h > 0 && (barW >= 6
+                ? <path d={roundedTop(x, sy(0) - h, barW, h, 3)} fill={color} opacity={partial?.[i] ? 0.4 : 1} />
+                : <rect x={x} y={sy(0) - h} width={barW} height={h} fill={color} opacity={partial?.[i] ? 0.4 : 1} />)}
+              <rect x={pad.left + i * slot} y={pad.top} width={slot} height={plotH} fill="transparent" onPointerEnter={() => setHover(i)} onPointerDown={() => setHover(i)} />
+            </g>
+          );
+        })}
+        {xTickIndices(values.length, width).map((i) => (
+          <text key={i} x={pad.left + i * slot + slot / 2} y={height - 6} textAnchor={i === 0 ? 'start' : i === values.length - 1 ? 'end' : 'middle'} fontSize={10} fill={AXIS_TEXT}>
+            {formatX(i)}
+          </text>
+        ))}
+      </svg>
+      {hover !== null && (
+        <Tooltip left={pad.left + hover * slot + slot / 2} width={width}>
+          {describe(hover)}
+        </Tooltip>
+      )}
+    </div>
+  );
+};
+
 /** Legend row: swatch + name (+ optional value). Text stays in ink colors; the swatch carries identity. */
 export const Legend: React.FC<{ items: { name: string; color: string; value?: string }[] }> = ({ items }) => (
   <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">

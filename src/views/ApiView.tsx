@@ -66,6 +66,14 @@ const ENDPOINTS: Endpoint[] = [
     cache: '2 min',
   },
   {
+    path: '/api/chain-daily',
+    example: '/api/chain-daily',
+    title: 'Daily network usage',
+    about: 'Per UTC day: transactions, active addresses (senders and recipients), senders, and new addresses (active addresses with no balance, nonce or code before that day), computed from every block and the archive state, plus the current day so far. Rows are [date, transactions, activeAddresses, senders, newAddresses].',
+    returns: 'JSON',
+    cache: '5 min',
+  },
+  {
     path: '/api/reorgs',
     example: '/api/reorgs',
     title: 'Chain reorganizations',

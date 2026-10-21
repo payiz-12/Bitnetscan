@@ -1,0 +1,48 @@
+// /api/chain-daily: transactions, active addresses and new addresses per UTC day, computed from
+// the chain. The history comes from chain-daily.json on the `chain-data` branch (kept hourly by
+// .github/workflows/chain-daily.yml); the blocks mined since then are read here, so the current
+// day is up to date. Cached at the edge for five minutes.
+import { headBlock, extendForward } from './_lib/daily.js';
+
+const DATA_URL = 'https://raw.githubusercontent.com/payiz-12/Bitnetscan/chain-data/chain-daily.json';
+const MAX_TAIL = 3000; // blocks read live; more than that waits for the next hourly run
+
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  let data;
+  try {
+    const r = await fetch(DATA_URL, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    data = await r.json();
+  } catch {
+    res.setHeader('Cache-Control', 'public, s-maxage=60');
+    res.status(503).json({ error: 'The daily dataset is not available yet' });
+    return;
+  }
+
+  let live = data;
+  let liveTail = 0;
+  try {
+    const head = await headBlock();
+    if (head > data.to && head - data.to <= MAX_TAIL) {
+      live = await extendForward(data, head, { workers: 3 });
+      liveTail = head - data.to;
+    }
+  } catch {
+    // serve the stored dataset as it is
+  }
+
+  const p = live.partial;
+  res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+  res.status(200).json({
+    source: 'Computed from Bitnet blocks and archive state',
+    datasetGeneratedAt: data.generatedAt,
+    fromBlock: live.from,
+    toBlock: live.to,
+    liveBlocks: liveTail,
+    genesisReached: Boolean(live.genesisReached),
+    days: live.days.map((d) => [d.date, d.txs, d.active, d.senders ?? null, d.new]),
+    columns: ['date', 'transactions', 'activeAddresses', 'senders', 'newAddresses'],
+    today: p ? { date: p.date, firstBlock: p.first, lastBlock: p.last, transactions: p.txs, activeAddresses: p.addresses.length, senders: p.senders?.length ?? null, newAddresses: p.newAddresses.length } : null,
+  });
+}
