@@ -4,7 +4,7 @@
 const RPC_URLS = ['https://rpc.bitnetmoney.org', 'https://rpc.bitnetmoney.com'];
 const WEI = 10n ** 18n;
 
-const LABELS = {
+export const LABELS = {
   '0xfad4a236c87880035497043f24ea58d73c3e50de': 'GTPool',
   '0x6c0db3ea9eed7ed145f36da461d84a8d02596b08': 'CoolPool',
   '0x6afcdfec8066a7fbf1295f10c4907924e99e72a4': 'Solo miner',
@@ -24,7 +24,7 @@ const TOKENS = {
 };
 for (const a of Object.keys(TOKENS)) LABELS[a] ||= TOKENS[a].symbol;
 
-async function rpc(calls) {
+export async function rpc(calls) {
   const body = JSON.stringify(calls.map(([method, params], id) => ({ jsonrpc: '2.0', id, method, params })));
   for (const url of RPC_URLS) {
     try {
@@ -46,6 +46,14 @@ const who = (a) => {
   const label = LABELS[(a || '').toLowerCase()];
   return label ? `${label} (${short(a)})` : short(a);
 };
+
+/** Exact decimal string for a wei amount, without separators (for JSON APIs): 1500000000000000000n -> "1.5". */
+export function btnPlain(wei) {
+  const s = wei.toString().padStart(19, '0');
+  const whole = s.slice(0, -18).replace(/^0+(?=\d)/, '');
+  const frac = s.slice(-18).replace(/0+$/, '');
+  return frac ? `${whole}.${frac}` : whole;
+}
 
 /** Formats a base-unit amount with thousands separators and at most `max` decimals. */
 export function formatUnits(value, decimals = 18, max = 4) {

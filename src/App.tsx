@@ -23,6 +23,7 @@ const UnclesView = lazy(() => import('./views/UnclesView').then((m) => ({ defaul
 const SupplyView = lazy(() => import('./views/SupplyView').then((m) => ({ default: m.SupplyView })));
 const SecurityView = lazy(() => import('./views/SecurityView').then((m) => ({ default: m.SecurityView })));
 const ToolsView = lazy(() => import('./views/ToolsView').then((m) => ({ default: m.ToolsView })));
+const ApiView = lazy(() => import('./views/ApiView').then((m) => ({ default: m.ApiView })));
 
 const PageFallback: React.FC = () => (
   <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-500" role="status">
@@ -80,6 +81,7 @@ const parseHash = (): { view: string; param?: string | number } => {
   if (route === 'supply' || route === 'market') return { view: 'supply' };
   if (route === 'security' || route === 'decentralization') return { view: 'security' };
   if (route === 'tools' || route === 'developer-tools') return { view: 'tools' };
+  if (route === 'api' || route === 'docs') return { view: 'api' };
   if (route === 'nodes' || route === 'network' || route === 'rpc' || route === 'rpc-status') return { view: 'nodes' };
 
   return { view: 'dashboard' };
@@ -534,6 +536,8 @@ export const App: React.FC = () => {
               onNavigate={(view) => navigateTo(view)}
             />
           )}
+
+          {currentView === 'api' && <ApiView />}
 
           {currentView === 'tools' && (
             <ToolsView onSelectBlock={handleSelectBlock} onSelectAddress={handleSelectAddress} />

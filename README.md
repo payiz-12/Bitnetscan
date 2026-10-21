@@ -57,12 +57,17 @@ Values that cannot be read are shown as unknown rather than estimated.
 
 ## API
 
+All endpoints are free, need no key and allow cross-origin requests. The site's API page (`#/api`) documents them with live examples.
+
 | Endpoint | Returns |
 | --- | --- |
 | [`/api/stats`](https://bitnetscan.vercel.app/api/stats) | Live chain stats as JSON: height, average block time, difficulty, hashrate, gas price, peers, Ethash epoch and DAG size (cached 15 s) |
 | [`/api/supply`](https://bitnetscan.vercel.app/api/supply) | Circulating supply in BTN as plain text |
 | [`/api/supply?q=total`](https://bitnetscan.vercel.app/api/supply?q=total) | Total supply in BTN as plain text |
 | [`/api/supply?format=json`](https://bitnetscan.vercel.app/api/supply?format=json) | The supply snapshot with block range and method |
+| [`/api/address?address=0x…`](https://bitnetscan.vercel.app/api/address?address=0xfad4a236c87880035497043f24ea58d73c3e50de) | Balance (exact BTN and wei), nonce, contract flag and label (cached 15 s) |
+| [`/api/blocks?limit=10`](https://bitnetscan.vercel.app/api/blocks?limit=10) | Newest 1–50 blocks with miner, transactions, uncles and subsidy (cached 10 s) |
+| [`/api/miners?blocks=1000`](https://bitnetscan.vercel.app/api/miners?blocks=1000) | Miner shares over the newest 100–2,000 blocks, Nakamoto coefficient and uncle rate (cached 2 min) |
 | [`/api/reorgs`](https://bitnetscan.vercel.app/api/reorgs) | Blocks the explorer indexer saw replaced by a chain reorganization (cached 15 min) |
 | `/api/og?type=tx\|block\|address&id=…` | 1200×630 PNG share card for a transaction, block or address |
 
