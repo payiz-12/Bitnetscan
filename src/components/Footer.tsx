@@ -15,16 +15,8 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeRpc, setActiveRpc] = useState(rpcService.getActiveRpc());
-  const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
 
   useEffect(() => rpcService.subscribeHealth((st) => setActiveRpc(st.activeRpc)), []);
-  useEffect(() => {
-    const t = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 15000);
-    return () => clearInterval(t);
-  }, []);
-
-  const blockAge = latestBlock ? Math.max(0, now - latestBlock.timestamp) : null;
-  const healthy = blockAge !== null && blockAge < 180;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -60,14 +52,6 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
             <p className="text-slate-500 text-xs">
               Bitnet Money (BTN) L1 Block Explorer
             </p>
-            <div className={`flex items-center gap-2 font-mono text-[11px] font-bold ${healthy ? 'text-petrol' : 'text-amber-700'}`}>
-              <span className={`w-2 h-2 rounded-full ${blockAge === null ? 'bg-slate-300' : healthy ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
-              <span>
-                {latestBlock
-                  ? `Block #${latestBlock.number.toLocaleString()} · ${blockAge! < 60 ? `${blockAge}s` : `${Math.floor(blockAge! / 60)}m`} ago`
-                  : 'Connecting to the network…'}
-              </span>
-            </div>
           </div>
 
           {/* Col 2: Network Parameters */}
