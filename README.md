@@ -27,7 +27,7 @@ BitnetScan is a block explorer for the Bitnet Money proof-of-work EVM chain (cha
 - **Dashboard** – latest blocks and transactions, block time, gas price, hashrate, BTN price from NestEx and today's transaction count.
 - **Search** – block numbers, transaction hashes and addresses, with a preview of the result while you type. Known tokens, contracts and pools can be found by name.
 - **Blocks and transactions** – the full transaction archive (newest first, back to block 1), block details with the exact miner reward, transaction details with decoded input data, event logs, a live confirmation count with the recommended number, and internal transactions (the call tree from the node's `callTracer`, including BTN moved by contracts).
-- **Addresses** – balance, balance history over 30 days, a year or all time (read from the archive node), nonce, transaction history, BTS-20 tokens, NFTs, mined blocks, contract bytecode and a read-only contract caller.
+- **Addresses** – balance, balance history over 30 days, a year or all time (read from the archive node), nonce, transaction history with CSV download (newest 5,000, exact BTN amounts, UTC dates), BTS-20 tokens, NFTs, mined blocks, contract bytecode and a read-only contract caller.
 - **Top accounts** – ranking by balance from the Bitnet explorer, with each balance read live from the RPC.
 - **Tokens, NFTs and contracts** – BTS-20 tokens, NFT collections (IPFS content verified against its CID) and verified contracts.
 - **Mining** – miner share of the last 200 blocks, Nakamoto coefficient, worker counts published by pools, pool servers and a profitability calculator (GPU presets, power cost, pool fee, break-even price).

@@ -18,6 +18,7 @@ import { blockRewardLabel } from '../services/blockReward';
 import { AddressTag } from '../components/AddressTag';
 import { Pickaxe3D } from '../components/Pickaxe3D';
 import { BalanceHistory } from '../components/BalanceHistory';
+import { CsvExportButton } from '../components/CsvExportButton';
 import { ethers } from 'ethers';
 import { ShareButton } from '../components/ShareButton';
 
@@ -1021,8 +1022,8 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               </div>
             </div>
 
-            {/* Filter buttons: All, In, Out */}
-            <div className="flex items-center gap-2">
+            {/* Filter buttons: All, In, Out, and the CSV download */}
+            <div className="flex flex-wrap items-start gap-2">
               <button
                 onClick={() => setTxFilter('all')}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
@@ -1053,6 +1054,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               >
                 Out ({transactions.filter((t) => t.type === 'OUT' || t.type === 'SELF').length})
               </button>
+              <CsvExportButton address={address} />
             </div>
           </div>
 
