@@ -173,7 +173,7 @@ export const NetworkStatusModal: React.FC<NetworkStatusModalProps> = ({
               <button
                 onClick={testAllEndpoints}
                 disabled={isTesting}
-                className="text-xs text-petrol hover:text-[#01545e] font-bold flex items-center gap-1 cursor-pointer bg-petrol-50 px-2.5 py-1 rounded-lg border border-petrol-200/60"
+                className="text-xs text-petrol hover:text-petrol-600 font-bold flex items-center gap-1 cursor-pointer bg-petrol-50 px-2.5 py-1 rounded-lg border border-petrol-200/60"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
                 <span>{isTesting ? 'Checking…' : 'Check again'}</span>

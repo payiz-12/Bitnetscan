@@ -201,7 +201,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             title="NestEx BTN/USDT Spot Market"
           >
             <div className="flex items-center justify-between w-full sm:w-auto">
-              <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-emerald-50 border border-emerald-100 text-[#059669] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#059669] group-hover:text-white group-hover:translate-x-1 transition-all duration-300">
+              <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#059669] group-hover:text-white group-hover:translate-x-1 transition-all duration-300">
                 <TrendingUp className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
               </div>
               <span className={`text-[9px] font-bold px-1 py-px rounded-full sm:hidden ${
@@ -259,7 +259,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           {/* Card 05: Block Reward */}
           <div className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-slate-200 hover:border-[#1A2B3F] hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 group">
-            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-slate-100 border border-slate-200 text-[#1A2B3F] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#1A2B3F] group-hover:text-white group-hover:-translate-y-1 transition-all duration-300">
+            <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-slate-100 border border-slate-200 text-[#1A2B3F] dark:text-slate-900 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#1A2B3F] group-hover:text-white group-hover:-translate-y-1 transition-all duration-300">
               <Coins className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
             </div>
             <div className="min-w-0 flex-1 w-full">
@@ -280,14 +280,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Card 06: Daily Transactions */}
           <div 
             onClick={onViewAllTransactions}
-            className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-slate-200 hover:border-[#0284C7] hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 group cursor-pointer"
+            className="bg-white rounded-xl sm:rounded-2xl p-2 sm:p-5 border border-slate-200 hover:border-sky-600 hover:shadow-md transition-all shadow-xs flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 group cursor-pointer"
             title="View All Transactions"
           >
             <div className="flex items-center justify-between w-full sm:w-auto">
-              <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-sky-50 border border-sky-100 text-[#0284C7] flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#0284C7] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
+              <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl bg-sky-50 border border-sky-100 text-sky-600 flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-110 group-hover:bg-[#0284C7] group-hover:text-white group-hover:rotate-6 transition-all duration-300">
                 <ArrowRightLeft className="w-3.5 h-3.5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:scale-110" />
               </div>
-              <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#0284C7] sm:hidden" />
+              <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-sky-600 sm:hidden" />
             </div>
             <div className="min-w-0 flex-1 w-full">
               <div className="flex items-center justify-between gap-1.5">
@@ -337,7 +337,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               <button
                 onClick={onViewAllBlocks ? onViewAllBlocks : () => onSelectBlock(stats?.latestBlock || 0)}
-                className="shrink-0 text-xs font-bold text-petrol hover:text-[#014E58] flex items-center gap-1 cursor-pointer bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-lg transition-colors shadow-2xs"
+                className="shrink-0 text-xs font-bold text-petrol hover:text-petrol-600 flex items-center gap-1 cursor-pointer bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-lg transition-colors shadow-2xs"
               >
                 <span>View All</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -475,7 +475,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               <button
                 onClick={onViewAllTransactions}
-                className="shrink-0 text-xs font-bold text-petrol hover:text-[#014E58] flex items-center gap-1 cursor-pointer bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-lg transition-colors shadow-2xs"
+                className="shrink-0 text-xs font-bold text-petrol hover:text-petrol-600 flex items-center gap-1 cursor-pointer bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-lg transition-colors shadow-2xs"
               >
                 <span>View All</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -518,7 +518,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-x-2 gap-y-0.5 flex-wrap">
-                          <span className="font-mono font-bold text-xs text-[#0284C7] group-hover:underline whitespace-nowrap">
+                          <span className="font-mono font-bold text-xs text-sky-600 group-hover:underline whitespace-nowrap">
                             {tx.hash.slice(0, 10)}…{tx.hash.slice(-6)}
                           </span>
                           <span className="text-[11px] text-slate-500 font-mono font-medium whitespace-nowrap">

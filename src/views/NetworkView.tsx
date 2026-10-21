@@ -160,7 +160,7 @@ export const NetworkView: React.FC<{ stats: NetworkStats | null }> = ({ stats })
               {copied ? 'Copied' : 'Copy'}
             </button>
           </div>
-          <pre className="p-3 rounded-2xl bg-[#0B132B] text-emerald-300 text-[11px] sm:text-xs overflow-x-auto">{JSON.stringify(WALLET_CONFIG, null, 2)}</pre>
+          <pre className="p-3 rounded-2xl theme-island bg-[#0B132B] text-emerald-300 text-[11px] sm:text-xs overflow-x-auto">{JSON.stringify(WALLET_CONFIG, null, 2)}</pre>
         </div>
       </Card>
 

@@ -50,11 +50,11 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
           {/* Col 1: Brand & Mission */}
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 p-1 flex items-center justify-center shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-[#F8FAFC] border border-slate-200 p-1 flex items-center justify-center shadow-xs">
                 <img src="/bitnetscan-icon.svg" alt="BitnetScan" className="w-full h-full object-contain" />
               </div>
-              <span className="font-bold text-[#162334] text-base">
-                Bitnet<span className="text-[#015866]">Scan</span>
+              <span className="font-bold text-[#162334] dark:text-slate-900 text-base">
+                Bitnet<span className="text-petrol-600">Scan</span>
               </span>
             </div>
             <p className="text-slate-500 text-xs">
@@ -233,7 +233,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${DONATION_ADDRESS}`}
                 alt="Donation QR Code"
-                className="w-48 h-48 rounded-xl bg-white p-2 shadow-xs border border-slate-100"
+                className="w-48 h-48 rounded-xl bg-[#FFFFFF] p-2 shadow-xs border border-slate-100"
               />
               <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1">
                 <QrCode className="w-3 h-3 text-slate-400" />

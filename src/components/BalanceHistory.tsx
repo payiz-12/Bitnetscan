@@ -113,7 +113,7 @@ export const BalanceHistory: React.FC<{ address: string }> = ({ address }) => {
       ) : (
         <LineChart
           points={points.map((p) => ({ x: p.timestamp, y: btn(p.wei) }))}
-          color="#016976"
+          color="var(--chart-primary)"
           formatY={(v) => `${fmt(v)} BTN`}
           formatAxisY={compact}
           formatX={(ts) => new Date(ts * 1000).toLocaleDateString('en-US', dateFmt)}

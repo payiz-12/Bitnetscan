@@ -220,9 +220,9 @@ export const SecurityView: React.FC<SecurityViewProps> = ({ onSelectAddress, onS
           {chartPoints.length < 2 ? <div className="skeleton rounded-xl w-full h-[200px]" aria-hidden="true" /> : (
             <LineChart
               points={chartPoints.map((p) => ({ x: p.x, y: p.y }))}
-              color="#016976"
+              color="var(--chart-primary)"
               yMax={100}
-              reference={{ y: 50, label: '50% majority', color: '#E11D48' }}
+              reference={{ y: 50, label: '50% majority', color: 'var(--chart-alert)' }}
               formatY={(v) => `${v.toFixed(0)}%`}
               formatX={(ts) => new Date(ts * 1000).toLocaleDateString('en-US', range === '1y' ? { month: 'short', year: 'numeric', timeZone: 'UTC' } : { month: 'short', day: 'numeric', timeZone: 'UTC' })}
               describe={(i) => {

@@ -5,6 +5,15 @@
     <link rel="icon" type="image/svg+xml" href="/bitnetscan-icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f172a" />
+    <!-- Dark theme before the first paint: the stored choice, otherwise the device setting (see src/services/theme.ts). -->
+    <script>
+      try {
+        var theme = localStorage.getItem('bitnetscan:theme');
+        if (theme === 'dark' || (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    </script>
     <title>BitnetScan | Bitnet (BTN) Blockchain Explorer</title>
     <meta name="description" content="Block explorer for Bitnet (BTN): blocks, transactions, addresses, tokens, NFTs and mining on chain 210." />
     <link rel="canonical" href="https://bitnetscan.vercel.app/" />

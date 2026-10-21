@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Cpu, Layers, Coins, Image, Terminal,
   Activity, Menu, X, PlusCircle, CheckCircle2, Globe, Trophy,
-  FileCode, LineChart, PieChart, Box, ArrowRightLeft, GitBranch, ChevronDown, ShieldCheck, Wrench, Braces, Star
+  FileCode, LineChart, PieChart, Box, ArrowRightLeft, GitBranch, ChevronDown, ShieldCheck, Wrench, Braces, Star, Sun, Moon
 } from 'lucide-react';
 import { useWatchlist } from '../services/watchlist';
+import { useTheme, setTheme } from '../services/theme';
 import { NetworkStats } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
 import { QuickSearchModal } from './QuickSearchModal';
@@ -119,6 +120,29 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
   const badge = (id: string) => id === 'watchlist' && unseen > 0 && currentView !== 'watchlist'
     ? <span className="ml-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold inline-flex items-center justify-center">{unseen > 9 ? '9+' : unseen}</span>
     : null;
+  const dark = useTheme() === 'dark';
+  // Sliding switch: sun on the left, moon on the right; the knob carries the active one.
+  const themeSwitch = (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={dark}
+      aria-label="Dark theme"
+      title={dark ? 'Switch to light theme' : 'Switch to dark theme'}
+      onClick={() => setTheme(dark ? 'light' : 'dark')}
+      className="relative w-16 h-8 shrink-0 rounded-full bg-slate-100 border border-slate-200 hover:border-petrol-200 shadow-xs cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-petrol/40"
+    >
+      <Sun className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
+      <Moon className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
+      <span
+        className={`absolute left-[3px] top-[3px] w-6 h-6 rounded-full border flex items-center justify-center shadow-xs transition-transform duration-300 ${
+          dark ? 'translate-x-8 bg-[#3A98A4] border-[#3A98A4] text-white' : 'bg-white border-slate-200 text-terracotta'
+        }`}
+      >
+        {dark ? <Moon className="w-[15px] h-[15px]" aria-hidden="true" /> : <Sun className="w-[15px] h-[15px]" aria-hidden="true" />}
+      </span>
+    </button>
+  );
   const isActive = (id: string) =>
     currentView === id ||
     (id === 'blocks' && currentView === 'block-detail') ||
@@ -146,7 +170,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
   return (
     <>
       {/* Top micro-ticker banner (scrolls away so the sticky nav stays compact on phones) */}
-      <div className="bg-slate-900 border-b border-slate-800 py-1.5 px-3 sm:px-6 lg:px-8 text-xs text-slate-300">
+      <div className="theme-island bg-slate-900 border-b border-slate-800 py-1.5 px-3 sm:px-6 lg:px-8 text-xs text-slate-300">
         <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-3">
           
           {/* Left group: network status + latest block and gas price */}
@@ -221,7 +245,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
             className="flex items-center gap-2.5 cursor-pointer group flex-shrink-0 text-left"
             aria-label="BitnetScan home"
           >
-            <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white border border-slate-200 p-1.5 shadow-sm group-hover:border-[#015866] group-hover:shadow-md transition-all flex items-center justify-center overflow-hidden">
+            <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#FFFFFF] border border-slate-200 p-1.5 shadow-sm group-hover:border-petrol-600 group-hover:shadow-md transition-all flex items-center justify-center overflow-hidden">
               <BitnetScanIcon 
                 animated={true}
                 className="w-full h-full object-contain group-hover:scale-105 transition-transform" 
@@ -229,8 +253,8 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-[#162334] group-hover:text-[#015866] transition-colors">
-                  Bitnet<span className="text-[#015866]">Scan</span>
+                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-[#162334] dark:text-slate-900 group-hover:text-petrol-600 transition-colors">
+                  Bitnet<span className="text-petrol-600">Scan</span>
                 </span>
               </div>
               <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium -mt-0.5 hidden sm:block">Bitnet Money Block Explorer</p>
@@ -248,12 +272,13 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
             />
           </div>
 
-          {/* Mobile hamburger button */}
-          <div className="flex lg:hidden items-center gap-2">
+          {/* Theme toggle (all sizes) and, on phones and tablets, the menu button */}
+          <div className="flex items-center gap-2">
+            {themeSwitch}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 shadow-sm cursor-pointer"
+              className="lg:hidden p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 shadow-sm cursor-pointer"
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileMenuOpen}
             >
@@ -369,7 +394,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
             <button
               type="button"
               onClick={handleAddToMetaMask}
-              className="sm:hidden mt-2 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all cursor-pointer"
+              className="sm:hidden mt-2 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs transition-all cursor-pointer"
             >
               {addedToWallet ? (
                 <>

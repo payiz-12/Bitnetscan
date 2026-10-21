@@ -170,7 +170,7 @@ export const ConsoleView: React.FC = () => {
             </div>
           )}
 
-          <div className="flex-1 bg-[#0B132B] rounded-2xl border border-slate-700 p-4 font-mono text-xs text-emerald-400 overflow-y-auto max-h-[320px] whitespace-pre-wrap break-all shadow-inner">
+          <div className="flex-1 theme-island bg-[#0B132B] rounded-2xl border border-slate-700 p-4 font-mono text-xs text-emerald-400 overflow-y-auto max-h-[320px] whitespace-pre-wrap break-all shadow-inner">
             {responseJson || '// Output will be displayed here after execution.'}
           </div>
         </div>

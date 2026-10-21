@@ -139,7 +139,7 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
             <ChartCard title="Hashrate" subtitle="Work done (total difficulty) divided by elapsed time.">
               <LineChart
                 points={buckets.map((b) => ({ x: b.endTs, y: b.hashrate }))}
-                color="#016976"
+                color="var(--chart-primary)"
                 formatY={(v) => formatHashrate(v)}
                 formatAxisY={(v) => `${compact(v)}H/s`}
                 formatX={xFormat}
@@ -150,7 +150,7 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
             <ChartCard title="Difficulty" subtitle="Average difficulty per block.">
               <LineChart
                 points={buckets.map((b) => ({ x: b.endTs, y: b.difficulty }))}
-                color="#016976"
+                color="var(--chart-primary)"
                 formatY={(v) => compact(v)}
                 formatX={xFormat}
                 describe={describe}
@@ -160,7 +160,7 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
             <ChartCard title="Block time" subtitle="Average seconds between blocks.">
               <LineChart
                 points={buckets.map((b) => ({ x: b.endTs, y: b.blockTime }))}
-                color="#016976"
+                color="var(--chart-primary)"
                 formatY={(v) => `${v.toFixed(2)} s`}
                 formatAxisY={(v) => `${v.toFixed(v < 10 ? 1 : 0)} s`}
                 formatX={xFormat}
@@ -171,7 +171,7 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
             <ChartCard title="Uncle rate" subtitle={`Uncles per block, from ${SAMPLES_PER_BUCKET} sampled blocks per point.`}>
               <LineChart
                 points={buckets.map((b) => ({ x: b.endTs, y: b.uncleRate * 100 }))}
-                color="#016976"
+                color="var(--chart-primary)"
                 formatY={(v) => `${v.toFixed(1)}%`}
                 formatAxisY={(v) => `${v.toFixed(0)}%`}
                 formatX={xFormat}

@@ -1,3 +1,5 @@
+import { themeColors, darkThemePlugin } from './tailwind.theme.js';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -8,39 +10,15 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Brand colors petrol (#016976, primary) and terracotta (#D68142, accent), plus slate and the
+        // status hues, come from tailwind.theme.js with their dark-theme variables.
+        ...themeColors.colors,
         bitnet: {
           50: '#f0fdf4',
           100: '#dcfce7',
           400: '#4ade80',
           500: '#22c55e',
           600: '#16a34a',
-        },
-        // Brand colors. petrol (#016976) is the primary color, terracotta (#D68142) the accent.
-        petrol: {
-          DEFAULT: '#016976',
-          50: '#EBF6F7',
-          100: '#D3ECEF',
-          200: '#A7D9DF',
-          300: '#74BFC8',
-          400: '#3A98A4',
-          500: '#016976',
-          600: '#015661',
-          700: '#01424B',
-          800: '#023239',
-          900: '#02242A',
-        },
-        terracotta: {
-          DEFAULT: '#D68142',
-          50: '#FDF8F4',
-          100: '#FBF0E6',
-          200: '#F6DCC4',
-          300: '#EEBD92',
-          400: '#E29E66',
-          500: '#D68142',
-          600: '#BD6E32',
-          700: '#9C5622',
-          800: '#7A431B',
-          900: '#5C3215',
         },
         navy: {
           DEFAULT: '#1A2B3F',
@@ -77,6 +55,10 @@ export default {
           muted: '#9ca3af',
         }
       },
+      // Per-property palettes for the dark theme (see tailwind.theme.js).
+      backgroundColor: themeColors.backgroundColor,
+      textColor: themeColors.textColor,
+      borderColor: themeColors.borderColor,
       // Soft, slightly cool shadows; xs and 2xs are used across the app (not built into Tailwind 3).
       boxShadow: {
         '2xs': '0 1px 1px rgba(15, 23, 42, 0.04)',
@@ -105,5 +87,5 @@ export default {
       }
     },
   },
-  plugins: [],
+  plugins: [darkThemePlugin],
 }

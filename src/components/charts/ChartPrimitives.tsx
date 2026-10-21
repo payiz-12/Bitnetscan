@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const GRID = '#E2E8F0';
-const AXIS_TEXT = '#64748B';
-const SURFACE = '#FFFFFF';
+// Theme-aware chart colors, defined for light and dark in index.css.
+const GRID = 'var(--chart-grid)';
+const AXIS_TEXT = 'var(--chart-axis)';
+const SURFACE = 'var(--chart-surface)';
+const CROSSHAIR = 'var(--chart-baseline)';
 
 /** Width of a container element, kept in sync with layout changes. */
 function useWidth(fallback = 600) {
@@ -141,7 +143,7 @@ export const LineChart: React.FC<LineChartProps> = ({ points, color, formatY, fo
         {hover === null && <circle cx={sx(last.x)} cy={sy(last.y)} r={4} fill={color} stroke={SURFACE} strokeWidth={2} />}
         {hover !== null && (
           <g>
-            <line x1={sx(points[hover].x)} x2={sx(points[hover].x)} y1={pad.top} y2={pad.top + plotH} stroke="#94A3B8" strokeWidth={1} />
+            <line x1={sx(points[hover].x)} x2={sx(points[hover].x)} y1={pad.top} y2={pad.top + plotH} stroke={CROSSHAIR} strokeWidth={1} />
             <circle cx={sx(points[hover].x)} cy={sy(points[hover].y)} r={4.5} fill={color} stroke={SURFACE} strokeWidth={2} />
           </g>
         )}

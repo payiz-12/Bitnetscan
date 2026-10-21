@@ -192,7 +192,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                 <div className="min-w-0 flex-1 space-y-1.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <span className="font-mono font-bold text-xs text-[#0284C7] block">{truncate(tx.hash, 10, 6)}</span>
+                    <span className="font-mono font-bold text-xs text-sky-600 block">{truncate(tx.hash, 10, 6)}</span>
                     <span className="text-[11px] text-slate-500 font-mono">
                       <button
                         type="button"
@@ -304,7 +304,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                       <td className="py-3.5 px-4 font-mono">
                         <div className="flex items-center gap-2">
                           <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-5 h-5 shrink-0" />
-                          <span className="font-bold text-[#0284C7] group-hover:underline">
+                          <span className="font-bold text-sky-600 group-hover:underline">
                             {truncate(tx.hash, 8, 6)}
                           </span>
                           <button

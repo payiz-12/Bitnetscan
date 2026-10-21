@@ -217,7 +217,7 @@ export const TokensView: React.FC<TokensViewProps> = ({ onSelectAddress }) => {
                   href={`https://github.com/${std.spec}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-petrol hover:text-[#01545e] font-bold"
+                  className="inline-flex items-center gap-1.5 text-xs text-petrol hover:text-petrol-600 font-bold"
                 >
                   <Code className="w-3.5 h-3.5" />
                   <span>View Solidity Source</span>

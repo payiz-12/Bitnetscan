@@ -733,7 +733,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
                 <span>{copiedKey === 'input-hex' ? 'Copied!' : 'Copy Hex'}</span>
               </button>
             </div>
-            <div className="bg-[#0B132B] rounded-2xl border border-slate-800 p-4 text-emerald-400 break-all max-h-60 overflow-y-auto shadow-inner select-all">
+            <div className="theme-island bg-[#0B132B] rounded-2xl border border-slate-800 p-4 text-emerald-400 break-all max-h-60 overflow-y-auto shadow-inner select-all">
               {tx.input || '0x'}
             </div>
           </div>
@@ -751,7 +751,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
                 </button>
               )}
             </div>
-            <div className="bg-[#0B132B] rounded-2xl border border-slate-800 p-4 text-emerald-400 whitespace-pre-wrap break-all max-h-60 overflow-y-auto shadow-inner">
+            <div className="theme-island bg-[#0B132B] rounded-2xl border border-slate-800 p-4 text-emerald-400 whitespace-pre-wrap break-all max-h-60 overflow-y-auto shadow-inner">
               {!tx.input || tx.input === '0x'
                 ? '(Standard native BTN transfer with no calldata payload - 0x)'
                 : hexToUtf8(tx.input) || 'No printable ASCII / UTF-8 characters found.'}

@@ -142,7 +142,7 @@ const ReadFn: React.FC<{ fn: ethers.FunctionFragment; iface: ethers.Interface; a
             <div className="font-mono space-y-1">
               {fn.outputs.map((p, i) => (
                 <div key={i} className="flex flex-col sm:flex-row sm:gap-2">
-                  <span className="text-slate-400 shrink-0">{p.name ? `${p.name} ` : ''}<span className="text-slate-300">{p.type}</span></span>
+                  <span className="text-slate-500 shrink-0">{p.name ? `${p.name} ` : ''}<span className="text-slate-400">{p.type}</span></span>
                   <Value p={p} v={(out as { values: ethers.Result }).values[i]} onSelectAddress={onSelectAddress} token={amountLike ? token : null} />
                 </div>
               ))}

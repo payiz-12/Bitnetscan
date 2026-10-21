@@ -42,7 +42,7 @@ interface Preview {
 
 const TONES = {
   block: 'bg-petrol-50 text-petrol border-petrol-200',
-  tx: 'bg-sky-50 text-[#0284C7] border-sky-200',
+  tx: 'bg-sky-50 text-sky-600 border-sky-200',
   wallet: 'bg-slate-100 text-slate-700 border-slate-200',
   contract: 'bg-indigo-50 text-indigo-600 border-indigo-200',
   token: 'bg-emerald-50 text-emerald-600 border-emerald-200',

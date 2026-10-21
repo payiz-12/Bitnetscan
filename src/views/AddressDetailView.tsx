@@ -1099,7 +1099,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
 
                     {/* Bottom Row: Txn Hash + Block Number */}
                     <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-0.5">
-                      <span className="text-[#0284C7] font-semibold">
+                      <span className="text-sky-600 font-semibold">
                         {tx.hash.slice(0, 10)}...{tx.hash.slice(-6)}
                       </span>
                       <span className="text-slate-700 font-semibold">
@@ -1133,7 +1133,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                         className="hover:bg-slate-50 transition-colors cursor-pointer group"
                       >
                         {/* Hash */}
-                        <td className="py-3.5 px-3 font-semibold text-[#0284C7] group-hover:underline truncate max-w-[130px]">
+                        <td className="py-3.5 px-3 font-semibold text-sky-600 group-hover:underline truncate max-w-[130px]">
                           <div className="flex items-center gap-1.5">
                             <span>{tx.hash.slice(0, 10)}...{tx.hash.slice(-6)}</span>
                             <button
@@ -1409,7 +1409,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             </span>
           </div>
 
-          <div className="bg-[#0B132B] p-4 rounded-2xl border border-slate-700 font-mono text-xs text-emerald-400 break-all max-h-72 overflow-y-auto shadow-inner">
+          <div className="theme-island bg-[#0B132B] p-4 rounded-2xl border border-slate-700 font-mono text-xs text-emerald-400 break-all max-h-72 overflow-y-auto shadow-inner">
             {bytecode ?? 'Bytecode could not be loaded from the RPC.'}
           </div>
         </div>
@@ -1550,7 +1550,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                         className="hover:bg-slate-50 transition-colors cursor-pointer group"
                       >
                         {/* Hash */}
-                        <td className="py-3.5 px-3 font-semibold text-[#0284C7] group-hover:underline truncate max-w-[130px]">
+                        <td className="py-3.5 px-3 font-semibold text-sky-600 group-hover:underline truncate max-w-[130px]">
                           <div className="flex items-center gap-1.5">
                             <span>{tx.hash.slice(0, 10)}...{tx.hash.slice(-6)}</span>
                             <button

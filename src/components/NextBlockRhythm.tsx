@@ -3,8 +3,8 @@ import { Block } from '../types/blockchain';
 import { loadMinerSample, getCachedMinerSample } from '../services/minerSample';
 
 const BARS = 24;
-const PAST = '#A7D9DF';
-const CURRENT = '#016976';
+const PAST = 'var(--chart-past)';
+const CURRENT = 'var(--chart-primary)';
 const OVERDUE = '#D68142';
 
 interface NextBlockRhythmProps {

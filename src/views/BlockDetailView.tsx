@@ -459,7 +459,7 @@ export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-[#0284C7] font-bold hover:underline">
+                      <span className="font-mono text-sky-600 font-bold hover:underline">
                         {hash}
                       </span>
                     </div>

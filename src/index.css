@@ -12,6 +12,11 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  .dark body {
+    background-color: #0B1316;
+    color: #E9EFF1;
+  }
+
   /* iOS Safari zooms into inputs with a font size below 16px; keep form fields at 16px on phones. */
   @media (max-width: 639px) {
     input,
@@ -22,11 +27,44 @@
   }
 }
 
+/* Chart colors (SVG strokes and fills) for both themes */
+:root {
+  --chart-grid: #E2E8F0;
+  --chart-axis: #64748B;
+  --chart-baseline: #94A3B8;
+  --chart-ink: #0F172A;
+  --chart-ink-2: #334155;
+  --chart-surface: #FFFFFF;
+  --chart-primary: #016976;
+  --chart-past: #A7D9DF;
+  --chart-teal: #0D9488;
+  --chart-sky: #0284C7;
+  --chart-alert: #E11D48;
+}
+.dark {
+  --chart-grid: #26373D;
+  --chart-axis: #92A4AA;
+  --chart-baseline: #4B6069;
+  --chart-ink: #E9EFF1;
+  --chart-ink-2: #C6D2D6;
+  --chart-surface: #111B1F;
+  --chart-primary: #3A98A4;
+  --chart-past: #2A4F55;
+  --chart-teal: #14B8A6;
+  --chart-sky: #38BDF8;
+  --chart-alert: #FB7185;
+}
+
 /* Subtle, elegant warm canvas background pattern */
 .bg-canvas-warm {
   background-color: #F8F7F4;
   background-image: radial-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px);
   background-size: 24px 24px;
+}
+
+.dark .bg-canvas-warm {
+  background-color: #0B1316;
+  background-image: radial-gradient(rgba(233, 239, 241, 0.035) 1px, transparent 1px);
 }
 
 /* Custom scrollbars */
@@ -43,6 +81,15 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #016976;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #0B1316;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #2F4249;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3A98A4;
 }
 
 /* Standardized Card Style: Pure white with crisp border and subtle ambient shadow */
@@ -66,6 +113,15 @@
   transform: translateY(-1px);
 }
 
+.dark .card-clean,
+.dark .card-clean-hover {
+  background-color: #111B1F;
+  border-color: #26373D;
+}
+.dark .card-clean-hover:hover {
+  border-color: #3A98A4;
+}
+
 /* Number badge helper to guarantee crisp white text on colored circles */
 .badge-circle {
   color: #FFFFFF !important;
@@ -86,6 +142,13 @@
   text-decoration: underline;
 }
 
+.dark .link-hash {
+  color: #38BDF8;
+}
+.dark .link-hash:hover {
+  color: #7DD3FC;
+}
+
 .link-teal {
   color: #016976;
   font-family: monospace;
@@ -95,6 +158,13 @@
 .link-teal:hover {
   color: #014E58;
   text-decoration: underline;
+}
+
+.dark .link-teal {
+  color: #74BFC8;
+}
+.dark .link-teal:hover {
+  color: #A7D9DF;
 }
 
 /* Animated Block Entrance & Live Pulse */
@@ -167,6 +237,10 @@
   background: linear-gradient(90deg, #EEF1F4 25%, #F7F9FA 50%, #EEF1F4 75%);
   background-size: 200% 100%;
   animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+.dark .skeleton {
+  background: linear-gradient(90deg, #1B2A2F 25%, #243439 50%, #1B2A2F 75%);
+  background-size: 200% 100%;
 }
 @keyframes skeletonShimmer {
   0% { background-position: 200% 0; }

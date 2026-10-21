@@ -413,19 +413,19 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
   const themeColor =
     metric === 'volume'
-      ? '#016976'
+      ? 'var(--chart-primary)'
       : metric === 'txs'
-      ? '#0D9488'
+      ? 'var(--chart-teal)'
       : metric === 'hashrate'
       ? '#D68142'
-      : '#0284C7';
+      : 'var(--chart-sky)';
 
   return (
     <div className="space-y-6">
       {/* Header section with live badge */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-[#016976] shadow-xs">
+          <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-petrol shadow-xs">
             <Activity className="w-5 h-5" />
           </div>
           <div>
@@ -435,7 +435,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
         <div className="flex items-center gap-2 self-start sm:self-auto text-xs font-mono">
           <span className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 font-semibold flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-[#016976]" />
+            <Clock className="w-3.5 h-3.5 text-petrol" />
             <span>Last {blocksData.length} blocks</span>
           </span>
         </div>
@@ -448,10 +448,10 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           <div>
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-[#016976]" />
+                <BarChart3 className="w-4 h-4 text-petrol" />
                 <h3 className="text-sm font-bold text-slate-900">Transactions per Block</h3>
               </div>
-              <span className="text-[11px] font-mono font-bold text-[#016976] bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">
+              <span className="text-[11px] font-mono font-bold text-petrol bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">
                 Avg. {avgTxCount} tx
               </span>
             </div>
@@ -468,14 +468,14 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                 const isHovered = hoveredBarIndex === idx;
 
                 const barBg = isHovered
-                  ? 'bg-[#016976] shadow-md scale-y-105'
+                  ? 'bg-[#016976] dark:bg-[#74BFC8] shadow-md scale-y-105'
                   : b.txCount === 0
                   ? 'bg-slate-200'
                   : b.txCount === 1
                   ? 'bg-teal-500 hover:bg-teal-600'
                   : b.txCount <= 4
-                  ? 'bg-[#016976] hover:bg-[#01525d]'
-                  : 'bg-[#014E58] hover:bg-[#01383e]';
+                  ? 'bg-[#016976] hover:bg-[#01525d] dark:bg-[#3A98A4] dark:hover:bg-[#74BFC8]'
+                  : 'bg-[#014E58] hover:bg-[#01383e] dark:bg-[#74BFC8] dark:hover:bg-[#A7D9DF]';
 
                 return (
                   <div
@@ -492,7 +492,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
                     {/* Tooltip on Hover */}
                     {isHovered && (
-                      <div className="absolute bottom-full mb-2 z-30 pointer-events-none transform -translate-x-1/2 left-1/2 min-w-[130px] p-2 bg-[#0F172A] text-white rounded-xl text-[10px] font-mono shadow-xl border border-slate-700 space-y-0.5">
+                      <div className="absolute bottom-full mb-2 z-30 pointer-events-none transform -translate-x-1/2 left-1/2 min-w-[130px] p-2 theme-island bg-[#0F172A] text-white rounded-xl text-[10px] font-mono shadow-xl border border-slate-700 space-y-0.5">
                         <div className="text-teal-300 font-bold">Block #{b.number}</div>
                         <div>Transactions: <span className="font-bold text-white">{b.txCount} txns</span></div>
                         <div className="text-slate-400 truncate">Miner: {b.miner.slice(0, 8)}...</div>
@@ -526,10 +526,10 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           <div>
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-[#D97706]" />
+                <Flame className="w-4 h-4 text-amber-600" />
                 <h3 className="text-sm font-bold text-slate-900">Block Capacity & Gas Load</h3>
               </div>
-              <span className="text-[11px] font-mono font-bold text-[#D97706] bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+              <span className="text-[11px] font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
                 {blocksData.some(b => b.txCount > 0 || b.gasUsed > 0)
                   ? `${blocksData.reduce((acc, b) => acc + (b.gasUsed || b.txCount * 21000), 0).toLocaleString()} Gas (${avgGasPercent}%)`
                   : `${avgGasPercent}% Utilization`}
@@ -571,7 +571,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
                     {/* Tooltip on Hover */}
                     {isHovered && (
-                      <div className="absolute bottom-full mb-2 z-30 pointer-events-none transform -translate-x-1/2 left-1/2 min-w-[140px] p-2 bg-[#0F172A] text-white rounded-xl text-[10px] font-mono shadow-xl border border-slate-700 space-y-0.5">
+                      <div className="absolute bottom-full mb-2 z-30 pointer-events-none transform -translate-x-1/2 left-1/2 min-w-[140px] p-2 theme-island bg-[#0F172A] text-white rounded-xl text-[10px] font-mono shadow-xl border border-slate-700 space-y-0.5">
                         <div className="text-amber-300 font-bold">Block #{b.number}</div>
                         <div>Gas Used: <span className="font-bold text-white">{effectiveGas.toLocaleString()} gas</span></div>
                         <div className="text-slate-400">Transactions: {b.txCount} tx</div>
@@ -616,11 +616,11 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           <div>
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#016976]" />
+                <ShieldCheck className="w-4 h-4 text-petrol" />
                 <h3 className="text-sm font-bold text-slate-900">Mining Pool Distribution</h3>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-bold text-[#016976] bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
+                <span className="text-[11px] font-bold text-petrol bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
                   {miningSummary.totalBlocksSampled} blocks
                 </span>
                 <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 hidden sm:inline">
@@ -639,7 +639,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                     ? `Reported by ${miningSummary.reportedWorkerSources.join(', ')}. ${miningSummary.minersWithoutWorkerData} miner(s) in this sample do not publish worker counts.`
                     : 'No pool API reported a worker count.'}
                 >
-                  <Users className="w-3.5 h-3.5 text-[#016976] shrink-0" />
+                  <Users className="w-3.5 h-3.5 text-petrol shrink-0" />
                   <span className="truncate">{reportedWorkersLabel}</span>
                 </span>
               </div>
@@ -688,7 +688,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                         <span className={`w-2 h-2 rounded-full shrink-0 ${barColor}`} />
                         <button
                           onClick={() => onSelectAddress(item.miner)}
-                          className="text-slate-900 hover:text-[#016976] hover:underline font-bold text-xs truncate flex items-center gap-1 text-left"
+                          className="text-slate-900 hover:text-petrol hover:underline font-bold text-xs truncate flex items-center gap-1 text-left"
                           title={`${item.poolName} - ${item.miner}`}
                         >
                           <span className="truncate">{item.poolName}</span>
@@ -699,7 +699,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
-                            className="text-slate-400 hover:text-[#016976] inline-flex items-center shrink-0 transition-colors"
+                            className="text-slate-400 hover:text-petrol inline-flex items-center shrink-0 transition-colors"
                             title={`Open ${item.poolName} (${item.poolUrl})`}
                           >
                             <ExternalLink className="w-3 h-3" />
@@ -739,7 +739,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                         </span>
                         {item.minersCount !== null ? (
                           <span
-                            className="text-[9px] font-bold text-[#016976] bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap"
+                            className="text-[9px] font-bold text-petrol bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap"
                             title={`Reported by ${item.workersSource}${item.poolHashrateGh !== undefined ? ` · pool hashrate ${item.poolHashrateGh.toFixed(2)} GH/s` : ''}`}
                           >
                             {item.minersCount} {item.minersCount === 1 ? 'Worker' : 'Workers'}
@@ -783,11 +783,11 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5 border-b border-slate-100 pb-5">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-[#016976]" />
+              <TrendingUp className="w-5 h-5 text-petrol" />
               <h3 className="text-base sm:text-lg font-black text-slate-900">
                 Network Activity & History
               </h3>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 text-[#016976] border border-teal-200">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 text-petrol border border-teal-200">
                 {timeframe === '1d'
                   ? 'Last 24 Hours'
                   : timeframe === '7d'
@@ -800,7 +800,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                   ? 'Last 1 Year'
                   : 'All-Time'}
               </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-[#D68142] border border-amber-200 font-mono">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-terracotta border border-amber-200 font-mono">
                 {metric === 'volume' ? `${timeframeSummary.volFormatted}${coverageSuffix}` : metric === 'txs' ? (timeframeSummary.covered ? `${timeframeSummary.txs.toLocaleString()} tx${coverageSuffix}` : 'Transactions') : metric === 'supply' ? (latestSupply ? `${latestSupply.supplyText} BTN${supplyIsEstimate ? ' (est.)' : ''}` : supplyLabel) : 'PoW Hashrate'}
               </span>
               {(metric === 'volume' || metric === 'txs') && activityState && <span
@@ -894,14 +894,14 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
         {metric === 'hashrate' && (
           <p className="text-xs text-slate-500">
             Network hashrate from on-chain difficulty and block times, averaged per period.{' '}
-            {hashState && <span className="font-semibold text-[#D68142]">{hashState}</span>}
+            {hashState && <span className="font-semibold text-terracotta">{hashState}</span>}
             {hashHistory.length > 0 && ` · Latest data: ${new Date(hashHistory[hashHistory.length - 1].timestamp * 1000).toLocaleString('en-US')}`}
           </p>
         )}
 
         {metric === 'supply' && (
           <p className="text-xs text-slate-500">
-            {supplyState && <span className="font-semibold text-[#016976]">{supplyState} </span>}
+            {supplyState && <span className="font-semibold text-petrol">{supplyState} </span>}
             {supplyIsEstimate
               ? 'Estimated from block height × 1 BTN (excludes uncle rewards and burned coins).'
               : 'Circulating supply from the Bitnet explorer.'}
@@ -949,7 +949,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                     y1={tick.y}
                     x2={svgWidth - paddingRight}
                     y2={tick.y}
-                    stroke="#E2E8F0"
+                    stroke="var(--chart-grid)"
                     strokeWidth={idx === 0 ? "1.5" : "1"}
                     strokeDasharray={idx === 0 ? "" : "4 4"}
                   />
@@ -958,7 +958,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                     x={paddingLeft - (isMobile ? 6 : 12)}
                     y={tick.y + (isMobile ? 3.5 : 4)}
                     textAnchor="end"
-                    fill="#0F172A"
+                    fill="var(--chart-ink)"
                     fontWeight="700"
                     fontFamily="ui-monospace, monospace"
                     fontSize={isMobile ? "10" : "12"}
@@ -974,7 +974,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                 y1={paddingTop + plotHeight}
                 x2={svgWidth - paddingRight}
                 y2={paddingTop + plotHeight}
-                stroke="#94A3B8"
+                stroke="var(--chart-baseline)"
                 strokeWidth="1.5"
               />
 
@@ -1033,7 +1033,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                         y1={paddingTop + plotHeight}
                         x2={p.x}
                         y2={paddingTop + plotHeight + 5}
-                        stroke="#94A3B8"
+                        stroke="var(--chart-baseline)"
                         strokeWidth="1.5"
                       />
                       {/* X-Axis Text Label */}
@@ -1041,7 +1041,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                         x={p.x}
                         y={paddingTop + plotHeight + 22}
                         textAnchor={isFirst ? 'start' : isLast ? 'end' : 'middle'}
-                        fill="#334155"
+                        fill="var(--chart-ink-2)"
                         fontWeight="700"
                         fontFamily="ui-monospace, monospace"
                         fontSize="12"
@@ -1105,7 +1105,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                     cx={p.x}
                     cy={p.y}
                     r={isHovered ? 7 : (isMobile ? 4.5 : 3.5)}
-                    fill={isHovered ? themeColor : '#FFFFFF'}
+                    fill={isHovered ? themeColor : 'var(--chart-surface)'}
                     stroke={themeColor}
                     strokeWidth={isHovered ? '3.5' : (isMobile ? '2.5' : '2')}
                     pointerEvents="none"
@@ -1176,14 +1176,14 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-100 mt-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-800 shadow-2xs">
-                <Calendar className="w-4 h-4 text-[#016976]" />
+                <Calendar className="w-4 h-4 text-petrol" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] text-slate-500 font-semibold block">
                     {hoveredPointIndex !== null ? 'Selected Point Details' : 'Point Inspector'}
                   </span>
-                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-teal-100/60 text-[#016976] rounded">
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-teal-100/60 text-petrol rounded">
                     {metric === 'hashrate' ? 'Block intervals' : timeframe === '1d'
                       ? 'Hourly'
                       : timeframe === '7d'

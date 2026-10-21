@@ -169,7 +169,7 @@ const EndpointCard: React.FC<{ e: Endpoint; origin: string }> = ({ e, origin }) 
           {out.image ? (
             <img src={out.image} alt={`${e.title} example`} className="w-full rounded-xl border border-slate-200" />
           ) : (
-            <pre className="max-h-80 overflow-auto rounded-xl bg-[#0B132B] text-emerald-300 text-[11px] sm:text-xs p-3 whitespace-pre-wrap break-all">{out.body}</pre>
+            <pre className="max-h-80 overflow-auto rounded-xl theme-island bg-[#0B132B] text-emerald-300 text-[11px] sm:text-xs p-3 whitespace-pre-wrap break-all">{out.body}</pre>
           )}
         </div>
       )}

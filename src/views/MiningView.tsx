@@ -440,7 +440,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
                 </div>
               ))}
               {coolPool?.servers && coolPool.servers.length > 0 && (
-                <div className="p-4 rounded-2xl bg-[#0B132B] border border-slate-700 font-mono space-y-2">
+                <div className="p-4 rounded-2xl theme-island bg-[#0B132B] border border-slate-700 font-mono space-y-2">
                   <div className="text-slate-400 font-semibold"># lolMiner (CoolPool)</div>
                   <div className="text-emerald-400 font-bold select-all break-all">
                     lolMiner --algo ETHASH --pool {coolPool.servers[0].host} --user YOUR_BTN_ADDRESS
