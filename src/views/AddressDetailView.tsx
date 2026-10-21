@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   User, ArrowLeft, Copy, QrCode, Shield, Coins, FileCode, CheckCircle2, 
   ExternalLink, Layers, ArrowRightLeft, Code, Send, RefreshCw, X, Pickaxe, 
-  ArrowDownLeft, ArrowUpRight, Clock, Sparkles, Image as ImageIcon, Eye, Tag
+  ArrowDownLeft, ArrowUpRight, Clock, Sparkles, Image as ImageIcon, Eye, Tag, GitMerge
 } from 'lucide-react';
 import { Block } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
@@ -23,6 +23,7 @@ import { CsvExportButton } from '../components/CsvExportButton';
 import { WatchButton } from '../components/WatchButton';
 import { ContractInteract } from '../components/ContractInteract';
 import { ContractSource } from '../components/ContractSource';
+import { TokenTransfersTab, InternalTxsTab } from '../components/AddressActivityTabs';
 import { ethers } from 'ethers';
 import { ShareButton } from '../components/ShareButton';
 
@@ -85,7 +86,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
   const [nftFilter, setNftFilter] = useState<'all' | 'mint' | 'in' | 'out'>('all');
   const [selectedHolding, setSelectedHolding] = useState<AddressNftHolding | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'nft-transfers' | 'nft-holdings' | 'tokens' | 'mined-blocks' | 'contract' | 'read'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'internal' | 'token-transfers' | 'nft-transfers' | 'nft-holdings' | 'tokens' | 'mined-blocks' | 'contract' | 'read'>('overview');
 
 
   useEffect(() => {
@@ -493,6 +494,8 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           <span>
             {loading
               ? 'Reading the chain…'
+              : balance === null
+              ? 'The chain could not be read'
               : verificationSource === 'rpc'
               ? 'Balance read live from the RPC'
               : verificationSource === 'explorer'
@@ -718,6 +721,8 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           </span>
           <span className="text-[11px] font-mono text-petrol font-bold">
             {activeTab === 'overview' ? 'Transactions' :
+             activeTab === 'internal' ? 'Internal Txns' :
+             activeTab === 'token-transfers' ? 'Token Transfers' :
              activeTab === 'nft-transfers' ? 'NFT Transfers' :
              activeTab === 'nft-holdings' ? 'NFT Portfolio' :
              activeTab === 'tokens' ? 'BTS-20 Tokens' :
@@ -746,6 +751,25 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             </div>
             <span className="truncate">Transactions</span>
           </button>
+
+          {/* 1b. Internal transactions and token transfers, read from the chain */}
+          {([['internal', 'Internal Txns', GitMerge], ['token-transfers', 'Token Transfers', ArrowRightLeft]] as const).map(([id, label, Icon]) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`p-3 rounded-2xl text-xs font-bold transition-all flex flex-col justify-between gap-1.5 cursor-pointer text-left ${
+                activeTab === id
+                  ? 'bg-petrol text-white shadow-sm ring-2 ring-petrol/30'
+                  : 'bg-white border border-slate-200 text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <Icon className="w-4 h-4" />
+                <span className="text-[10px] font-mono opacity-80">Chain</span>
+              </div>
+              <span className="truncate">{label}</span>
+            </button>
+          ))}
 
           {/* 2. NFT Transfers */}
           <button
@@ -886,6 +910,22 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             {transactions.length}
           </span>
         </button>
+
+        {/* Tabs read from the chain: internal transactions and token transfers */}
+        {([['internal', 'Internal Txns', GitMerge], ['token-transfers', 'Token Transfers', ArrowRightLeft]] as const).map(([id, label, Icon]) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={`px-4 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+              activeTab === id
+                ? 'bg-petrol text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            <span>{label}</span>
+          </button>
+        ))}
 
         {/* Tab: BTS-721 NFT Movements / Transfers */}
         <button
@@ -1443,6 +1483,13 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             {bytecode ?? 'Bytecode could not be loaded from the RPC.'}
           </div>
         </div>
+      )}
+
+      {activeTab === 'internal' && (
+        <InternalTxsTab address={address} onSelectAddress={onSelectAddress ?? (() => {})} onSelectTx={onSelectTx} />
+      )}
+      {activeTab === 'token-transfers' && (
+        <TokenTransfersTab address={address} onSelectAddress={onSelectAddress ?? (() => {})} onSelectTx={onSelectTx} onSelectToken={onSelectToken} />
       )}
 
       {/* Read / Write any function of a verified contract or a standard token */}
