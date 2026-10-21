@@ -19,6 +19,7 @@ import { AddressTag } from '../components/AddressTag';
 import { Pickaxe3D } from '../components/Pickaxe3D';
 import { BalanceHistory } from '../components/BalanceHistory';
 import { CsvExportButton } from '../components/CsvExportButton';
+import { WatchButton } from '../components/WatchButton';
 import { ethers } from 'ethers';
 import { ShareButton } from '../components/ShareButton';
 
@@ -603,6 +604,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   <QrCode className="w-3.5 h-3.5" />
                 </button>
                 <ShareButton path={`/address/${address}`} text={`Bitnet address ${address.slice(0, 6)}…${address.slice(-4)} on BitnetScan`} />
+                <WatchButton address={address} />
               </div>
             </div>
           </div>
@@ -628,6 +630,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 QR code
               </button>
               <ShareButton path={`/address/${address}`} text={`Bitnet address ${address.slice(0, 6)}…${address.slice(-4)} on BitnetScan`} />
+              <WatchButton address={address} />
             </div>
           </div>
           </div>

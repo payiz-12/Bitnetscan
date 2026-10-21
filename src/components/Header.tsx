@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Cpu, Layers, Coins, Image, Terminal,
   Activity, Menu, X, PlusCircle, CheckCircle2, Globe, Trophy,
-  FileCode, LineChart, PieChart, Box, ArrowRightLeft, GitBranch, ChevronDown, ShieldCheck, Wrench, Braces
+  FileCode, LineChart, PieChart, Box, ArrowRightLeft, GitBranch, ChevronDown, ShieldCheck, Wrench, Braces, Star
 } from 'lucide-react';
+import { useWatchlist } from '../services/watchlist';
 import { NetworkStats } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
 import { QuickSearchModal } from './QuickSearchModal';
@@ -111,8 +112,13 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
         { id: 'api', label: 'API', icon: Braces, description: 'Free JSON endpoints for chain data' },
       ],
     },
+    { id: 'watchlist', label: 'Watchlist', icon: Star },
   ];
   const allLinks = navEntries.flatMap((e) => ('children' in e ? e.children : [e]));
+  const { unseen } = useWatchlist();
+  const badge = (id: string) => id === 'watchlist' && unseen > 0 && currentView !== 'watchlist'
+    ? <span className="ml-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold inline-flex items-center justify-center">{unseen > 9 ? '9+' : unseen}</span>
+    : null;
   const isActive = (id: string) =>
     currentView === id ||
     (id === 'blocks' && currentView === 'block-detail') ||
@@ -266,6 +272,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
                 <button key={entry.id} onClick={() => onNavigate(entry.id)} aria-current={active ? 'page' : undefined} className={tabClass(active)}>
                   <Icon className={`w-4 h-4 ${active ? 'text-petrol' : 'text-slate-400'}`} />
                   {entry.label}
+                  {badge(entry.id)}
                 </button>
               );
             }
@@ -354,6 +361,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
                       <Icon className="w-4 h-4" />
                     </div>
                     <span className="truncate">{item.label}</span>
+                    {badge(item.id)}
                   </button>
                 );
               })}

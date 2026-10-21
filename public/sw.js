@@ -55,3 +55,16 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
+// Watchlist notifications: focus an open BitnetScan tab on the address, or open one.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || '/', self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
+      const win = wins.find((w) => new URL(w.url).origin === self.location.origin);
+      if (win) return win.focus().then(() => win.navigate(url)).catch(() => self.clients.openWindow(url));
+      return self.clients.openWindow(url);
+    })
+  );
+});

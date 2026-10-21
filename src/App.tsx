@@ -4,6 +4,8 @@ import { Footer } from './components/Footer';
 import { DashboardView } from './views/DashboardView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Analytics } from '@vercel/analytics/react';
+import { WatchToasts } from './components/WatchToasts';
+import { startWatchlistMonitor } from './services/watchlist';
 
 // Secondary pages load on first visit so the dashboard bundle stays small.
 const BlockDetailView = lazy(() => import('./views/BlockDetailView').then((m) => ({ default: m.BlockDetailView })));
@@ -24,6 +26,7 @@ const SupplyView = lazy(() => import('./views/SupplyView').then((m) => ({ defaul
 const SecurityView = lazy(() => import('./views/SecurityView').then((m) => ({ default: m.SecurityView })));
 const ToolsView = lazy(() => import('./views/ToolsView').then((m) => ({ default: m.ToolsView })));
 const ApiView = lazy(() => import('./views/ApiView').then((m) => ({ default: m.ApiView })));
+const WatchlistView = lazy(() => import('./views/WatchlistView').then((m) => ({ default: m.WatchlistView })));
 
 const PageFallback: React.FC = () => (
   <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-500" role="status">
@@ -82,6 +85,7 @@ const parseHash = (): { view: string; param?: string | number } => {
   if (route === 'security' || route === 'decentralization') return { view: 'security' };
   if (route === 'tools' || route === 'developer-tools') return { view: 'tools' };
   if (route === 'api' || route === 'docs') return { view: 'api' };
+  if (route === 'watchlist' || route === 'watch') return { view: 'watchlist' };
   if (route === 'nodes' || route === 'network' || route === 'rpc' || route === 'rpc-status') return { view: 'nodes' };
 
   return { view: 'dashboard' };
@@ -121,6 +125,9 @@ export const App: React.FC = () => {
 
   // 1-second clock for the dashboard's "time ago" labels. It re-renders the app, so it only
   // runs while the dashboard is shown and the tab is visible.
+  // Watchlist checks run for the whole session, on every page.
+  useEffect(() => { startWatchlistMonitor(); }, []);
+
   useEffect(() => {
     if (currentView !== 'dashboard') return;
     setCurrentSeconds(Math.floor(Date.now() / 1000));
@@ -539,6 +546,10 @@ export const App: React.FC = () => {
 
           {currentView === 'api' && <ApiView />}
 
+          {currentView === 'watchlist' && (
+            <WatchlistView onSelectAddress={handleSelectAddress} onSelectBlock={handleSelectBlock} />
+          )}
+
           {currentView === 'tools' && (
             <ToolsView onSelectBlock={handleSelectBlock} onSelectAddress={handleSelectAddress} />
           )}
@@ -559,6 +570,7 @@ export const App: React.FC = () => {
       </main>
 
       <Footer latestBlock={recentBlocks[0]} />
+      <WatchToasts onSelectAddress={handleSelectAddress} />
       <Analytics route={analyticsRoute} path={analyticsPath} />
     </div>
   );
