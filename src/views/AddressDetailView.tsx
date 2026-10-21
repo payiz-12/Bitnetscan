@@ -21,6 +21,7 @@ import { BalanceHistory } from '../components/BalanceHistory';
 import { CsvExportButton } from '../components/CsvExportButton';
 import { WatchButton } from '../components/WatchButton';
 import { ContractInteract } from '../components/ContractInteract';
+import { ContractSource } from '../components/ContractSource';
 import { ethers } from 'ethers';
 import { ShareButton } from '../components/ShareButton';
 
@@ -697,7 +698,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
              activeTab === 'nft-holdings' ? 'NFT Portfolio' :
              activeTab === 'tokens' ? 'BTS-20 Tokens' :
              activeTab === 'mined-blocks' ? 'Mined Blocks' :
-             activeTab === 'contract' ? 'Contract Bytecode' : 'Read / Write Contract'}
+             activeTab === 'contract' ? 'Contract Code' : 'Read / Write Contract'}
           </span>
         </div>
 
@@ -806,7 +807,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             </button>
           )}
 
-          {/* 6. Contract Bytecode & Read Contract (if contract) */}
+          {/* 6. Contract Code & Read / Write Contract (if contract) */}
           {isContract && (
             <>
               <button
@@ -819,7 +820,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               >
                 <div className="flex items-center justify-between w-full">
                   <FileCode className="w-4 h-4" />
-                  <span className="text-[10px] font-mono opacity-80">Bytecode</span>
+                  <span className="text-[10px] font-mono opacity-80">Source</span>
                 </div>
                 <span className="truncate">Contract Code</span>
               </button>
@@ -946,7 +947,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               }`}
             >
               <FileCode className="w-3.5 h-3.5" />
-              <span>Contract Bytecode</span>
+              <span>Contract Code</span>
             </button>
             <button
               onClick={() => setActiveTab('read')}
@@ -1396,10 +1397,15 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
         </div>
       )}
 
-      {/* Tab 2: Contract Bytecode */}
+      {/* Tab 2: Contract code: verified source, ABI and deployed bytecode */}
       {activeTab === 'contract' && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4">
+          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
+            <FileCode className="w-4 h-4 text-purple-600" />
+            <span>Contract Source Code</span>
+          </h3>
+          <ContractSource address={address} onSelectAddress={onSelectAddress} />
+          <div className="flex items-center justify-between pt-2 pb-3 border-b border-slate-100">
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <FileCode className="w-4 h-4 text-purple-600" />
               <span>Deployed EVM Bytecode</span>

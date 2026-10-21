@@ -3,6 +3,7 @@ import { BookOpen, PenSquare, Wallet, RefreshCw, AlertTriangle, CheckCircle2, Sh
 import { ethers } from 'ethers';
 import { rpcService } from '../services/rpc';
 import { loadContractAbi, AbiSource } from '../services/contractAbi';
+import { AbiValue as Value } from './AbiValue';
 
 interface Props {
   address: string;
@@ -44,40 +45,6 @@ function parseArg(p: ethers.ParamType, raw: string): unknown {
 
 const placeholder = (p: ethers.ParamType) =>
   p.baseType === 'address' ? '0x…' : p.baseType === 'bool' ? 'true / false' : /^u?int/.test(p.baseType) ? '0' : p.baseType === 'array' ? '[ … ] (JSON)' : p.baseType === 'tuple' ? '[ … ] (JSON, in field order)' : p.baseType.startsWith('bytes') ? '0x…' : '';
-
-/** A decoded value, with addresses linked and nested tuples/arrays expanded. */
-const Value: React.FC<{ p: ethers.ParamType; v: any; onSelectAddress: (a: string) => void; token?: { decimals: number; symbol: string } | null }> = ({ p, v, onSelectAddress, token }) => {
-  if (p.baseType === 'tuple' && p.components) {
-    return (
-      <div className="pl-3 border-l-2 border-slate-200 space-y-1">
-        {p.components.map((c, i) => (
-          <div key={i}><span className="text-slate-500">{c.name || `[${i}]`}:</span> <Value p={c} v={v?.[i]} onSelectAddress={onSelectAddress} /></div>
-        ))}
-      </div>
-    );
-  }
-  if (p.baseType === 'array' && p.arrayChildren) {
-    const items = Array.from(v ?? []);
-    if (items.length === 0) return <span className="text-slate-400">[ ]</span>;
-    return (
-      <div className="pl-3 border-l-2 border-slate-200 space-y-1">
-        {items.map((x, i) => <div key={i}><span className="text-slate-500">[{i}]</span> <Value p={p.arrayChildren!} v={x} onSelectAddress={onSelectAddress} /></div>)}
-      </div>
-    );
-  }
-  if (p.baseType === 'address') {
-    return <button type="button" onClick={() => onSelectAddress(String(v))} className="text-petrol hover:underline cursor-pointer break-all">{String(v)}</button>;
-  }
-  if (typeof v === 'bigint') {
-    return (
-      <span className="break-all">
-        {v.toString()}
-        {token && <span className="text-slate-500 font-sans"> ≈ {Number(ethers.formatUnits(v, token.decimals)).toLocaleString('en-US', { maximumFractionDigits: 6 })} {token.symbol}</span>}
-      </span>
-    );
-  }
-  return <span className="break-all whitespace-pre-wrap">{typeof v === 'string' ? (v === '' ? '""' : v) : String(v)}</span>;
-};
 
 const revertText = (r: { error: string; data?: string }, iface: ethers.Interface) => {
   if (r.data && r.data !== '0x') {

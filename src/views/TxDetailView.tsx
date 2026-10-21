@@ -6,7 +6,7 @@ import {
 import { Transaction } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
 import { explorerApiService } from '../services/explorerApi';
-import { decodeTransactionInput, decodeEventLog } from '../services/decoder';
+import { DecodedInput, EventLogs } from '../components/DecodedTx';
 import { ethers } from 'ethers';
 import { AddressTag } from '../components/AddressTag';
 import { TxConfirmations } from '../components/TxConfirmations';
@@ -278,8 +278,6 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
     }
   }
   const exactValueBtn = ethers.formatEther(valueWeiStr);
-
-  const decodedInput = tx.input ? decodeTransactionInput(tx.input) : null;
 
   return (
     <div className="space-y-6 w-full animate-fade-in">
@@ -680,46 +678,8 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
                 </div>
               </div>
             </div>
-          ) : decodedInput ? (
-            <div className="space-y-4 font-mono text-xs">
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                <div>
-                  <span className="text-slate-500 font-medium">Invoked Contract Method: </span>
-                  <span className="text-petrol font-bold text-sm ml-1">{decodedInput.methodName}</span>
-                  <span className="text-slate-400 ml-2">({decodedInput.methodId})</span>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-petrol-50 text-petrol border border-petrol-200">
-                  Decoded
-                </span>
-              </div>
-
-              {decodedInput.parameters.length > 0 ? (
-                <div className="space-y-2">
-                  <span className="text-slate-900 font-bold text-xs">Decoded ABI Parameters:</span>
-                  <div className="divide-y divide-slate-100 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
-                    {decodedInput.parameters.map((param, i) => (
-                      <div key={i} className="p-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <div className="text-slate-500 font-medium">
-                          <span className="text-petrol font-bold">{param.name}</span>{' '}
-                          <span className="text-slate-400">({param.type})</span>
-                        </div>
-                        <div className="sm:col-span-2 text-slate-900 break-all font-bold">
-                          {param.value}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-center font-medium">
-                  This function was executed with no arguments.
-                </div>
-              )}
-            </div>
           ) : (
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 font-mono text-xs">
-              Function Signature: <strong className="text-slate-900 font-bold">{tx.input.slice(0, 10)}</strong> (Unknown ABI / Custom Execution). Calldata can be inspected in the Raw Hex tab.
-            </div>
+            <DecodedInput to={tx.to} input={tx.input} onSelectAddress={onSelectAddress} />
           )
         ) : inputViewMode === 'hex' ? (
           <div className="space-y-3 font-mono text-xs">
@@ -773,29 +733,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
             </h3>
           </div>
 
-          <div className="space-y-3">
-            {receipt.logs.map((log: any, idx: number) => {
-              const decoded = decodeEventLog(log);
-              return (
-                <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 font-mono text-xs">
-                  <div className="flex items-center justify-between text-slate-500 border-b border-slate-200 pb-2">
-                    <span className="text-petrol font-bold">Log #{idx}: {decoded?.name || 'Raw Event'}</span>
-                    <span className="text-slate-600 font-semibold">Contract: {log.address}</span>
-                  </div>
-                  {decoded?.params && Object.keys(decoded.params).length > 0 && (
-                    <div className="space-y-1.5 pt-1">
-                      {Object.entries(decoded.params).map(([k, v]) => (
-                        <div key={k} className="flex justify-between gap-4">
-                          <span className="text-slate-500 font-medium">{k}:</span>
-                          <span className="text-slate-900 font-bold break-all">{v as string}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <EventLogs logs={receipt.logs} onSelectAddress={onSelectAddress} />
         </div>
       )}
     </div>

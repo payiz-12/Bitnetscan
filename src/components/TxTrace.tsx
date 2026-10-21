@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { GitMerge, AlertTriangle, CornerDownRight } from 'lucide-react';
 import { ethers } from 'ethers';
 import { rpcService } from '../services/rpc';
-import { decodeTransactionInput } from '../services/decoder';
+import { decodeCall } from '../services/txDecode';
 import { AddressTag } from './AddressTag';
 
 interface CallFrame {
@@ -31,11 +31,7 @@ const short = (a?: string) => (a ? `${a.slice(0, 8)}…${a.slice(-6)}` : '—');
 const valueOf = (f: CallFrame) => {
   try { return f.value ? BigInt(f.value) : 0n; } catch { return 0n; }
 };
-const method = (input?: string) => {
-  if (!input || input === '0x' || input.length < 10) return null;
-  const name = decodeTransactionInput(input)?.methodName;
-  return name && !name.startsWith('Unknown') ? name : input.slice(0, 10);
-};
+const callKey = (f: CallFrame) => (f.input && f.input.length >= 10 ? `${(f.to || '').toLowerCase()}|${f.input.slice(0, 10).toLowerCase()}` : null);
 
 const TYPE_STYLE: Record<string, string> = {
   CALL: 'bg-petrol-50 text-petrol border-petrol-200',
@@ -62,6 +58,19 @@ export const TxTrace: React.FC<{ hash: string; onSelectAddress: (a: string) => v
       .catch(() => { if (active) setTrace(null); });
     return () => { active = false; };
   }, [hash]);
+
+  // Function names from the called contract's ABI or the signature database; the selector until then.
+  const [names, setNames] = useState<Map<string, string>>(new Map());
+  useEffect(() => {
+    if (!trace) return;
+    let active = true;
+    const calls = new Map<string, CallFrame>();
+    for (const { frame } of flatten(trace)) { const k = callKey(frame); if (k && !calls.has(k)) calls.set(k, frame); }
+    Promise.all([...calls].map(async ([k, f]) => [k, (await decodeCall(f.to, f.input!).catch(() => null))?.name] as const))
+      .then((pairs) => { if (active) setNames(new Map(pairs.filter((p): p is [string, string] => Boolean(p[1])))); });
+    return () => { active = false; };
+  }, [trace]);
+  const method = (f: CallFrame) => { const k = callKey(f); return k ? names.get(k) ?? f.input!.slice(0, 10) : null; };
 
   const rows = trace ? flatten(trace) : [];
   const internal = rows.slice(1);
@@ -100,7 +109,7 @@ export const TxTrace: React.FC<{ hash: string; onSelectAddress: (a: string) => v
         <div className="space-y-1.5">
           {rows.map(({ depth, frame }, i) => {
             const value = valueOf(frame);
-            const m = method(frame.input);
+            const m = method(frame);
             return (
               <div
                 key={i}

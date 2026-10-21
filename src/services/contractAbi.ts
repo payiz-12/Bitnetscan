@@ -19,11 +19,69 @@ const ERC20 = [
   'function transfer(address to, uint256 amount) returns (bool)',
   'function approve(address spender, uint256 amount) returns (bool)',
   'function transferFrom(address from, address to, uint256 amount) returns (bool)',
+  'event Transfer(address indexed from, address indexed to, uint256 value)',
+  'event Approval(address indexed owner, address indexed spender, uint256 value)',
 ];
 // Wrapped Bitnet follows the WETH9 interface.
-const WETH = [...ERC20, 'function deposit() payable', 'function withdraw(uint256 wad)'];
+const WETH = [...ERC20, 'function deposit() payable', 'function withdraw(uint256 wad)', 'event Deposit(address indexed dst, uint256 wad)', 'event Withdrawal(address indexed src, uint256 wad)'];
 
+export interface VerifiedContract {
+  name: string;
+  abi: ethers.InterfaceAbi;
+  language: string;
+  compilerVersion: string;
+  optimization: { enabled: boolean; runs: number | null };
+  evmVersion: string | null;
+  license: string | null;
+  verifiedAt: string | null;
+  files: { path: string; source: string }[];
+  constructorArgs: string | null;
+  /** Implementation contracts when this is a proxy. */
+  implementations: { address: string; name: string | null }[];
+}
+
+const verifiedCache = new Map<string, VerifiedContract | null>();
 const cache = new Map<string, AbiSource>();
+
+/**
+ * Verified source of a contract from the Bitnet explorer (Blockscout), or null when the explorer
+ * has no verified source for it. Throws when the explorer cannot be reached.
+ */
+export async function loadVerifiedContract(address: string): Promise<VerifiedContract | null> {
+  const key = address.toLowerCase();
+  if (verifiedCache.has(key)) return verifiedCache.get(key)!;
+  for (const base of INDEXER_BASES) {
+    try {
+      const res = await fetch(`${base}/api/v2/smart-contracts/${address}`, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10000) });
+      if (res.status === 404) { verifiedCache.set(key, null); return null; }
+      if (!res.ok) continue;
+      const d = await res.json();
+      const verified: VerifiedContract | null = d?.is_verified && Array.isArray(d.abi) && d.abi.length > 0
+        ? {
+            name: String(d.name || 'Contract'),
+            abi: d.abi,
+            language: String(d.language || 'solidity'),
+            compilerVersion: String(d.compiler_version || ''),
+            optimization: { enabled: Boolean(d.optimization_enabled), runs: d.optimization_runs ?? null },
+            evmVersion: d.evm_version || null,
+            license: d.license_type && d.license_type !== 'none' ? String(d.license_type) : null,
+            verifiedAt: d.verified_at || null,
+            files: [
+              ...(d.source_code ? [{ path: String(d.file_path || `${d.name || 'Contract'}.sol`), source: String(d.source_code) }] : []),
+              ...(Array.isArray(d.additional_sources) ? d.additional_sources.map((f: any) => ({ path: String(f.file_path), source: String(f.source_code ?? '') })) : []),
+            ],
+            constructorArgs: d.constructor_args || null,
+            implementations: Array.isArray(d.implementations) ? d.implementations.map((i: any) => ({ address: String(i.address_hash || i.address), name: i.name ?? null })) : [],
+          }
+        : null;
+      verifiedCache.set(key, verified);
+      return verified;
+    } catch {
+      // try the next base
+    }
+  }
+  throw new Error('The Bitnet explorer could not be reached');
+}
 
 /**
  * ABI for a contract: the verified source on the Bitnet explorer, or, for an unverified
@@ -35,20 +93,15 @@ export async function loadContractAbi(address: string): Promise<AbiSource> {
   const hit = cache.get(key);
   if (hit) return hit;
 
-  for (const base of INDEXER_BASES) {
-    try {
-      const res = await fetch(`${base}/api/v2/smart-contracts/${address}`, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10000) });
-      if (!res.ok) continue;
-      const data = await res.json();
-      if (data?.is_verified && Array.isArray(data.abi) && data.abi.length > 0) {
-        const source: AbiSource = { kind: 'verified', name: String(data.name || 'Contract'), abi: data.abi };
-        cache.set(key, source);
-        return source;
-      }
-      break;
-    } catch {
-      // try the next base
+  try {
+    const verified = await loadVerifiedContract(address);
+    if (verified) {
+      const source: AbiSource = { kind: 'verified', name: verified.name, abi: verified.abi };
+      cache.set(key, source);
+      return source;
     }
+  } catch {
+    // explorer unreachable: still try the standard token interface
   }
 
   const iface = new ethers.Interface(ERC20);
