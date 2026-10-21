@@ -41,6 +41,7 @@ BitnetScan is a block explorer for the Bitnet Money proof-of-work EVM chain (cha
 - **Watchlist** – up to 50 addresses saved in the browser (no account), with names, backup and restore. While the site is open, even in a background tab, balances and nonces are checked every 30–60 s; changes are logged, shown in the page and, with permission, sent as notifications (at most one per address every 10 minutes).
 - **Share cards** – transaction, block and address pages have a Share button (X, Telegram, WhatsApp, copy link). Links use the `/tx/…`, `/block/…` and `/address/…` form; those paths return the page with its own link-preview tags and a 1200×630 card image rendered from the chain by `/api/og`.
 - **Dark theme** – a sun/moon switch in the header. Until a visitor picks one, the site follows the device's light or dark setting; the choice is kept in the browser and applied before the first paint.
+- **Page addresses** – every page has its own path and title (`/blocks`, `/tx/<hash>`, `/block/<number>`, `/address/<address>`, `/token/<address>`, `/charts`…), so pages can be bookmarked, shared and found by search engines; older `/#/…` links still open the same page. `/sitemap.xml` lists the main pages, every token, verified contracts and the largest accounts, and `robots.txt` points to it.
 - **Installable** – a web app manifest and a service worker, so the site can be added to a phone's home screen.
 - **Network** – chain parameters, Ethash epoch and DAG size, reward rules, endpoints and wallet config for pool and node operators.
 - **Developer tools** – JSON-RPC console, RPC endpoint status, a public API, and a tools page: exact wei/Gwei/BTN converter, block by date (binary search over headers), signed-message verification (EIP-191), function selector and event topic, EIP-55 checksum and hex/decimal.
@@ -61,7 +62,7 @@ Values that cannot be read are shown as unknown rather than estimated.
 
 ## API
 
-All endpoints are free, need no key and allow cross-origin requests. The site's API page (`#/api`) documents them with live examples.
+All endpoints are free, need no key and allow cross-origin requests. The site's API page (`/api`) documents them with live examples.
 
 | Endpoint | Returns |
 | --- | --- |

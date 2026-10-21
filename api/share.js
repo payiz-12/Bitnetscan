@@ -1,6 +1,6 @@
 // /tx/:hash, /block/:id and /address/:address (rewritten here by vercel.json) return the app's
 // index.html with link-preview tags for that page, so X, Telegram, WhatsApp and Discord show
-// a card with the details. The app itself then moves the path into its #/ route.
+// a card with the details. The app then shows the page for that path.
 import { loadCard } from './_lib/card.js';
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

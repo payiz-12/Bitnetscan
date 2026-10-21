@@ -128,7 +128,7 @@ export const formatBtnDelta = (wei: bigint) => {
 
 /** System notification; Android Chrome only shows them through the service worker. */
 async function showNotification(n: { title: string; body: string; address: string }) {
-  const options = { body: n.body, icon: '/pwa-192.png', tag: `watch-${n.address}`, data: { url: `/#/address/${n.address}` } };
+  const options = { body: n.body, icon: '/pwa-192.png', tag: `watch-${n.address}`, data: { url: `/address/${n.address}` } };
   try {
     const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : undefined;
     if (reg) {
@@ -138,7 +138,12 @@ async function showNotification(n: { title: string; body: string; address: strin
   } catch { /* fall back below */ }
   try {
     const note = new Notification(n.title, options);
-    note.onclick = () => { window.focus(); window.location.hash = `#/address/${n.address}`; note.close(); };
+    note.onclick = () => {
+      window.focus();
+      window.history.pushState(null, '', `/address/${n.address}`);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      note.close();
+    };
   } catch { /* notifications unavailable */ }
 }
 

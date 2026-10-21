@@ -40,26 +40,23 @@ import { rpcService } from './services/rpc';
 import { explorerApiService } from './services/explorerApi';
 import { isPageHidden, onPageVisible } from './services/pageVisibility';
 
-// EIP-3091 explorer links (/tx/<hash>, /address/<address>, /block/<number|hash>, /token/<address>)
-// arrive as paths, e.g. from wallets and chain registries. The app routes with hashes, so translate
-// such a path once on load.
-const translateEip3091Path = () => {
-  if (typeof window === 'undefined') return;
-  const match = window.location.pathname.match(/^\/(tx|address|block|token)\/([^/?#]+)\/?$/i);
-  if (!match) return;
-  const kind = match[1].toLowerCase();
-  window.history.replaceState(null, '', `/#/${kind}/${match[2]}`);
-};
-translateEip3091Path();
+// Pages live at real paths (/blocks, /tx/<hash>, /address/<address>, /token/<address>, also the
+// EIP-3091 links wallets and chain registries use), so search engines can index them. Links from
+// before, of the form /#/tx/<hash>, are moved to the matching path.
+const pathFromLegacyHash = () => (window.location.hash.startsWith('#/') ? `/${window.location.hash.slice(2)}` : null);
+if (typeof window !== 'undefined') {
+  const legacy = pathFromLegacyHash();
+  if (legacy) window.history.replaceState(null, '', legacy);
+}
 
-// URL hash route parser for browser history & back/forward support
-const parseHash = (): { view: string; param?: string | number } => {
+// Route from the URL path, for the first load and for back/forward navigation
+const parseRoute = (): { view: string; param?: string | number } => {
   if (typeof window === 'undefined') return { view: 'dashboard' };
-  const rawHash = window.location.hash.replace(/^#\/?/, '').trim();
-  if (!rawHash) {
+  const rawPath = decodeURIComponent(window.location.pathname).replace(/^\/+|\/+$/g, '').trim();
+  if (!rawPath) {
     return { view: 'dashboard' };
   }
-  const parts = rawHash.split('/');
+  const parts = rawPath.split('/');
   const route = parts[0].toLowerCase();
   const param = parts.slice(1).join('/');
 
@@ -95,18 +92,33 @@ const parseHash = (): { view: string; param?: string | number } => {
   return { view: 'dashboard' };
 };
 
-const getHashForView = (view: string, param?: string | number): string => {
-  if (view === 'dashboard') return '#/';
-  if (view === 'block-detail' && param !== undefined) return `#/block/${param}`;
-  if (view === 'tx-detail' && param) return `#/tx/${param}`;
-  if (view === 'address-detail' && param) return `#/address/${param}`;
-  if (view === 'token-detail' && param) return `#/token/${param}`;
-  if (view === 'transactions') return '#/transactions';
-  return `#/${view}`;
+const getPathForView = (view: string, param?: string | number): string => {
+  if (view === 'dashboard') return '/';
+  if (view === 'block-detail' && param !== undefined) return `/block/${param}`;
+  if (view === 'tx-detail' && param) return `/tx/${param}`;
+  if (view === 'address-detail' && param) return `/address/${param}`;
+  if (view === 'token-detail' && param) return `/token/${param}`;
+  if (view === 'transactions') return '/transactions';
+  return `/${view}`;
+};
+
+const PAGE_TITLES: Record<string, string> = {
+  blocks: 'Blocks', transactions: 'Transactions', uncles: 'Uncle Blocks', 'rich-list': 'Rich List',
+  tokens: 'BTS-20 Tokens', nfts: 'NFT Collections', contracts: 'Verified Contracts', mining: 'Mining',
+  security: 'Chain Security', charts: 'Charts', supply: 'Supply & Market', nodes: 'Network & RPC',
+  console: 'RPC Console', tools: 'Developer Tools', api: 'API', watchlist: 'Watchlist',
+};
+const shortId = (v: string | number) => (String(v).length > 16 ? `${String(v).slice(0, 8)}…${String(v).slice(-6)}` : String(v));
+const pageTitle = (view: string, param?: string | number) => {
+  if (view === 'block-detail') return `Block ${/^\d+$/.test(String(param)) ? `#${Number(param).toLocaleString('en-US')}` : shortId(param ?? '')}`;
+  if (view === 'tx-detail') return `Transaction ${shortId(param ?? '')}`;
+  if (view === 'address-detail') return `Address ${shortId(param ?? '')}`;
+  if (view === 'token-detail') return `Token ${shortId(param ?? '')}`;
+  return PAGE_TITLES[view] ?? null;
 };
 
 export const App: React.FC = () => {
-  const initialRoute = parseHash();
+  const initialRoute = parseRoute();
   const [currentView, setCurrentView] = useState<string>(initialRoute.view);
   const [selectedBlock, setSelectedBlock] = useState<number | string>(
     initialRoute.view === 'block-detail' && initialRoute.param !== undefined ? initialRoute.param : 0
@@ -299,12 +311,12 @@ export const App: React.FC = () => {
     if (view === 'address-detail' && param !== undefined) setSelectedAddress(String(param));
     if (view === 'token-detail' && param !== undefined) setSelectedToken(String(param));
 
-    const newHash = getHashForView(view, param);
-    if (window.location.hash !== newHash) {
+    const newPath = getPathForView(view, param);
+    if (window.location.pathname !== newPath || window.location.hash) {
       if (replace) {
-        window.history.replaceState({ view, param }, '', newHash);
+        window.history.replaceState({ view, param }, '', newPath);
       } else {
-        window.history.pushState({ view, param }, '', newHash);
+        window.history.pushState({ view, param }, '', newPath);
       }
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -321,7 +333,10 @@ export const App: React.FC = () => {
   // Synchronize browser history (Back / Forward navigation)
   useEffect(() => {
     const handlePopState = () => {
-      const parsed = parseHash();
+      // A #/ link inside the page (old style) becomes the matching path first.
+      const legacy = pathFromLegacyHash();
+      if (legacy) window.history.replaceState(null, '', legacy);
+      const parsed = parseRoute();
       setCurrentView(parsed.view);
       if (parsed.view === 'block-detail' && parsed.param !== undefined) {
         setSelectedBlock(parsed.param);
@@ -336,11 +351,6 @@ export const App: React.FC = () => {
 
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('hashchange', handlePopState);
-
-    // Normalize initial URL if empty
-    if (!window.location.hash) {
-      window.history.replaceState({ view: 'dashboard' }, '', '#/');
-    }
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
@@ -416,7 +426,19 @@ export const App: React.FC = () => {
     : currentView === 'token-detail' ? `token:${selectedToken}`
     : currentView;
 
-  // Vercel Web Analytics: pages live in the URL hash, so each view is reported as its own path.
+  // Title and canonical link of the visible page, for search results and browser history.
+  useEffect(() => {
+    const param = currentView === 'block-detail' ? selectedBlock
+      : currentView === 'tx-detail' ? selectedTx
+      : currentView === 'address-detail' ? selectedAddress
+      : currentView === 'token-detail' ? selectedToken
+      : undefined;
+    const title = pageTitle(currentView, param);
+    document.title = title ? `${title} | BitnetScan` : 'BitnetScan | Bitnet (BTN) Blockchain Explorer';
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', `${window.location.origin}${getPathForView(currentView, param)}`);
+  }, [routeKey]);
+
+  // Vercel Web Analytics: detail pages are grouped by route pattern (/tx/[hash] and so on).
   const [analyticsRoute, analyticsPath] =
     currentView === 'dashboard' ? ['/', '/']
     : currentView === 'block-detail' ? ['/block/[id]', `/block/${selectedBlock}`]

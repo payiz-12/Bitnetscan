@@ -146,7 +146,7 @@ export const NetworkView: React.FC<{ stats: NetworkStats | null }> = ({ stats })
             <div><a className="text-petrol hover:underline" href="/api/supply" target="_blank" rel="noopener noreferrer">/api/supply</a> <span className="text-slate-500 font-sans">— circulating supply (plain text)</span></div>
             <div><a className="text-petrol hover:underline" href="/api/supply?q=total" target="_blank" rel="noopener noreferrer">/api/supply?q=total</a> <span className="text-slate-500 font-sans">— total supply (plain text)</span></div>
             <div><a className="text-petrol hover:underline" href="/api/supply?format=json" target="_blank" rel="noopener noreferrer">/api/supply?format=json</a> <span className="text-slate-500 font-sans">— snapshot with block range</span></div>
-            <div><a className="text-petrol hover:underline font-sans font-semibold" href="#/api">All endpoints and examples →</a></div>
+            <div><a className="text-petrol hover:underline font-sans font-semibold" href="/api" onClick={(e) => { e.preventDefault(); window.history.pushState(null, '', '/api'); window.dispatchEvent(new PopStateEvent('popstate')); }}>All endpoints and examples →</a></div>
           </div>
         </Row>
         <div className="pt-3">

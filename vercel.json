@@ -17,6 +17,7 @@
     { "source": "/block/:id", "destination": "/api/share?type=block&id=:id" },
     { "source": "/address/:id", "destination": "/api/share?type=address&id=:id" },
     { "source": "/token/:id", "destination": "/api/share?type=address&id=:id" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/api/coolpool/:path*", "destination": "https://coolpool.top/:path*" },
     {
       "source": "/api/rpc2/:path*",
