@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { KNOWN_MINING_POOLS } from '../data/miningPools';
 import { OFFICIAL_BITNET_VERIFIED_CONTRACTS } from '../data/verifiedContracts';
 import { KNOWN_BTS20_TOKENS } from './explorerApi';
+import { findDirectoryEntry, loadDirectory, subscribeDirectory } from './liveDirectory';
 
 export type AddressLabelKind = 'pool' | 'solo' | 'miner' | 'burn' | 'token' | 'contract';
 
@@ -85,19 +86,31 @@ export function loadPoolPayoutLabels(): Promise<Map<string, AddressLabel>> {
   return payoutJob;
 }
 
-export function getAddressLabel(address: string | null | undefined): AddressLabel | null {
-  const key = (address || '').toLowerCase();
-  return staticLabels.get(key) ?? payoutLabels?.get(key) ?? null;
+// Tokens, NFT collections and verified contracts from the live explorer directory.
+function directoryLabel(address: string): AddressLabel | null {
+  const e = findDirectoryEntry(address);
+  if (!e) return null;
+  if (e.kind === 'token') return { name: e.symbol ? `${e.name} (${e.symbol})` : e.name, kind: 'token', detail: 'BTS-20 token contract' };
+  if (e.kind === 'nft') return { name: e.name, kind: 'token', detail: 'NFT collection (BTS-721)' };
+  return { name: e.name, kind: 'contract', detail: 'Verified contract source on the Bitnet explorer' };
 }
 
-/** Label for an address; pool payout labels arrive after the first indexer lookup. */
+export function getAddressLabel(address: string | null | undefined): AddressLabel | null {
+  const key = (address || '').toLowerCase();
+  return staticLabels.get(key) ?? payoutLabels?.get(key) ?? directoryLabel(key) ?? null;
+}
+
+/** Label for an address; pool payout and live directory labels arrive after their first lookup. */
 export function useAddressLabel(address: string | null | undefined): AddressLabel | null {
   const [, setVersion] = useState(0);
   useEffect(() => {
-    if (!address || payoutLabels) return;
+    if (!address) return;
     let active = true;
-    loadPoolPayoutLabels().then(() => { if (active) setVersion((v) => v + 1); }).catch(() => {});
-    return () => { active = false; };
+    const bump = () => { if (active) setVersion((v) => v + 1); };
+    const unsubscribe = subscribeDirectory(bump);
+    loadDirectory().catch(() => {});
+    if (!payoutLabels) loadPoolPayoutLabels().then(bump).catch(() => {});
+    return () => { active = false; unsubscribe(); };
   }, [address]);
   return getAddressLabel(address);
 }

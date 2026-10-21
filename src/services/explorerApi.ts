@@ -1,6 +1,7 @@
 import { Block, Transaction } from '../types/blockchain';
 import { ethers } from 'ethers';
 import { rpcService } from './rpc';
+import { getDirectory } from './liveDirectory';
 import { indexedTransactions } from './indexedTransactions';
 import { blockRewardLabel, exactBlockRewardLabel } from './blockReward';
 
@@ -504,8 +505,12 @@ class ExplorerApiService {
       console.warn('Address tokens fetch error, falling back to RPC:', err);
     }
 
-    // 2. On-chain fallback: verify real balances for active BTS-20 contracts on Bitnet
-    const activeTokens = KNOWN_BTS20_TOKENS;
+    // 2. On-chain fallback: verify real balances for the BTS-20 contracts known so far
+    // (the live directory when it has loaded, otherwise the built-in list)
+    const live = getDirectory().filter((e) => e.kind === 'token');
+    const activeTokens = live.length
+      ? live.map((e) => ({ address: e.address, name: e.name, symbol: e.symbol || 'TOKEN', decimals: KNOWN_BTS20_TOKENS.find((t) => t.address.toLowerCase() === e.address.toLowerCase())?.decimals ?? 18, type: 'ERC-20' }))
+      : KNOWN_BTS20_TOKENS;
 
     const found: AddressTokenBalance[] = [];
     const addrPadded = cleanAddr.replace('0x', '').padStart(64, '0');

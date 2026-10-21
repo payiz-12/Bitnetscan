@@ -1,6 +1,6 @@
 // /sitemap.xml (rewritten here by vercel.json): the pages search engines should index. The
 // main pages, every BTS-20 token page, verified contracts and the largest accounts, read from
-// the Bitnet explorer index. Cached at the edge for a day.
+// the Bitnet explorer index. Cached at the edge for an hour, so new tokens are listed within the hour.
 const EXPLORER = 'https://explorer.bitnetmoney.com/api/v2';
 
 const PAGES = [
@@ -71,6 +71,6 @@ export default async function handler(req, res) {
     .map(([path, u]) => `  <url><loc>${esc(origin + path)}</loc><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`)
     .join('\n');
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
+  res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
   res.status(200).send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`);
 }

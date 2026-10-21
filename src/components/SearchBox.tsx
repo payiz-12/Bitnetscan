@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { rpcService } from '../services/rpc';
 import { KNOWN_BTS20_TOKENS } from '../services/explorerApi';
+import { getDirectory, loadDirectory, subscribeDirectory, DirectoryEntry } from '../services/liveDirectory';
 import { OFFICIAL_BITNET_VERIFIED_CONTRACTS } from '../data/verifiedContracts';
 import { BITNET_NFT_COLLECTIONS } from '../data/nftCollections';
 import { KNOWN_MINING_POOLS } from '../data/miningPools';
@@ -72,8 +73,10 @@ const PAGES: { view: string; label: string; keywords: string; icon: IconType }[]
   { view: 'supply', label: 'Supply & Market', keywords: 'supply market cap circulating inflation issuance price emission', icon: PieChart },
 ];
 
-// Named, locally known addresses that can be found by name, symbol or address prefix.
-const SEARCH_INDEX: IndexEntry[] = (() => {
+// Named addresses that can be found by name, symbol or address prefix: pools and large holders
+// known here, plus every token, NFT collection and verified contract from the live explorer
+// directory (the built-in lists stand in until it has loaded, or when the explorer is down).
+const STATIC_INDEX: IndexEntry[] = (() => {
   const entries: IndexEntry[] = [];
   const seen = new Set<string>();
   const add = (entry: IndexEntry) => {
@@ -90,8 +93,31 @@ const SEARCH_INDEX: IndexEntry[] = (() => {
   return entries;
 })();
 
+const DIRECTORY_STYLE: Record<DirectoryEntry['kind'], Pick<IndexEntry, 'kind' | 'icon' | 'tone'>> = {
+  token: { kind: 'BTS-20 Token', icon: Coins, tone: TONES.token },
+  nft: { kind: 'NFT Collection', icon: ImageIcon, tone: TONES.nft },
+  contract: { kind: 'Verified Contract', icon: FileCode, tone: TONES.contract },
+};
+
+let indexFor: DirectoryEntry[] | null = null;
+let index: IndexEntry[] = STATIC_INDEX;
+const searchIndex = (): IndexEntry[] => {
+  const live = getDirectory();
+  if (live.length === 0 || live === indexFor) return index;
+  const seen = new Set<string>();
+  const merged: IndexEntry[] = [];
+  for (const e of live) {
+    seen.add(e.address.toLowerCase());
+    merged.push({ address: e.address, name: e.name, symbol: e.symbol, ...DIRECTORY_STYLE[e.kind] });
+  }
+  for (const e of STATIC_INDEX) if (!seen.has(e.address.toLowerCase())) merged.push(e);
+  indexFor = live;
+  index = merged;
+  return index;
+};
+
 const findIndexEntry = (address: string) =>
-  SEARCH_INDEX.find((e) => e.address.toLowerCase() === address.toLowerCase());
+  searchIndex().find((e) => e.address.toLowerCase() === address.toLowerCase());
 
 const short = (value: string, lead = 6, trail = 4) =>
   value && value.length > lead + trail + 3 ? `${value.slice(0, lead)}…${value.slice(-trail)}` : value;
@@ -235,6 +261,10 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
 
   const { value: normalized, kind } = normalizeQuery(query);
 
+  // Names of tokens, NFT collections and verified contracts come from the live explorer directory.
+  const [directoryVersion, setDirectoryVersion] = useState(0);
+  useEffect(() => subscribeDirectory(() => setDirectoryVersion((v) => v + 1)), []);
+
   // Leaving a page (tab, link or a completed search) resets the box.
   useEffect(() => {
     setQuery('');
@@ -295,7 +325,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
 
     const isHexPrefix = /^0x[0-9a-f]{2,}$/.test(q);
     if (q.length >= 2) {
-      const matches = SEARCH_INDEX.filter((e) =>
+      const matches = searchIndex().filter((e) =>
         isHexPrefix
           ? e.address.toLowerCase().startsWith(q)
           : e.name.toLowerCase().includes(q) || (e.symbol || '').toLowerCase().includes(q)
@@ -327,7 +357,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
         }));
     }
     return list;
-  }, [query, normalized, kind, preview]);
+  }, [query, normalized, kind, preview, directoryVersion]);
 
   useEffect(() => {
     setActiveIndex(suggestions.length > 0 ? 0 : -1);
@@ -405,7 +435,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
           setQuery(e.target.value);
           setOpen(true);
         }}
-        onFocus={() => setOpen(true)}
+        onFocus={() => { setOpen(true); loadDirectory().catch(() => {}); }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         aria-label="Search by address, transaction hash or block number"
