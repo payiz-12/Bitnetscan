@@ -22,6 +22,7 @@ const ChartsView = lazy(() => import('./views/ChartsView').then((m) => ({ defaul
 const UnclesView = lazy(() => import('./views/UnclesView').then((m) => ({ default: m.UnclesView })));
 const SupplyView = lazy(() => import('./views/SupplyView').then((m) => ({ default: m.SupplyView })));
 const SecurityView = lazy(() => import('./views/SecurityView').then((m) => ({ default: m.SecurityView })));
+const ToolsView = lazy(() => import('./views/ToolsView').then((m) => ({ default: m.ToolsView })));
 
 const PageFallback: React.FC = () => (
   <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-500" role="status">
@@ -78,6 +79,7 @@ const parseHash = (): { view: string; param?: string | number } => {
   if (route === 'uncles' || route === 'uncle') return { view: 'uncles' };
   if (route === 'supply' || route === 'market') return { view: 'supply' };
   if (route === 'security' || route === 'decentralization') return { view: 'security' };
+  if (route === 'tools' || route === 'developer-tools') return { view: 'tools' };
   if (route === 'nodes' || route === 'network' || route === 'rpc' || route === 'rpc-status') return { view: 'nodes' };
 
   return { view: 'dashboard' };
@@ -531,6 +533,10 @@ export const App: React.FC = () => {
               onSelectAddress={handleSelectAddress}
               onNavigate={(view) => navigateTo(view)}
             />
+          )}
+
+          {currentView === 'tools' && (
+            <ToolsView onSelectBlock={handleSelectBlock} onSelectAddress={handleSelectAddress} />
           )}
 
           {currentView === 'security' && (

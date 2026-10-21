@@ -39,7 +39,7 @@ BitnetScan is a block explorer for the Bitnet Money proof-of-work EVM chain (cha
 - **Share cards** – transaction, block and address pages have a Share button (X, Telegram, WhatsApp, copy link). Links use the `/tx/…`, `/block/…` and `/address/…` form; those paths return the page with its own link-preview tags and a 1200×630 card image rendered from the chain by `/api/og`.
 - **Installable** – a web app manifest and a service worker, so the site can be added to a phone's home screen.
 - **Network** – chain parameters, Ethash epoch and DAG size, reward rules, endpoints and wallet config for pool and node operators.
-- **Developer tools** – JSON-RPC console, RPC endpoint status and a public API.
+- **Developer tools** – JSON-RPC console, RPC endpoint status, a public API, and a tools page: exact wei/Gwei/BTN converter, block by date (binary search over headers), signed-message verification (EIP-191), function selector and event topic, EIP-55 checksum and hex/decimal.
 
 ## Data sources
 

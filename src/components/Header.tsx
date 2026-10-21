@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Cpu, Layers, Coins, Image, Terminal,
   Activity, Menu, X, PlusCircle, CheckCircle2, Globe, Trophy,
-  FileCode, LineChart, PieChart, Box, ArrowRightLeft, GitBranch, ChevronDown, ShieldCheck
+  FileCode, LineChart, PieChart, Box, ArrowRightLeft, GitBranch, ChevronDown, ShieldCheck, Wrench
 } from 'lucide-react';
 import { NetworkStats } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
@@ -107,6 +107,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
       children: [
         { id: 'nodes', label: 'Network & RPC', icon: Activity, description: 'Chain parameters, endpoints and API' },
         { id: 'console', label: 'RPC Console', icon: Terminal, description: 'Send RPC calls to a Bitnet node' },
+        { id: 'tools', label: 'Developer Tools', icon: Wrench, description: 'Unit converter, block by date, signature check' },
       ],
     },
   ];

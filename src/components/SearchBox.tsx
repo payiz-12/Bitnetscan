@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search, X, Box, ArrowRightLeft, Wallet, FileCode, Coins, Image as ImageIcon, Cpu, Trophy,
-  Layers, Terminal, Activity, Loader2, CornerDownLeft, SearchX, LineChart, GitBranch, PieChart, ShieldCheck,
+  Layers, Terminal, Activity, Loader2, CornerDownLeft, SearchX, LineChart, GitBranch, PieChart, ShieldCheck, Wrench,
 } from 'lucide-react';
 import { rpcService } from '../services/rpc';
 import { KNOWN_BTS20_TOKENS } from '../services/explorerApi';
@@ -65,6 +65,7 @@ const PAGES: { view: string; label: string; keywords: string; icon: IconType }[]
   { view: 'nodes', label: 'Network & RPC', keywords: 'network node rpc status health chain id epoch dag pool api', icon: Activity },
   { view: 'charts', label: 'Network Charts', keywords: 'charts history hashrate difficulty block time uncle rate miner share', icon: LineChart },
   { view: 'uncles', label: 'Uncle Blocks', keywords: 'uncle uncles ommer stale orphan', icon: GitBranch },
+  { view: 'tools', label: 'Developer Tools', keywords: 'tools unit converter wei gwei block by date timestamp signature verify selector checksum hex', icon: Wrench },
   { view: 'security', label: 'Chain Security', keywords: 'security 51% attack majority nakamoto decentralization reorg confirmations', icon: ShieldCheck },
   { view: 'supply', label: 'Supply & Market', keywords: 'supply market cap circulating inflation issuance price emission', icon: PieChart },
 ];
