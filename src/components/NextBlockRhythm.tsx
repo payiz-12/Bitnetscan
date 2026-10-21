@@ -59,8 +59,8 @@ export const NextBlockRhythm: React.FC<NextBlockRhythmProps> = ({ recentBlocks, 
         <div className="flex items-baseline justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="relative flex w-2 h-2" aria-hidden="true">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping motion-reduce:animate-none" />
-              <span className="relative inline-flex w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="absolute inline-flex h-full w-full rounded-full bg-[#3A98A4] dark:bg-[#74BFC8] opacity-60 animate-ping motion-reduce:animate-none" />
+              <span className="relative inline-flex w-2 h-2 rounded-full bg-petrol dark:bg-[#3A98A4]" />
             </span>
             <span className="font-mono font-bold text-sm text-slate-900 tracking-tight">#{next.toLocaleString()}</span>
             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-petrol-50 text-petrol border border-petrol-200">Next block</span>
