@@ -36,7 +36,10 @@ async function fromDataset(): Promise<DailyUsage> {
   const res = await fetch(RAW_URL, { signal: AbortSignal.timeout(15000) });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const d = await res.json();
-  const rows: DailyRow[] = d.days.map((x: any) => ({ date: x.date, txs: x.txs, active: x.active, senders: x.senders ?? null, new: x.new }));
+  // The genesis block carries timestamp 0, which would show as a day in 1970.
+  const rows: DailyRow[] = d.days
+    .filter((x: any) => !(x.first === 0 && x.last === 0))
+    .map((x: any) => ({ date: x.date, txs: x.txs, active: x.active, senders: x.senders ?? null, new: x.new }));
   const p = d.partial;
   if (p) rows.push({ date: p.date, txs: p.txs, active: p.addresses.length, senders: p.senders?.length ?? null, new: p.newAddresses.length, partial: true });
   return { rows, fromBlock: d.from, toBlock: d.to, genesisReached: Boolean(d.genesisReached) };

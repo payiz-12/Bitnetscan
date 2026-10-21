@@ -18,6 +18,24 @@ const BACKFILL_SECONDS = flag('--backfill-seconds', 1800);
 const CHUNK = 20_000; // blocks per backfill step, about 100 s at the public RPC's pace
 const SAFETY = 6; // stay a few blocks behind the head
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Runs `fn` until it succeeds, waiting a minute after each failure, so a dropped connection or a
+ * sleeping laptop pauses the work instead of ending it. Gives up (returns null) after `until`.
+ */
+async function patiently(fn, label, until) {
+  for (;;) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (Date.now() > until) return null;
+      log(`${label}: ${err.message}; retrying in a minute`);
+      await sleep(60_000);
+    }
+  }
+}
+
 const save = (data) => writeFileSync(output, JSON.stringify({ ...data, generatedAt: new Date().toISOString() }));
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 
@@ -44,13 +62,20 @@ async function backfill(data, seconds) {
     const end = low - 1;
     if (end < 0) { data.genesisReached = true; break; }
     const start = Math.max(0, end - CHUNK + 1);
-    groupByDay(await fetchBlocks(start, end), pending);
+    const blocks = await patiently(() => fetchBlocks(start, end), `blocks ${start}-${end}`, stopAt);
+    if (!blocks) break;
+    groupByDay(blocks, pending);
     low = start;
     // Everything above the earliest day seen so far is complete; that day may continue below.
     const dates = [...pending.keys()].sort();
     const complete = start === 0 ? dates : dates.slice(1);
     const finished = [];
-    for (const date of complete) { finished.push(await finishDay(pending.get(date))); pending.delete(date); }
+    for (const date of complete) {
+      const day = await patiently(() => finishDay(pending.get(date)), `day ${date}`, stopAt);
+      if (!day) return data;
+      finished.push(day);
+      pending.delete(date);
+    }
     if (finished.length) {
       data.days = [...finished, ...data.days].sort((a, b) => a.date.localeCompare(b.date));
       data.from = Math.min(...finished.map((d) => d.first));
@@ -63,7 +88,7 @@ async function backfill(data, seconds) {
 }
 
 let data = input !== 'none' && existsSync(input) ? JSON.parse(readFileSync(input, 'utf8')) : null;
-const head = (await headBlock()) - SAFETY;
+const head = (await patiently(headBlock, 'head', Date.now() + BACKFILL_SECONDS * 1000)) - SAFETY;
 
 if (!data) {
   // Start at the first block of the current UTC day, so every stored day is whole.
@@ -74,7 +99,7 @@ if (!data) {
   log(`new dataset from block ${first}`);
 }
 
-data = await extendForward(data, head);
+data = (await patiently(() => extendForward(data, head), 'forward', Date.now() + BACKFILL_SECONDS * 1000)) ?? data;
 save(data);
 log(`forward: to block ${data.to}, ${data.days.length} days, today ${data.partial?.txs ?? 0} txs`);
 

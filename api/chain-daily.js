@@ -41,7 +41,8 @@ export default async function handler(req, res) {
     toBlock: live.to,
     liveBlocks: liveTail,
     genesisReached: Boolean(live.genesisReached),
-    days: live.days.map((d) => [d.date, d.txs, d.active, d.senders ?? null, d.new]),
+    // The genesis block carries timestamp 0, which would show as a day in 1970.
+    days: live.days.filter((d) => !(d.first === 0 && d.last === 0)).map((d) => [d.date, d.txs, d.active, d.senders ?? null, d.new]),
     columns: ['date', 'transactions', 'activeAddresses', 'senders', 'newAddresses'],
     today: p ? { date: p.date, firstBlock: p.first, lastBlock: p.last, transactions: p.txs, activeAddresses: p.addresses.length, senders: p.senders?.length ?? null, newAddresses: p.newAddresses.length } : null,
   });
