@@ -14,6 +14,7 @@ const TransactionsView = lazy(() => import('./views/TransactionsView').then((m) 
 const TxDetailView = lazy(() => import('./views/TxDetailView').then((m) => ({ default: m.TxDetailView })));
 const AddressDetailView = lazy(() => import('./views/AddressDetailView').then((m) => ({ default: m.AddressDetailView })));
 const TokensView = lazy(() => import('./views/TokensView').then((m) => ({ default: m.TokensView })));
+const TokenView = lazy(() => import('./views/TokenView').then((m) => ({ default: m.TokenView })));
 const NftsView = lazy(() => import('./views/NftsView').then((m) => ({ default: m.NftsView })));
 const MiningView = lazy(() => import('./views/MiningView').then((m) => ({ default: m.MiningView })));
 const ConsoleView = lazy(() => import('./views/ConsoleView').then((m) => ({ default: m.ConsoleView })));
@@ -47,7 +48,7 @@ const translateEip3091Path = () => {
   const match = window.location.pathname.match(/^\/(tx|address|block|token)\/([^/?#]+)\/?$/i);
   if (!match) return;
   const kind = match[1].toLowerCase();
-  window.history.replaceState(null, '', `/#/${kind === 'token' ? 'address' : kind}/${match[2]}`);
+  window.history.replaceState(null, '', `/#/${kind}/${match[2]}`);
 };
 translateEip3091Path();
 
@@ -70,6 +71,9 @@ const parseHash = (): { view: string; param?: string | number } => {
   }
   if ((route === 'address' || route === 'wallet') && param) {
     return { view: 'address-detail', param };
+  }
+  if (route === 'token' && param) {
+    return { view: 'token-detail', param };
   }
   if (route === 'blocks') return { view: 'blocks' };
   if (route === 'transactions' || route === 'txs') return { view: 'transactions' };
@@ -96,6 +100,7 @@ const getHashForView = (view: string, param?: string | number): string => {
   if (view === 'block-detail' && param !== undefined) return `#/block/${param}`;
   if (view === 'tx-detail' && param) return `#/tx/${param}`;
   if (view === 'address-detail' && param) return `#/address/${param}`;
+  if (view === 'token-detail' && param) return `#/token/${param}`;
   if (view === 'transactions') return '#/transactions';
   return `#/${view}`;
 };
@@ -111,6 +116,9 @@ export const App: React.FC = () => {
   );
   const [selectedAddress, setSelectedAddress] = useState<string>(
     initialRoute.view === 'address-detail' && initialRoute.param ? String(initialRoute.param) : ''
+  );
+  const [selectedToken, setSelectedToken] = useState<string>(
+    initialRoute.view === 'token-detail' && initialRoute.param ? String(initialRoute.param) : ''
   );
 
   const [stats, setStats] = useState<NetworkStats | null>(null);
@@ -289,6 +297,7 @@ export const App: React.FC = () => {
     if (view === 'block-detail' && param !== undefined) setSelectedBlock(param);
     if (view === 'tx-detail' && param !== undefined) setSelectedTx(String(param));
     if (view === 'address-detail' && param !== undefined) setSelectedAddress(String(param));
+    if (view === 'token-detail' && param !== undefined) setSelectedToken(String(param));
 
     const newHash = getHashForView(view, param);
     if (window.location.hash !== newHash) {
@@ -320,6 +329,8 @@ export const App: React.FC = () => {
         setSelectedTx(String(parsed.param));
       } else if (parsed.view === 'address-detail' && parsed.param) {
         setSelectedAddress(String(parsed.param));
+      } else if (parsed.view === 'token-detail' && parsed.param) {
+        setSelectedToken(String(parsed.param));
       }
     };
 
@@ -394,10 +405,15 @@ export const App: React.FC = () => {
     navigateTo('address-detail', addr);
   };
 
+  const handleSelectToken = (addr: string) => {
+    navigateTo('token-detail', addr);
+  };
+
   const routeKey =
     currentView === 'block-detail' ? `block:${selectedBlock}`
     : currentView === 'tx-detail' ? `tx:${selectedTx}`
     : currentView === 'address-detail' ? `address:${selectedAddress}`
+    : currentView === 'token-detail' ? `token:${selectedToken}`
     : currentView;
 
   // Vercel Web Analytics: pages live in the URL hash, so each view is reported as its own path.
@@ -406,6 +422,7 @@ export const App: React.FC = () => {
     : currentView === 'block-detail' ? ['/block/[id]', `/block/${selectedBlock}`]
     : currentView === 'tx-detail' ? ['/tx/[hash]', `/tx/${selectedTx}`]
     : currentView === 'address-detail' ? ['/address/[address]', `/address/${selectedAddress}`]
+    : currentView === 'token-detail' ? ['/token/[address]', `/token/${selectedToken}`]
     : [`/${currentView}`, `/${currentView}`];
 
   return (
@@ -487,6 +504,7 @@ export const App: React.FC = () => {
               onSelectBlock={handleSelectBlock}
               onSelectAddress={handleSelectAddress}
               onNavigate={(view) => navigateTo(view)}
+              onSelectToken={handleSelectToken}
             />
           )}
 
@@ -499,7 +517,15 @@ export const App: React.FC = () => {
           )}
 
           {currentView === 'tokens' && (
-            <TokensView onSelectAddress={handleSelectAddress} />
+            <TokensView onSelectToken={handleSelectToken} />
+          )}
+          {currentView === 'token-detail' && (
+            <TokenView
+              address={selectedToken}
+              onBack={handleBack}
+              onSelectAddress={handleSelectAddress}
+              onSelectTx={handleSelectTx}
+            />
           )}
 
           {currentView === 'nfts' && (

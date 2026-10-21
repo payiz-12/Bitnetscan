@@ -308,7 +308,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({
           title: e.symbol && !e.name.toLowerCase().includes(e.symbol.toLowerCase()) ? `${e.name} (${e.symbol})` : e.name,
           subtitle: short(e.address, 8, 6),
           badge: e.kind,
-          view: 'address-detail',
+          view: e.kind === 'BTS-20 Token' ? 'token-detail' : 'address-detail',
           param: e.address,
         });
       }

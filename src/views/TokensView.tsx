@@ -1,27 +1,16 @@
-import React, { useState } from 'react';
-import { Coins, Search, ExternalLink, ShieldCheck, Code, ArrowUpRight } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Coins, Search, ExternalLink, Code, AlertTriangle } from 'lucide-react';
 import { ethers } from 'ethers';
-import { rpcService } from '../services/rpc';
-import { decodeStringOrBytes32 } from '../services/abiText';
+import { listAllTokens, formatTokenAmount, TokenSummary } from '../services/tokens';
 
 interface TokensViewProps {
-  onSelectAddress: (addr: string) => void;
+  onSelectToken: (address: string) => void;
 }
 
-interface TokenInspectionResult {
-  address: string;
-  name: string;
-  symbol: string;
-  decimals: number;
-  totalSupply: string;
-  bytecodeLength: number;
-}
-
-export const TokensView: React.FC<TokensViewProps> = ({ onSelectAddress }) => {
-  const [contractQuery, setContractQuery] = useState('');
-  const [tokenResult, setTokenResult] = useState<TokenInspectionResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export const TokensView: React.FC<TokensViewProps> = ({ onSelectToken }) => {
+  const [query, setQuery] = useState('');
+  const [tokens, setTokens] = useState<{ items: TokenSummary[]; complete: boolean } | null>(null);
+  const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
 
   const standardsInfo = [
     {
@@ -44,153 +33,98 @@ export const TokensView: React.FC<TokensViewProps> = ({ onSelectAddress }) => {
     },
   ];
 
-  const handleInspectContract = async (e: React.FormEvent) => {
+  const load = () => {
+    setState('loading');
+    listAllTokens().then((r) => { setTokens(r); setState('ready'); }).catch(() => setState('error'));
+  };
+  useEffect(load, []);
+
+  // Filters as you type (name, symbol or address); a full token address opens its page.
+  const search = query.trim().toLowerCase();
+  const items = useMemo(
+    () => (tokens?.items ?? []).filter((t) => !search || t.name.toLowerCase().includes(search) || t.symbol.toLowerCase().includes(search) || t.address.toLowerCase().includes(search)),
+    [tokens, search],
+  );
+  const rank = useMemo(() => new Map((tokens?.items ?? []).map((t, i) => [t.address, i + 1])), [tokens]);
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contractQuery.trim() || !contractQuery.startsWith('0x')) {
-      setError('Please enter a valid 0x contract address');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setTokenResult(null);
-
-    try {
-      const code = await rpcService.getCode(contractQuery.trim());
-      if (!code || code === '0x') {
-        setError('No bytecode found at this address. It is a normal wallet address, not a token contract.');
-        setLoading(false);
-        return;
-      }
-
-      // Query name, symbol, decimals, totalSupply via standard ERC-20/BTS-20 calls
-      let name = 'Unknown';
-      let symbol = 'TOKEN';
-      let decimals = 18;
-      let totalSupplyFormatted = '0';
-
-      // 1. name() -> 0x06fdde03
-      try {
-        const nameHex = await rpcService.call(contractQuery.trim(), '0x06fdde03');
-        const decoded = decodeStringOrBytes32(nameHex);
-        if (decoded) name = decoded;
-      } catch {}
-
-      // 2. symbol() -> 0x95d89b41
-      try {
-        const symHex = await rpcService.call(contractQuery.trim(), '0x95d89b41');
-        const decoded = decodeStringOrBytes32(symHex);
-        if (decoded) symbol = decoded;
-      } catch {}
-
-      // 3. decimals() -> 0x313ce567
-      try {
-        const decHex = await rpcService.call(contractQuery.trim(), '0x313ce567');
-        if (decHex && decHex !== '0x') {
-          const val = Number(BigInt(decHex));
-          if (!isNaN(val) && val >= 0 && val <= 36) {
-            decimals = val;
-          }
-        }
-      } catch {}
-
-      // 4. totalSupply() -> 0x18160ddd
-      try {
-        const supHex = await rpcService.call(contractQuery.trim(), '0x18160ddd');
-        if (supHex && supHex !== '0x') {
-          const rawBig = BigInt(supHex);
-          totalSupplyFormatted = ethers.formatUnits(rawBig, decimals);
-        }
-      } catch {}
-
-      setTokenResult({
-        address: contractQuery.trim(),
-        name,
-        symbol,
-        decimals,
-        totalSupply: totalSupplyFormatted,
-        bytecodeLength: Math.max(0, Math.floor(code.length / 2) - 1),
-      });
-    } catch (err: any) {
-      setError(err.message || 'Failed to inspect token contract');
-    } finally {
-      setLoading(false);
-    }
+    const q = query.trim();
+    if (ethers.isAddress(q)) onSelectToken(q);
+    else if (items.length === 1) onSelectToken(items[0].address);
   };
 
   return (
     <div className="space-y-8 w-full animate-fade-in">
-      {/* Header Banner */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shadow-xs">
-            <Coins className="w-5 h-5" />
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-4 sm:p-6 space-y-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shadow-xs">
+              <Coins className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">BTS-20 Tokens</h1>
+              <p className="text-xs text-slate-500">Tokens on Bitnet with the most holders first, from the Bitnet explorer index.</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">BTS-20 Token Explorer</h1>
-          </div>
+          <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Token name, symbol or contract address"
+              aria-label="Search tokens"
+              className="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-petrol focus:ring-1 focus:ring-petrol"
+            />
+            <button type="submit" className="px-5 py-2.5 rounded-xl bg-petrol hover:bg-petrol-600 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer">
+              <Search className="w-4 h-4" /> Open
+            </button>
+          </form>
         </div>
 
-        {/* Contract Search / Inspect Box */}
-        <form onSubmit={handleInspectContract} className="mt-6 flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            value={contractQuery}
-            onChange={(e) => setContractQuery(e.target.value)}
-            placeholder="Paste Token Contract Address (0x...)"
-            className="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-petrol focus:ring-1 focus:ring-petrol shadow-xs"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-5 py-2.5 rounded-xl bg-petrol hover:bg-[#01545e] text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
-          >
-            <Search className="w-4 h-4" />
-            <span>{loading ? 'Inspecting...' : 'Inspect Contract'}</span>
-          </button>
-        </form>
-
-        {error && (
-          <div className="mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
-            {error}
+        {state === 'loading' ? (
+          <div className="p-4 space-y-2">{[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="skeleton h-11 rounded-lg" />)}</div>
+        ) : state === 'error' ? (
+          <div className="p-6 text-xs text-slate-600 flex items-center justify-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-500" /> The Bitnet explorer did not answer.
+            <button type="button" onClick={load} className="text-petrol font-bold hover:underline cursor-pointer">Try again</button>
+          </div>
+        ) : items.length === 0 ? (
+          <p className="p-6 text-center text-xs text-slate-500">No token matches “{query.trim()}”. A contract address that is not in the index can still be opened with Open.</p>
+        ) : (
+          <div className="text-xs">
+            <div className="hidden sm:grid grid-cols-[3rem_minmax(0,1fr)_14rem_7rem] gap-3 px-4 py-2.5 text-[11px] font-semibold text-slate-500 border-b border-slate-100">
+              <span>#</span><span>Token</span><span className="text-right">Total supply</span><span className="text-right">Holders</span>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {items.map((t) => (
+                <button
+                  key={t.address}
+                  type="button"
+                  onClick={() => onSelectToken(t.address)}
+                  className="w-full text-left grid grid-cols-[1.75rem_minmax(0,1fr)] sm:grid-cols-[3rem_minmax(0,1fr)_14rem_7rem] gap-x-3 gap-y-1 px-4 py-3 items-center hover:bg-slate-50 cursor-pointer"
+                >
+                  <span className="text-slate-500 font-mono">{rank.get(t.address)}</span>
+                  <span className="flex items-center gap-2.5 min-w-0">
+                    <span className="w-8 h-8 rounded-xl bg-petrol-50 border border-petrol-100 text-petrol flex items-center justify-center font-black shrink-0">
+                      {t.symbol.replace(/[^A-Za-z0-9]/g, '').slice(0, 1).toUpperCase() || '?'}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block font-bold text-slate-900 truncate">{t.name} <span className="text-slate-500 font-semibold">({t.symbol})</span></span>
+                      <span className="block font-mono text-[11px] text-slate-500 truncate">{t.address}</span>
+                    </span>
+                  </span>
+                  <span className="col-start-2 sm:col-start-auto sm:text-right font-mono text-slate-800 break-all">
+                    <span className="sm:hidden text-slate-500 font-sans">Supply </span>{formatTokenAmount(t.totalSupply, t.decimals, 2)}
+                    <span className="sm:hidden text-slate-500 font-sans"> · {t.holders === null ? '—' : t.holders.toLocaleString()} holders</span>
+                  </span>
+                  <span className="hidden sm:block text-right font-mono font-bold text-slate-900">{t.holders === null ? '—' : t.holders.toLocaleString()}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
-
-        {tokenResult && (
-          <div className="mt-6 p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 font-mono text-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-              <span className="text-petrol font-bold text-sm">Contract Verified On-Chain</span>
-              <button
-                onClick={() => onSelectAddress(tokenResult.address)}
-                className="text-xs text-slate-700 hover:text-petrol font-semibold flex items-center gap-1"
-              >
-                <span>View Full Details</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-              <div>
-                <span className="text-slate-500 text-[11px] block font-sans">Name:</span>
-                <span className="text-slate-900 font-bold">{tokenResult.name}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 text-[11px] block font-sans">Symbol:</span>
-                <span className="text-petrol font-bold">{tokenResult.symbol}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 text-[11px] block font-sans">Decimals:</span>
-                <span className="text-slate-900 font-bold">{tokenResult.decimals}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 text-[11px] block font-sans">Total Supply:</span>
-                <span className="text-slate-900 font-bold">{tokenResult.totalSupply} {tokenResult.symbol}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 text-[11px] block font-sans">Code Size:</span>
-                <span className="text-slate-900 font-bold">{tokenResult.bytecodeLength} bytes</span>
-              </div>
-            </div>
-          </div>
+        {tokens && !tokens.complete && (
+          <p className="p-3 text-center text-[11px] text-slate-500 border-t border-slate-100">Showing the {tokens.items.length} tokens with the most holders.</p>
         )}
       </div>
 

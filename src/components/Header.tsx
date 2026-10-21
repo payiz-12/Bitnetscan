@@ -146,7 +146,8 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
   const isActive = (id: string) =>
     currentView === id ||
     (id === 'blocks' && currentView === 'block-detail') ||
-    (id === 'transactions' && currentView === 'tx-detail');
+    (id === 'transactions' && currentView === 'tx-detail') ||
+    (id === 'tokens' && currentView === 'token-detail');
 
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const navRef = useRef<HTMLElement>(null);

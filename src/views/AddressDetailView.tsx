@@ -7,6 +7,7 @@ import {
 import { Block } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
 import { explorerApiService, AddressTransaction, MinedBlock, AddressTokenBalance } from '../services/explorerApi';
+import { isToken } from '../services/tokens';
 import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
 import { 
   nftSyncService, 
@@ -32,6 +33,7 @@ interface AddressDetailViewProps {
   onSelectTx: (txHash: string) => void;
   onSelectBlock: (blockNum: number) => void;
   onSelectAddress?: (addr: string) => void;
+  onSelectToken?: (addr: string) => void;
   onNavigate?: (view: string) => void;
 }
 
@@ -43,6 +45,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
   onSelectBlock,
   onSelectAddress,
   onNavigate,
+  onSelectToken,
 }) => {
   const [balance, setBalance] = useState<string | null>(null);
   const [balanceStatus, setBalanceStatus] = useState<'live' | 'zero' | 'cached' | 'failed'>('live');
@@ -432,6 +435,25 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
 
   const isContract = codeStatus === 'verified_contract' || (!!bytecode && bytecode !== '0x' && bytecode.length > 2);
 
+  // BTS-20 token contracts get a link to their token page (holders, transfers, supply).
+  const [tokenPage, setTokenPage] = useState(false);
+  useEffect(() => {
+    setTokenPage(false);
+    if (!isContract || !onSelectToken) return;
+    let active = true;
+    isToken(address).then((yes) => { if (active) setTokenPage(yes); });
+    return () => { active = false; };
+  }, [address, isContract]);
+  const tokenPageButton = tokenPage && onSelectToken ? (
+    <button
+      type="button"
+      onClick={() => onSelectToken(address)}
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-petrol text-white hover:bg-petrol-600 cursor-pointer"
+    >
+      <Coins className="w-3.5 h-3.5" /> Token page
+    </button>
+  ) : null;
+
   const formatTimeAgo = (timestamp: number) => {
     const seconds = Math.max(0, Math.floor(Date.now() / 1000 - timestamp));
     if (seconds < 5) return 'just now';
@@ -555,6 +577,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 >
                   <QrCode className="w-3.5 h-3.5" />
                 </button>
+                {tokenPageButton}
                 <ShareButton path={`/address/${address}`} text={`Bitnet address ${address.slice(0, 6)}…${address.slice(-4)} on BitnetScan`} />
                 <WatchButton address={address} />
               </div>
@@ -581,6 +604,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 <QrCode className="w-3.5 h-3.5" />
                 QR code
               </button>
+              {tokenPageButton}
               <ShareButton path={`/address/${address}`} text={`Bitnet address ${address.slice(0, 6)}…${address.slice(-4)} on BitnetScan`} />
               <WatchButton address={address} />
             </div>
@@ -1892,7 +1916,11 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                         <div className="w-6 h-6 rounded-full bg-petrol-100 border border-petrol-300 flex items-center justify-center text-petrol text-[10px] font-bold">
                           {tok.symbol ? tok.symbol.charAt(0) : '$'}
                         </div>
-                        <span>{tok.name}</span>
+                        {onSelectToken ? (
+                          <button type="button" onClick={() => onSelectToken(tok.address)} className="hover:text-petrol hover:underline cursor-pointer text-left">{tok.name}</button>
+                        ) : (
+                          <span>{tok.name}</span>
+                        )}
                       </td>
                       <td className="py-3.5 px-3 font-bold text-petrol">{tok.symbol}</td>
                       <td className="py-3.5 px-3 text-slate-500">
