@@ -342,6 +342,37 @@ class BitnetRpcService {
     return await this.rawRequest('eth_call', [{ to, data }, blockTag], timeoutMs);
   }
 
+  /**
+   * eth_call that keeps the node's answer when the call reverts: { ok, result } or { ok: false,
+   * error, data }. A revert is the contract's answer, so it does not count against the endpoint.
+   */
+  public async simulateCall(tx: { from?: string; to: string; data: string; value?: string }, timeoutMs = 8000): Promise<{ ok: true; result: string } | { ok: false; error: string; data?: string }> {
+    const urls = [...this.endpoints]
+      .filter((url) => !this.unreachableDirect.has(url))
+      .sort((a, b) => (this.latencyMap.get(a) ?? 9999) - (this.latencyMap.get(b) ?? 9999));
+    for (const url of urls) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_call', params: [tx, 'latest'] }),
+          signal: controller.signal,
+        });
+        if (!res.ok) continue;
+        const body = await res.json();
+        if (body.error) return { ok: false, error: String(body.error.message || 'execution reverted'), data: typeof body.error.data === 'string' ? body.error.data : undefined };
+        if (typeof body.result === 'string') return { ok: true, result: body.result };
+      } catch {
+        // try the next endpoint
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+    return { ok: false, error: 'No Bitnet RPC endpoint answered' };
+  }
+
   public async getBlock(numberOrHash: number | string, includeTxs = true): Promise<Block | null> {
     const cacheKey = typeof numberOrHash === 'number' ? numberOrHash : numberOrHash.toLowerCase();
     const cached = this.blockCache.get(cacheKey);

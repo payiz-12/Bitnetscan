@@ -20,6 +20,7 @@ import { Pickaxe3D } from '../components/Pickaxe3D';
 import { BalanceHistory } from '../components/BalanceHistory';
 import { CsvExportButton } from '../components/CsvExportButton';
 import { WatchButton } from '../components/WatchButton';
+import { ContractInteract } from '../components/ContractInteract';
 import { ethers } from 'ethers';
 import { ShareButton } from '../components/ShareButton';
 
@@ -82,11 +83,6 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
 
   const [activeTab, setActiveTab] = useState<'overview' | 'nft-transfers' | 'nft-holdings' | 'tokens' | 'mined-blocks' | 'contract' | 'read'>('overview');
 
-  // Interactive Read Contract query states
-  const [readFunctionName, setReadFunctionName] = useState('name');
-  const [readArg, setReadArg] = useState('');
-  const [readResult, setReadResult] = useState<string | null>(null);
-  const [readLoading, setReadLoading] = useState(false);
 
   useEffect(() => {
     // Subscribe to real-time NestEx price stream
@@ -449,51 +445,6 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
-  const handleReadCall = async () => {
-    setReadLoading(true);
-    setReadResult(null);
-
-    try {
-      let callData = '';
-      if (readFunctionName === 'name') {
-        callData = '0x06fdde03'; // name()
-      } else if (readFunctionName === 'symbol') {
-        callData = '0x95d89b41'; // symbol()
-      } else if (readFunctionName === 'totalSupply') {
-        callData = '0x18160ddd'; // totalSupply()
-      } else if (readFunctionName === 'decimals') {
-        callData = '0x313ce567'; // decimals()
-      } else if (readFunctionName === 'balanceOf') {
-        const cleanAddr = (readArg || address).replace('0x', '').padStart(64, '0');
-        callData = '0x70a08231' + cleanAddr; // balanceOf(address)
-      } else if (readFunctionName === 'owner') {
-        callData = '0x8da5cb5b'; // owner()
-      }
-
-      const resHex = await rpcService.call(address, callData);
-      if (!resHex || resHex === '0x') {
-        setReadResult('Returned empty data (0x)');
-      } else {
-        try {
-          if (resHex.length === 66) {
-            const bigVal = BigInt(resHex);
-            setReadResult(`${bigVal.toString()} (${resHex})`);
-          } else {
-            const abiCoder = new ethers.AbiCoder();
-            const decoded = abiCoder.decode(['string'], resHex);
-            setReadResult(decoded[0]);
-          }
-        } catch {
-          setReadResult(resHex);
-        }
-      }
-    } catch (err: any) {
-      setReadResult(`Error: ${err.message || 'Execution reverted'}`);
-    } finally {
-      setReadLoading(false);
-    }
-  };
-
   const filteredTransactions = [...transactions]
     .filter((tx) => {
       if (txFilter === 'in') return tx.type === 'IN';
@@ -746,7 +697,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
              activeTab === 'nft-holdings' ? 'NFT Portfolio' :
              activeTab === 'tokens' ? 'BTS-20 Tokens' :
              activeTab === 'mined-blocks' ? 'Mined Blocks' :
-             activeTab === 'contract' ? 'Contract Bytecode' : 'Read Contract'}
+             activeTab === 'contract' ? 'Contract Bytecode' : 'Read / Write Contract'}
           </span>
         </div>
 
@@ -885,7 +836,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   <Code className="w-4 h-4" />
                   <span className="text-[10px] font-mono opacity-80">Live</span>
                 </div>
-                <span className="truncate">Read Contract</span>
+                <span className="truncate">Read / Write</span>
               </button>
             </>
           )}
@@ -1006,7 +957,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               }`}
             >
               <Code className="w-3.5 h-3.5" />
-              <span>Read Contract (Live)</span>
+              <span>Read / Write Contract</span>
             </button>
           </>
         )}
@@ -1464,65 +1415,9 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
         </div>
       )}
 
-      {/* Tab 3: Read Contract */}
+      {/* Read / Write any function of a verified contract or a standard token */}
       {activeTab === 'read' && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-5">
-          <div>
-            <h3 className="text-base font-bold text-slate-900">Interactive Contract Reader (Live)</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Query public (view/pure) smart contract functions directly via Bitnet JSON-RPC.
-            </p>
-          </div>
-
-          <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-slate-700 block mb-1.5">Function</label>
-                <select
-                  value={readFunctionName}
-                  onChange={(e) => setReadFunctionName(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-petrol"
-                >
-                  <option value="name">name() → string</option>
-                  <option value="symbol">symbol() → string</option>
-                  <option value="totalSupply">totalSupply() → uint256</option>
-                  <option value="decimals">decimals() → uint8</option>
-                  <option value="balanceOf">balanceOf(address) → uint256</option>
-                  <option value="owner">owner() → address</option>
-                </select>
-              </div>
-
-              {readFunctionName === 'balanceOf' && (
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold text-slate-700 block mb-1.5">Argument (Address)</label>
-                  <input
-                    type="text"
-                    value={readArg}
-                    onChange={(e) => setReadArg(e.target.value)}
-                    placeholder="0x..."
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-petrol"
-                  />
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={handleReadCall}
-              disabled={readLoading}
-              className="px-4 py-2 rounded-xl bg-petrol hover:bg-[#01545e] text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
-            >
-              {readLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-              <span>Query Function</span>
-            </button>
-
-            {readResult && (
-              <div className="p-3 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-900 font-bold break-all shadow-xs">
-                <span className="text-slate-500 block text-[10px] mb-0.5 font-normal">Response:</span>
-                {readResult}
-              </div>
-            )}
-          </div>
-        </div>
+        <ContractInteract address={address} onSelectAddress={onSelectAddress} onSelectTx={onSelectTx} />
       )}
 
       {/* Tab: BTS NFT Movements & Activity (BTS-721) */}
