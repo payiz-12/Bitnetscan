@@ -5,7 +5,9 @@
 import { headBlock, extendForward } from './_lib/daily.js';
 
 const DATA_URL = 'https://raw.githubusercontent.com/payiz-12/Bitnetscan/chain-data/chain-daily.json';
-const MAX_TAIL = 3000; // blocks read live; more than that waits for the next hourly run
+// Blocks read live past the stored dataset: about two days, so the page stays current even if
+// some hourly runs are missed. Beyond that it waits for the next run.
+const MAX_TAIL = 12000;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
