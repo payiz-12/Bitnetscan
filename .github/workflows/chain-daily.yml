@@ -1,0 +1,54 @@
+name: Chain daily stats
+
+# Keeps the daily network usage dataset (transactions, active and new addresses per UTC day),
+# computed from the chain's blocks and archive state, and publishes it as chain-daily.json on the
+# `chain-data` branch, which /api/chain-daily serves. Each run adds the new blocks, then uses the
+# rest of its time to go further back in history until the genesis block is reached. The branch
+# holds a single commit with the latest file, so its history does not grow.
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: chain-daily
+  cancel-in-progress: false
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Previous dataset
+        run: |
+          if git fetch -q --depth 1 origin chain-data; then
+            git show origin/chain-data:chain-daily.json > "$RUNNER_TEMP/previous.json"
+            echo "PREVIOUS_SHA=$(git rev-parse origin/chain-data)" >> "$GITHUB_ENV"
+          else
+            echo none > "$RUNNER_TEMP/previous.json"
+            echo "PREVIOUS_SHA=" >> "$GITHUB_ENV"
+          fi
+      - name: Update from the chain
+        run: |
+          prev="$RUNNER_TEMP/previous.json"
+          if [ "$(cat "$prev")" = "none" ]; then prev=none; fi
+          node scripts/chain-daily.mjs "$prev" "$RUNNER_TEMP/chain-daily.json" --backfill-seconds 2100
+      - name: Publish to the chain-data branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir "$RUNNER_TEMP/out" && cd "$RUNNER_TEMP/out"
+          git init -q -b chain-data
+          cp "$RUNNER_TEMP/chain-daily.json" chain-daily.json
+          git add chain-daily.json
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "Chain daily stats"
+          # Replace the branch only if it is still where this run read it, so a newer dataset
+          # published meanwhile is never overwritten (the next run continues from it).
+          git push -q --force-with-lease="chain-data:${PREVIOUS_SHA}" "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" chain-data
