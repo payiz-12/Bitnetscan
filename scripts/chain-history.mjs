@@ -164,6 +164,9 @@ export function holdingStats(h, day, date, block, supply) {
  */
 export async function extendHistory(h, head, until, { log = console.log, save = () => {} } = {}) {
   const known = new Set(h.known);
+  // Burn addresses receive BTN only through contracts here, so they are followed from the start;
+  // the next month's end reads their balance.
+  for (const a of BURN_ADDRESSES) if (!known.has(a)) { known.add(a); h.known.push(a); }
   const minerIndex = new Map(h.miners.map((m, i) => [m, i]));
   let open = h.open && { ...h.open, miners: new Map(h.open.miners), touched: new Set(h.open.touched) };
   const persistOpen = () => {
