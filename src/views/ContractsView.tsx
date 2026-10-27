@@ -187,10 +187,12 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
             <div className="text-xl font-extrabold font-mono text-slate-900 truncate">
               {loading ? <span className="skeleton inline-block h-6 w-32 rounded-md align-middle" aria-label="Loading" /> : `${contracts.length} Contracts`}
             </div>
-            <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              {loading ? 'Loading the current list…' : liveFailed ? 'Stored list: the explorer did not answer' : 'Current list from the Bitnet explorer'}
-            </div>
+            {/* Only said when the explorer did not answer and the list stored with the site is shown */}
+            {!loading && liveFailed && (
+              <div className="text-[10px] text-amber-700 font-semibold">
+                Stored list: the explorer did not answer
+              </div>
+            )}
           </div>
         </div>
 
