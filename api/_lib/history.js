@@ -1,4 +1,5 @@
-// /api/chain-history: exact mining, supply and holding history computed from every block (see
+// /api/chain-history (rewritten to /api/chain-daily?view=history, as the Hobby plan allows 12
+// functions): exact mining, supply and holding history computed from every block (see
 // scripts/chain-history.mjs). Served from the `history` part of chain-daily.json on the
 // `chain-data` branch, without the per-address state. Amounts are converted from µBTN to BTN.
 const DATA_URL = 'https://raw.githubusercontent.com/payiz-12/Bitnetscan/chain-data/chain-daily.json';
@@ -19,7 +20,7 @@ const snapshot = (s) => s && ({
   movedByContracts: s.movedByContracts ?? null,
 });
 
-export default async function handler(req, res) {
+export async function historyHandler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   let data;
   try {

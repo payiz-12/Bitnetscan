@@ -9,7 +9,6 @@
     "api/reorgs.js": { "maxDuration": 60 },
     "api/miners.js": { "maxDuration": 30 },
     "api/chain-daily.js": { "maxDuration": 30 },
-    "api/chain-history.js": { "maxDuration": 30 },
     "api/rpc.js": { "maxDuration": 30 },
     "api/rpc2.js": { "maxDuration": 30 },
     "api/og.js": {
@@ -23,6 +22,7 @@
     { "source": "/address/:id", "destination": "/api/share?type=address&id=:id" },
     { "source": "/token/:id", "destination": "/api/share?type=address&id=:id" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/api/chain-history", "destination": "/api/chain-daily?view=history" },
     { "source": "/api/coolpool/:path*", "destination": "https://coolpool.top/:path*" },
     {
       "source": "/api/nestex/:path*",

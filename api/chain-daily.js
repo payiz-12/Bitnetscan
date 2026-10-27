@@ -3,6 +3,7 @@
 // .github/workflows/chain-daily.yml); the blocks mined since then are read here, so the current
 // day is up to date. Cached at the edge for five minutes.
 import { headBlock, extendForward } from './_lib/daily.js';
+import { historyHandler } from './_lib/history.js';
 
 const DATA_URL = 'https://raw.githubusercontent.com/payiz-12/Bitnetscan/chain-data/chain-daily.json';
 // Blocks read live past the stored dataset: about two days, so the page stays current even if
@@ -10,6 +11,7 @@ const DATA_URL = 'https://raw.githubusercontent.com/payiz-12/Bitnetscan/chain-da
 const MAX_TAIL = 12000;
 
 export default async function handler(req, res) {
+  if (req.query?.view === 'history') return historyHandler(req, res);
   res.setHeader('Access-Control-Allow-Origin', '*');
   let data;
   try {
