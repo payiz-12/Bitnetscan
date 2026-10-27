@@ -107,6 +107,18 @@ function setBalance(held, address, day, balance) {
   if (s.length) held[address] = s; else delete held[address];
 }
 
+/**
+ * Keeps holding records short: pairs older than a week are merged per week, older than a year
+ * per 30 days. A merged pair takes the later day, so a holding time is never overstated (by at
+ * most a week, or a month past a year, it is understated; the bands start at 30 days).
+ */
+function compact(s, today) {
+  const bucket = (day) => (today - day <= 7 ? `d${day}` : today - day <= 365 ? `w${Math.floor(day / 7)}` : `m${Math.floor(day / 30)}`);
+  for (let i = s.length - 2; i >= 0; i--) {
+    if (bucket(s[i][0]) === bucket(s[i + 1][0])) s.splice(i, 1);
+  }
+}
+
 const balanceOf = (held, address) => held[address]?.at(-1)[1] ?? 0;
 
 /** Holders, concentration and holding times at the end of `day` (an epoch day). */
@@ -178,6 +190,8 @@ export async function extendHistory(h, head, until, { log = console.log, save = 
         if (balanceOf(h.held, a) !== all[i]) { setBalance(h.held, a, open.day, all[i]); moved++; }
       });
     }
+    // Records age between month ends without being touched, so all are compacted then.
+    for (const a of all ? Object.keys(h.held) : touched) if (h.held[a]) compact(h.held[a], open.day);
     h.days.push([open.date, open.first, open.last, open.blocks, open.uncles, open.issued, [...open.miners].sort((a, b) => b[1] - a[1])]);
     if (all) h.months.push({ ...holdingStats(h, open.day, open.date, open.last, h.supply), movedByContracts: moved });
     open = null;
