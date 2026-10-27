@@ -40,6 +40,12 @@
   --chart-teal: #0D9488;
   --chart-sky: #0284C7;
   --chart-alert: #E11D48;
+  /* Categorical series (fixed order, validated adjacent pairs) */
+  --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+  --series-5: #e87ba4; --series-6: #008300; --series-7: #6250d6; --series-8: #e34948;
+  /* Holding time, youngest to oldest (one-hue ordinal ramp) */
+  --hold-1: #7DBFC7; --hold-2: #57A8B2; --hold-3: #3A939E; --hold-4: #1E7C88;
+  --hold-5: #016976; --hold-6: #0B525C; --hold-7: #0C3D44;
 }
 .dark {
   --chart-grid: #26373D;
@@ -53,6 +59,10 @@
   --chart-teal: #14B8A6;
   --chart-sky: #38BDF8;
   --chart-alert: #FB7185;
+  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+  --series-5: #d55181; --series-6: #008300; --series-7: #9085e9; --series-8: #e66767;
+  --hold-1: #1F5A62; --hold-2: #26717B; --hold-3: #2F8995; --hold-4: #3FA2AE;
+  --hold-5: #62B8C2; --hold-6: #8ACDD5; --hold-7: #B5E2E7;
 }
 
 /* Subtle, elegant warm canvas background pattern */

@@ -5,6 +5,7 @@ import { LineChart, StackedShareChart, Legend } from '../components/charts/Chart
 import { formatHashrate } from '../services/hashrate';
 import { SkeletonChart } from '../components/Skeleton';
 import { NetworkUsageCharts } from '../components/NetworkUsageCharts';
+import { ExactHistoryCharts } from '../components/ExactHistoryCharts';
 
 interface ChartsViewProps {
   onNavigate: (view: string) => void;
@@ -94,7 +95,7 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Network Charts</h1>
-              <p className="text-xs sm:text-sm text-slate-500">Hashrate, difficulty, block time, uncles, miner share and daily usage, computed from the chain.</p>
+              <p className="text-xs sm:text-sm text-slate-500">Hashrate, difficulty, block time, uncles, miners, daily usage, supply and holdings, computed from the chain.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -136,6 +137,8 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
       </div>
 
       <NetworkUsageCharts range={range} />
+
+      <ExactHistoryCharts range={range} />
 
       {buckets.length === 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
