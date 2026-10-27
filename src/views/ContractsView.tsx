@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { 
   VerifiedContractItem, OFFICIAL_BITNET_VERIFIED_CONTRACTS, 
-  fetchLiveVerifiedContracts, checkContract, ContractCheck 
+  fetchLiveVerifiedContracts, withChainData, checkContract, ContractCheck 
 } from '../data/verifiedContracts';
 
 interface ContractsViewProps {
@@ -15,8 +15,11 @@ interface ContractsViewProps {
 }
 
 export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, onBack }) => {
-  const [contracts, setContracts] = useState<VerifiedContractItem[]>(OFFICIAL_BITNET_VERIFIED_CONTRACTS);
-  const [loading, setLoading] = useState(false);
+  // Nothing is shown until the explorer's current list arrives, so the count is never an old one;
+  // the list stored with the site is only the fallback when the explorer does not answer.
+  const [contracts, setContracts] = useState<VerifiedContractItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [balancesFromChain, setBalancesFromChain] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOpt, setFilterOpt] = useState<'all' | 'optimized' | 'withArgs'>('all');
@@ -30,15 +33,23 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
 
   const loadLiveContracts = async () => {
     setLoading(true);
+    let list: VerifiedContractItem[];
     try {
-      const live = await fetchLiveVerifiedContracts();
-      setContracts(live);
+      list = await fetchLiveVerifiedContracts();
       setLiveFailed(false);
     } catch (err) {
       console.error('Failed to fetch verified contracts:', err);
+      list = OFFICIAL_BITNET_VERIFIED_CONTRACTS;
       setLiveFailed(true);
-    } finally {
-      setLoading(false);
+    }
+    setContracts(list);
+    setBalancesFromChain(false);
+    setLoading(false);
+    // Then replace the indexed balances with the chain's own.
+    const onChain = await withChainData(list).catch(() => null);
+    if (onChain) {
+      setContracts(onChain);
+      setBalancesFromChain(true);
     }
   };
 
@@ -174,7 +185,7 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
               Verified Contracts
             </span>
             <div className="text-xl font-extrabold font-mono text-slate-900 truncate">
-              {contracts.length} Contracts
+              {loading ? <span className="skeleton inline-block h-6 w-32 rounded-md align-middle" aria-label="Loading" /> : `${contracts.length} Contracts`}
             </div>
             <div className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -192,10 +203,10 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
               Total Contract Balance
             </span>
             <div className="text-xl font-extrabold font-mono text-slate-900 truncate">
-              {totalBalanceBtn.toFixed(4)} BTN
+              {loading ? <span className="skeleton inline-block h-6 w-32 rounded-md align-middle" aria-label="Loading" /> : `${totalBalanceBtn.toFixed(4)} BTN`}
             </div>
             <div className="text-[10px] text-slate-500">
-              Read from the chain
+              {balancesFromChain ? 'Read from the chain' : 'From the explorer index; reading the chain…'}
             </div>
           </div>
         </div>
@@ -209,7 +220,7 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
               Total Transactions
             </span>
             <div className="text-xl font-extrabold font-mono text-slate-900 truncate">
-              {totalTxns.toLocaleString()} txns
+              {loading ? <span className="skeleton inline-block h-6 w-24 rounded-md align-middle" aria-label="Loading" /> : `${totalTxns.toLocaleString()} txns`}
             </div>
             <div className="text-[10px] text-slate-500">
               Counted by the explorer index
@@ -305,7 +316,7 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
               filterOpt === 'all' ? 'bg-white text-petrol shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            All ({contracts.length})
+            {loading ? 'All' : `All (${contracts.length})`}
           </button>
           <button
             onClick={() => setFilterOpt('optimized')}
@@ -343,7 +354,9 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
         {/* Mobile View (sm:hidden): Dedicated responsive touch cards - Zero horizontal scrolling */}
         <div className="sm:hidden divide-y divide-slate-100 font-mono">
-          {filteredContracts.length === 0 ? (
+          {loading ? (
+            <div className="p-4 space-y-3">{[0, 1, 2, 3].map((i) => <div key={i} className="skeleton h-20 rounded-xl" />)}</div>
+          ) : filteredContracts.length === 0 ? (
             <div className="py-12 text-center text-slate-500 font-sans text-xs">
               No matching verified contracts found.
             </div>
@@ -438,7 +451,11 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-mono">
-              {filteredContracts.length === 0 ? (
+              {loading ? (
+                [0, 1, 2, 3, 4].map((i) => (
+                  <tr key={i}><td colSpan={7} className="py-2 px-4"><div className="skeleton h-9 rounded-lg" /></td></tr>
+                ))
+              ) : filteredContracts.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-500 font-sans">
                     No matching verified contracts found.

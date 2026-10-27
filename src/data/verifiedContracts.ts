@@ -346,32 +346,39 @@ async function explorerList(path: string, maxPages: number): Promise<any[]> {
 }
 
 /**
- * Contracts whose source code is verified on the Bitnet explorer (verification happens there),
- * with each contract's balance and code size read from the chain. Throws when the explorer
- * cannot be reached; the page then keeps the list stored with the site.
+ * Contracts whose source code is verified on the Bitnet explorer (verification happens there), as
+ * the explorer lists them, with the balance it has indexed. Throws when the explorer cannot be
+ * reached; the page then keeps the list stored with the site.
  */
 export async function fetchLiveVerifiedContracts(): Promise<VerifiedContractItem[]> {
   const items = await explorerList('/api/v2/smart-contracts', 10);
-  return Promise.all(items.map(async (c) => {
-    const address = String(c.address?.hash || '');
+  return items.map((c) => ({
+    address: String(c.address?.hash || ''),
+    name: String(c.address?.name || 'Contract'),
+    coinBalance: ethers.formatEther(BigInt(c.coin_balance || '0')),
+    txCount: Number(c.transaction_count ?? c.transactions_count ?? 0),
+    compilerVersion: String(c.compiler_version || ''),
+    optimization: Boolean(c.optimization_enabled),
+    hasConstructorArgs: Boolean(c.has_constructor_args),
+    verifiedAt: String(c.verified_at || ''),
+    license: String(c.license_type || 'none'),
+    language: String(c.language || 'solidity'),
+    isVerified: true,
+  }));
+}
+
+/** The same contracts with balance and code size read from the chain. */
+export async function withChainData(contracts: VerifiedContractItem[]): Promise<VerifiedContractItem[]> {
+  return Promise.all(contracts.map(async (c) => {
     const [code, balance] = await Promise.all([
-      rpcService.getCode(address).catch(() => null),
-      rpcService.getBalance(address).catch(() => null),
+      rpcService.getCode(c.address).catch(() => null),
+      rpcService.getBalance(c.address).catch(() => null),
     ]);
     const balNum = balance !== null ? parseFloat(balance) : NaN;
     return {
-      address,
-      name: String(c.address?.name || 'Contract'),
-      coinBalance: !isNaN(balNum) ? balNum.toFixed(4) : ethers.formatEther(BigInt(c.coin_balance || '0')),
-      txCount: Number(c.transaction_count ?? c.transactions_count ?? 0),
-      compilerVersion: String(c.compiler_version || ''),
-      optimization: Boolean(c.optimization_enabled),
-      hasConstructorArgs: Boolean(c.has_constructor_args),
-      verifiedAt: String(c.verified_at || ''),
-      license: String(c.license_type || 'none'),
-      language: String(c.language || 'solidity'),
-      isVerified: true,
-      bytecodeLength: code && code !== '0x' ? Math.floor((code.length - 2) / 2) : undefined,
+      ...c,
+      coinBalance: !isNaN(balNum) ? balNum.toFixed(4) : c.coinBalance,
+      bytecodeLength: code && code !== '0x' ? Math.floor((code.length - 2) / 2) : c.bytecodeLength,
     };
   }));
 }
