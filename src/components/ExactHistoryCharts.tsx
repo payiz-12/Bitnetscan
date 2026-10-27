@@ -123,7 +123,7 @@ export const ExactHistoryCharts: React.FC<{ range: HistoryRange }> = ({ range })
   const catchingUp = history.chainBlock - history.toBlock > 20_000;
   const lastDay = history.days[history.days.length - 1];
   const label = (p: MiningPeriod) => (cfg.grouping === 'month' ? fmtDate(p.start, { month: 'short', year: 'numeric' }) : fmtDate(p.start, { month: 'short', day: 'numeric' }));
-  const span = (p: MiningPeriod) => (p.days === 1 ? longDate(p.start) : `${longDate(p.start)} – ${longDate(p.end)} (${p.days} days)`);
+  const span = (p: MiningPeriod) => (p.days === 1 ? longDate(p.start) : `${longDate(p.start)} – ${longDate(p.end)} (${p.days} days${p.partial ? ' so far' : ''})`);
   const head = (p: MiningPeriod) => (
     <div className="text-slate-500 mb-1">{span(p)} UTC<br />Blocks #{p.firstBlock.toLocaleString()}–#{p.lastBlock.toLocaleString()}</div>
   );
@@ -162,6 +162,7 @@ export const ExactHistoryCharts: React.FC<{ range: HistoryRange }> = ({ range })
         <Card title={`BTN issued ${cfg.unit}`} subtitle="Block rewards plus uncle rewards, by UTC day." icon={<Coins className="w-4 h-4" />}>
           <BarChart
             values={periods.map((p) => p.issued)}
+            partial={periods.map((p) => p.partial)}
             color="var(--chart-primary)"
             formatY={axis}
             formatX={(i) => label(periods[i])}

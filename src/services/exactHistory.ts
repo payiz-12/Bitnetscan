@@ -108,6 +108,8 @@ export interface MiningPeriod {
   supply: number;
   /** Blocks by miner address. */
   miners: Map<string, number>;
+  /** The latest week or month, not over yet (or not read to its end yet). */
+  partial: boolean;
 }
 
 const weekStart = (date: string) => {
@@ -128,7 +130,13 @@ export function miningPeriods(h: ExactHistory, grouping: 'day' | 'week' | 'month
     list.push(x);
     groups.set(key, list);
   }
-  return [...groups.values()].map((list) => {
+  const lastOfMonth = (date: string) => {
+    const d = new Date(`${date}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + 1);
+    return d.getUTCDate() === 1;
+  };
+  const values = [...groups.values()];
+  return values.map((list, n) => {
     const miners = new Map<string, number>();
     for (const { d } of list) for (const [i, n] of d.miners) miners.set(h.miners[i], (miners.get(h.miners[i]) || 0) + n);
     return {
@@ -142,6 +150,7 @@ export function miningPeriods(h: ExactHistory, grouping: 'day' | 'week' | 'month
       issued: list.reduce((s, x) => s + x.d.issued, 0),
       supply: list[list.length - 1].supply,
       miners,
+      partial: n === values.length - 1 && (grouping === 'week' ? list.length < 7 : grouping === 'month' && !lastOfMonth(list[list.length - 1].d.date)),
     };
   });
 }
