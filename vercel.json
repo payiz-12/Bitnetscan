@@ -9,6 +9,7 @@
     "api/reorgs.js": { "maxDuration": 60 },
     "api/miners.js": { "maxDuration": 30 },
     "api/chain-daily.js": { "maxDuration": 30 },
+    "api/chain-history.js": { "maxDuration": 30 },
     "api/rpc.js": { "maxDuration": 30 },
     "api/rpc2.js": { "maxDuration": 30 },
     "api/og.js": {

@@ -3,11 +3,14 @@
 // day), computed from the chain's blocks and archive state. Run hourly by
 // .github/workflows/chain-daily.yml: it adds the blocks mined since the last run, then spends the
 // rest of its time budget going further back in history until it reaches the genesis block.
+// Whatever time is left goes to the exact mining, supply and holding history
+// (scripts/chain-history.mjs), which reads forward from the genesis block.
 //
 // Usage: node scripts/chain-daily.mjs <previous.json|none> <output.json> [--backfill-seconds N]
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { rpcBatch, headBlock, fetchBlocks, groupByDay, finishDay, extendForward } from '../api/_lib/daily.js';
+import { emptyHistory, extendHistory } from './chain-history.mjs';
 
 const [input = 'none', output = 'chain-daily.json', ...rest] = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -19,6 +22,7 @@ const CHUNK = 20_000; // blocks per backfill step, about 100 s at the public RPC
 const SAFETY = 6; // stay a few blocks behind the head
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const startedAt = Date.now();
 
 /**
  * Runs `fn` until it succeeds, waiting a minute after each failure, so a dropped connection or a
@@ -106,3 +110,8 @@ log(`forward: to block ${data.to}, ${data.days.length} days, today ${data.partia
 data = await backfill(data, BACKFILL_SECONDS);
 save(data);
 log(`done: ${data.days.length} days (${data.days[0]?.date ?? '—'} – ${data.days.at(-1)?.date ?? '—'}), genesis reached: ${data.genesisReached}`);
+
+data.history ??= emptyHistory();
+await extendHistory(data.history, head, startedAt + BACKFILL_SECONDS * 1000, { log: (...a) => log(...a), save: () => save(data) });
+save(data);
+log(`history: to block ${data.history.to} of ${head}, ${data.history.days.length} days, ${data.history.months.length} month ends`);
