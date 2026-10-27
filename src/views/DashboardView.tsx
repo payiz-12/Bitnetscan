@@ -251,8 +251,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono tracking-tight text-slate-900 mt-0.5 truncate">
                 {stats?.hashrateEstimate || 'Active (PoW)'}
               </div>
+              {/* Hashrate over the last 120 blocks (about half an hour); difficulty of the newest block */}
               <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
-                Diff: {formatCompactDifficulty(stats?.difficulty)}
+                <span className="sm:hidden">120 blocks · {formatCompactDifficulty(stats?.difficulty)}</span>
+                <span className="hidden sm:inline">Last 120 blocks · latest diff {formatCompactDifficulty(stats?.difficulty)}</span>
               </div>
             </div>
           </div>

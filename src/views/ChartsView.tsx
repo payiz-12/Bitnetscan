@@ -71,11 +71,15 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
     return { totals, all };
   }, [buckets]);
 
+  // The tiles show the latest column of the chart, so they say which stretch of time it covers
+  // (1/30 of the range: hours for 7D and 30D, weeks for 1Y and All).
+  const span = latest ? latest.endTs - latest.startTs : 0;
+  const spanLabel = span < 36 * 3600 ? `${(span / 3600).toFixed(span < 10 * 3600 ? 1 : 0)} hours` : `${Math.round(span / 86400)} days`;
   const tiles = latest ? [
-    { label: 'Hashrate', value: formatHashrate(latest.hashrate) },
-    { label: 'Difficulty', value: compact(latest.difficulty) },
-    { label: 'Block time', value: `${latest.blockTime.toFixed(2)} s` },
-    { label: 'Uncle rate', value: `${(latest.uncleRate * 100).toFixed(1)}%` },
+    { label: 'Hashrate', value: formatHashrate(latest.hashrate), note: `Average over the last ${spanLabel}` },
+    { label: 'Difficulty', value: compact(latest.difficulty), note: `Average per block, last ${spanLabel}` },
+    { label: 'Block time', value: `${latest.blockTime.toFixed(2)} s`, note: `Average over the last ${spanLabel}` },
+    { label: 'Uncle rate', value: `${(latest.uncleRate * 100).toFixed(1)}%`, note: `${SAMPLES_PER_BUCKET} sampled blocks, last ${spanLabel}` },
   ] : [];
 
   const xFormat = (ts: number) => formatDate(ts, range);
@@ -117,7 +121,8 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
             {tiles.map((t) => (
               <div key={t.label} className="p-3 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200">
                 <span className="text-[11px] text-slate-500 font-semibold block">{t.label}</span>
-                <span className="text-lg sm:text-xl font-black text-slate-900">{t.value}</span>
+                <span className="text-lg sm:text-xl font-black text-slate-900 block">{t.value}</span>
+                <span className="text-[11px] text-slate-500 block">{t.note}</span>
               </div>
             ))}
           </div>
