@@ -9,6 +9,8 @@
     "api/reorgs.js": { "maxDuration": 60 },
     "api/miners.js": { "maxDuration": 30 },
     "api/chain-daily.js": { "maxDuration": 30 },
+    "api/rpc.js": { "maxDuration": 30 },
+    "api/rpc2.js": { "maxDuration": 30 },
     "api/og.js": {
       "maxDuration": 30,
       "includeFiles": "{api/_fonts/**,api/_assets/**,node_modules/@resvg/resvg-wasm/index_bg.wasm}"
@@ -21,22 +23,6 @@
     { "source": "/token/:id", "destination": "/api/share?type=address&id=:id" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/api/coolpool/:path*", "destination": "https://coolpool.top/:path*" },
-    {
-      "source": "/api/rpc2/:path*",
-      "destination": "https://rpc.bitnetmoney.com/:path*"
-    },
-    {
-      "source": "/api/rpc2",
-      "destination": "https://rpc.bitnetmoney.com/"
-    },
-    {
-      "source": "/api/rpc/:path*",
-      "destination": "https://rpc.bitnetmoney.org/:path*"
-    },
-    {
-      "source": "/api/rpc",
-      "destination": "https://rpc.bitnetmoney.org/"
-    },
     {
       "source": "/api/nestex/:path*",
       "destination": "https://api.nestex.one/:path*"

@@ -265,38 +265,7 @@ class BitnetRpcService {
   }
 
   public async getBlockNumber(): Promise<number> {
-    // Race top 2 lowest-latency endpoints for sub-20ms block height detection
-    const sorted = [...this.endpoints].sort(
-      (a, b) => (this.latencyMap.get(a) ?? 9999) - (this.latencyMap.get(b) ?? 9999)
-    );
-    const primary = sorted[0];
-    const secondary = sorted[1];
-
-    if (primary && secondary && (this.latencyMap.get(primary) ?? 9999) < 2000 && (this.latencyMap.get(secondary) ?? 9999) < 2000) {
-      try {
-        const fetchBlockNum = async (url: string) => {
-          const ctrl = new AbortController();
-          const tid = setTimeout(() => ctrl.abort(), 1800);
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_blockNumber', params: [] }),
-            signal: ctrl.signal,
-          });
-          clearTimeout(tid);
-          if (!res.ok) throw new Error('HTTP error');
-          const d = await res.json();
-          if (!d?.result) throw new Error('No result');
-          return d.result;
-        };
-
-        const hex = await Promise.race([fetchBlockNum(primary), fetchBlockNum(secondary)]);
-        return parseInt(hex, 16);
-      } catch {
-        // Fall back to robust sequential failover
-      }
-    }
-
+    // One request to the fastest endpoint; rawRequest moves on to the next one if it fails.
     const hex = await this.rawRequest('eth_blockNumber');
     return parseInt(hex, 16);
   }
