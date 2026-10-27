@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ShieldCheck, Copy, Check, FileCode, ChevronDown, ExternalLink, Info } from 'lucide-react';
+import { ShieldCheck, Copy, Check, FileCode, ChevronDown, ExternalLink, Info, RefreshCw, XCircle, BadgeCheck } from 'lucide-react';
 import { ethers } from 'ethers';
 import { loadVerifiedContract, VerifiedContract } from '../services/contractAbi';
 import { AbiValue } from './AbiValue';
+import { verifyIndependently, VerifyResult } from '../services/bytecodeVerify';
 
 const EXPLORER = 'https://explorer.bitnetmoney.com';
 
@@ -62,6 +63,70 @@ const SourceFile: React.FC<{ path: string; source: string; open: boolean; onTogg
           <pre className="px-4 py-3 text-slate-200 whitespace-pre">{colored}</pre>
         </div>
       )}
+    </div>
+  );
+};
+
+/**
+ * BitnetScan's own check of the explorer's verification: recompile the published source in the
+ * browser and compare it with the code on the chain.
+ */
+const IndependentCheck: React.FC<{ address: string; contract: VerifiedContract }> = ({ address, contract }) => {
+  const [state, setState] = useState<'idle' | 'running' | VerifyResult>('idle');
+  useEffect(() => setState('idle'), [address]);
+  const run = () => {
+    setState('running');
+    verifyIndependently(address, contract).then(setState);
+  };
+  const version = contract.compilerVersion.split('+')[0];
+
+  if (state === 'idle' || state === 'running') {
+    return (
+      <div className="rounded-2xl border border-slate-200 p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-xs font-bold text-slate-900">Check it yourself</div>
+          <p className="text-xs text-slate-500">
+            {state === 'running'
+              ? `Downloading Solidity ${version} (about 9 MB) from soliditylang.org and compiling in your browser…`
+              : `BitnetScan can recompile this source with Solidity ${version} and the same settings, in your browser, and compare the result with the code on the chain.`}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={run}
+          disabled={state === 'running'}
+          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-petrol hover:bg-petrol-600 text-white text-xs font-bold cursor-pointer disabled:opacity-60 shrink-0"
+        >
+          {state === 'running' ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <BadgeCheck className="w-3.5 h-3.5" />}
+          {state === 'running' ? 'Compiling…' : 'Recompile and compare'}
+        </button>
+      </div>
+    );
+  }
+
+  const r = state as VerifyResult;
+  const ok = r.match === 'full' || r.match === 'partial';
+  return (
+    <div className={`rounded-2xl border p-3 sm:p-4 text-xs space-y-1 ${ok ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : r.match === 'mismatch' ? 'border-rose-200 bg-rose-50 text-rose-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
+      <div className="flex items-center gap-1.5 font-bold">
+        {ok ? <BadgeCheck className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+        {r.match === 'full' && 'Exact match: the compiled code is identical to the code on the chain'}
+        {r.match === 'partial' && 'Match: the compiled code equals the code on the chain except the metadata hash'}
+        {r.match === 'mismatch' && 'No match: the compiled code differs from the code on the chain'}
+        {r.match === 'error' && 'The check could not be completed'}
+      </div>
+      {r.match === 'error' && <p>{(r as { message: string }).message}</p>}
+      {(r.match === 'full' || r.match === 'partial') && (
+        <p>
+          Compiled with Solidity {(r as { compiler: string }).compiler} in your browser and compared byte by byte with the {(r as { bytes: number }).bytes.toLocaleString()} bytes stored at this address
+          {(r as { immutables: number }).immutables > 0 ? `, leaving out ${(r as { immutables: number }).immutables} immutable values set at deployment` : ''}.
+          {r.match === 'partial' && ' The metadata hash only records details such as file names and comments; the executable code is the same.'}
+        </p>
+      )}
+      {r.match === 'mismatch' && (
+        <p>Compiled with Solidity {(r as { compiler: string }).compiler}: {(r as { compiledBytes: number }).compiledBytes.toLocaleString()} bytes, against {(r as { bytes: number }).bytes.toLocaleString()} bytes on the chain.</p>
+      )}
+      <button type="button" onClick={run} className="font-semibold underline cursor-pointer">Run again</button>
     </div>
   );
 };
@@ -146,6 +211,8 @@ export const ContractSource: React.FC<{ address: string; onSelectAddress: (a: st
           </div>
         ))}
       </div>
+
+      <IndependentCheck address={address} contract={contract} />
 
       {contract.implementations.length > 0 && (
         <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs text-indigo-800">

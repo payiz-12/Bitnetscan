@@ -38,6 +38,9 @@ export interface VerifiedContract {
   constructorArgs: string | null;
   /** Implementation contracts when this is a proxy. */
   implementations: { address: string; name: string | null }[];
+  /** Main source file and the standard-JSON compiler settings, for recompiling the contract. */
+  filePath: string | null;
+  compilerSettings: Record<string, unknown> | null;
 }
 
 const verifiedCache = new Map<string, VerifiedContract | null>();
@@ -72,6 +75,8 @@ export async function loadVerifiedContract(address: string): Promise<VerifiedCon
             ],
             constructorArgs: d.constructor_args || null,
             implementations: Array.isArray(d.implementations) ? d.implementations.map((i: any) => ({ address: String(i.address_hash || i.address), name: i.name ?? null })) : [],
+            filePath: d.file_path ? String(d.file_path) : null,
+            compilerSettings: d.compiler_settings && typeof d.compiler_settings === 'object' ? d.compiler_settings : null,
           }
         : null;
       verifiedCache.set(key, verified);
