@@ -255,15 +255,21 @@ interface BarChartProps {
   /** Bars still in progress (the current day or period), drawn lighter. */
   partial?: boolean[];
   color: string;
+  /** A color per column (for example the entity each column belongs to), instead of `color`. */
+  colors?: string[];
   formatY: (v: number) => string;
   formatX: (i: number) => string;
   describe: (i: number) => React.ReactNode;
   ariaLabel: string;
   height?: number;
+  /** Fixed top of the y axis (otherwise rounded up from the data). */
+  yMax?: number;
+  /** A labelled horizontal threshold line, drawn over the columns. */
+  reference?: { y: number; label: string; color: string };
 }
 
 /** One series of columns on a clean scale, with hover highlight and a tooltip per column. */
-export const BarChart: React.FC<BarChartProps> = ({ values, partial, color, formatY, formatX, describe, ariaLabel, height = 200 }) => {
+export const BarChart: React.FC<BarChartProps> = ({ values, partial, color, colors, formatY, formatX, describe, ariaLabel, height = 200, yMax, reference }) => {
   const [ref, width] = useWidth();
   const [hover, setHover] = useState<number | null>(null);
   const pad = { left: 44, right: 6, top: 10, bottom: 24 };
@@ -271,7 +277,7 @@ export const BarChart: React.FC<BarChartProps> = ({ values, partial, color, form
   const plotH = height - pad.top - pad.bottom;
   const slot = plotW / Math.max(1, values.length);
   const barW = Math.max(1, Math.min(22, slot - (slot > 4 ? 2 : 0.5)));
-  const { top, step } = niceScale(Math.max(1, ...values));
+  const { top, step } = yMax ? { top: yMax, step: yMax / 4 } : niceScale(Math.max(1, ...values));
   const sy = (v: number) => pad.top + plotH - (v / top) * plotH;
   const ticks = [0, 1, 2, 3, 4].map((i) => i * step);
 
@@ -290,12 +296,19 @@ export const BarChart: React.FC<BarChartProps> = ({ values, partial, color, form
           return (
             <g key={i} opacity={hover === null || hover === i ? 1 : 0.45}>
               {h > 0 && (barW >= 6
-                ? <path d={roundedTop(x, sy(0) - h, barW, h, 3)} fill={color} opacity={partial?.[i] ? 0.4 : 1} />
-                : <rect x={x} y={sy(0) - h} width={barW} height={h} fill={color} opacity={partial?.[i] ? 0.4 : 1} />)}
+                ? <path d={roundedTop(x, sy(0) - h, barW, h, 3)} fill={colors?.[i] ?? color} opacity={partial?.[i] ? 0.4 : 1} />
+                : <rect x={x} y={sy(0) - h} width={barW} height={h} fill={colors?.[i] ?? color} opacity={partial?.[i] ? 0.4 : 1} />)}
               <rect x={pad.left + i * slot} y={pad.top} width={slot} height={plotH} fill="transparent" onPointerEnter={() => setHover(i)} onPointerDown={() => setHover(i)} />
             </g>
           );
         })}
+        {reference && (
+          <g pointerEvents="none">
+            <line x1={pad.left} x2={width - pad.right} y1={sy(reference.y)} y2={sy(reference.y)} stroke={reference.color} strokeWidth={1} />
+            {/* A surface-colored halo keeps the label readable over the columns. */}
+            <text x={width - pad.right} y={sy(reference.y) - 4} textAnchor="end" fontSize={10} fill={AXIS_TEXT} stroke={SURFACE} strokeWidth={3} paintOrder="stroke" strokeLinejoin="round">{reference.label}</text>
+          </g>
+        )}
         {xTickIndices(values.length, width).map((i) => (
           <text key={i} x={pad.left + i * slot + slot / 2} y={height - 6} textAnchor={i === 0 ? 'start' : i === values.length - 1 ? 'end' : 'middle'} fontSize={10} fill={AXIS_TEXT}>
             {formatX(i)}
