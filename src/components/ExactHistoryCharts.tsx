@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Coins, Pickaxe, GitBranch, Layers, Hourglass, PieChart, AlertTriangle } from 'lucide-react';
-import { BarChart, LineChart, StackedShareChart, Legend, ShareGroup } from './charts/ChartPrimitives';
+import { BarChart, LineChart, StackedShareChart, HeatmapChart, HeatScale, Legend, ShareGroup } from './charts/ChartPrimitives';
 import { SkeletonChart } from './Skeleton';
 import { loadExactHistory, miningPeriods, ExactHistory, MiningPeriod, HoldingSnapshot, PENDING } from '../services/exactHistory';
 import { getAddressLabel } from '../services/addressLabels';
@@ -15,6 +15,10 @@ const GROUPING: Record<HistoryRange, { grouping: 'day' | 'week' | 'month'; lastD
 
 /** Holding-time bands, matching holdBandDays (30, 90, 180, 365, 730, 1095 days). */
 const HOLD_BANDS = ['Under 1 month', '1–3 months', '3–6 months', '6–12 months', '1–2 years', '2–3 years', 'Over 3 years'];
+/** The same bands as heatmap row labels, oldest at the top. */
+const HOLD_ROWS = ['3+ yr', '2–3 yr', '1–2 yr', '6–12 mo', '3–6 mo', '1–3 mo', '< 1 mo'];
+/** Share of BTN at which a heatmap cell reaches full color. */
+const HEAT_MAX = 60;
 const SERIES = 8;
 const MINER_SERIES = 5;
 
@@ -250,18 +254,30 @@ export const ExactHistoryCharts: React.FC<{ range: HistoryRange }> = ({ range })
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
             <Card
               title="How long BTN has stayed put"
-              subtitle="Share of BTN by the time it has stayed at its address, at each month's end. BTN counts as unmoved for as long as the address's balance never fell below it at the end of a day."
+              subtitle="Share of BTN by the time it has stayed at its address, at each month's end: the darker a cell, the more BTN in that band. BTN counts as unmoved for as long as the address's balance never fell below it at the end of a day."
               icon={<Hourglass className="w-4 h-4" />}
             >
               <div className="mb-3">
-                <Legend items={HOLD_BANDS.map((name, b) => ({ name, color: `var(--hold-${b + 1})`, value: pct(latest.holdingBands[b], circulating(latest), 0) }))} />
+                <HeatScale color="var(--chart-primary)" max={HEAT_MAX} format={(v) => `${v}%`} />
               </div>
-              <StackedShareChart
-                columns={snapshots.map((s) => Object.fromEntries(s.holdingBands.map((v, b) => [`b${b}`, v])))}
-                groups={HOLD_BANDS.map((name, b) => ({ id: `b${b}`, name, color: `var(--hold-${b + 1})` }))}
+              <HeatmapChart
+                rows={HOLD_ROWS}
+                values={snapshots.map((s) => [...s.holdingBands].reverse().map((v) => (circulating(s) > 0 ? (v / circulating(s)) * 100 : 0)))}
+                color="var(--chart-primary)"
+                max={HEAT_MAX}
                 formatX={snapLabel}
-                describe={(i) => snapHead(snapshots[i])}
-                ariaLabel="Share of BTN by holding time at each month's end"
+                describe={(i, row) => {
+                  const s = snapshots[i];
+                  const band = HOLD_BANDS.length - 1 - row;
+                  return (
+                    <>
+                      <div className="text-slate-500 mb-1">{snapHead(s)}</div>
+                      <div className="font-bold text-slate-900">{HOLD_BANDS[band]}: {pct(s.holdingBands[band], circulating(s))}</div>
+                      <div className="text-slate-600">{btn(s.holdingBands[band])} BTN</div>
+                    </>
+                  );
+                }}
+                ariaLabel="Share of BTN by holding time at each month's end, as a heatmap"
               />
             </Card>
             <Card title="Share held by the largest addresses" subtitle="BTN held by the 10 and the 100 largest addresses, at each month's end." icon={<PieChart className="w-4 h-4" />}>

@@ -311,6 +311,84 @@ export const BarChart: React.FC<BarChartProps> = ({ values, partial, color, form
   );
 };
 
+interface HeatmapChartProps {
+  /** Row labels, top to bottom. */
+  rows: string[];
+  /** values[column][row]. */
+  values: number[][];
+  color: string;
+  /** Value at which a cell reaches full color; larger values look the same. */
+  max: number;
+  formatX: (i: number) => string;
+  describe: (column: number, row: number) => React.ReactNode;
+  ariaLabel: string;
+  rowHeight?: number;
+}
+
+/** Cell strength for a value: one hue, from a faint trace at zero to full color at `max`. */
+const heatOpacity = (v: number, max: number) => (v <= 0 ? 0.05 : 0.12 + 0.88 * Math.min(1, v / max));
+
+/** Grid of cells (columns over time, rows by category) shaded by value, with a tooltip per cell. */
+export const HeatmapChart: React.FC<HeatmapChartProps> = ({ rows, values, color, max, formatX, describe, ariaLabel, rowHeight = 24 }) => {
+  const [ref, width] = useWidth();
+  const [hover, setHover] = useState<[number, number] | null>(null);
+  const pad = { left: 52, right: 6, top: 2, bottom: 24 };
+  const plotW = width - pad.left - pad.right;
+  const slot = plotW / Math.max(1, values.length);
+  const gap = slot > 6 ? 2 : 1;
+  const height = pad.top + rows.length * rowHeight + pad.bottom;
+
+  return (
+    <div ref={ref} className="relative w-full select-none">
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={ariaLabel} onPointerLeave={() => setHover(null)} className="block touch-pan-y">
+        {rows.map((name, r) => (
+          <text key={name} x={pad.left - 6} y={pad.top + r * rowHeight + rowHeight / 2 + 3} textAnchor="end" fontSize={10} fill={AXIS_TEXT}>{name}</text>
+        ))}
+        {values.map((column, i) => column.map((v, r) => {
+          const active = hover !== null && hover[0] === i && hover[1] === r;
+          return (
+            <rect
+              key={`${i}-${r}`}
+              x={pad.left + i * slot + gap / 2}
+              y={pad.top + r * rowHeight + 1}
+              width={Math.max(1, slot - gap)}
+              height={rowHeight - 2}
+              rx={2}
+              fill={color}
+              fillOpacity={heatOpacity(v, max)}
+              stroke={active ? CROSSHAIR : 'none'}
+              strokeWidth={active ? 1.5 : 0}
+              onPointerEnter={() => setHover([i, r])}
+              onPointerDown={() => setHover([i, r])}
+            />
+          );
+        }))}
+        {xTickIndices(values.length, width).map((i) => (
+          <text key={i} x={pad.left + i * slot + slot / 2} y={height - 6} textAnchor={i === 0 ? 'start' : i === values.length - 1 ? 'end' : 'middle'} fontSize={10} fill={AXIS_TEXT}>
+            {formatX(i)}
+          </text>
+        ))}
+      </svg>
+      {hover !== null && (
+        <Tooltip left={pad.left + hover[0] * slot + slot / 2} width={width}>
+          {describe(hover[0], hover[1])}
+        </Tooltip>
+      )}
+    </div>
+  );
+};
+
+/** Color scale for a HeatmapChart: swatches from zero to `max`, labelled at both ends. */
+export const HeatScale: React.FC<{ color: string; max: number; format: (v: number) => string }> = ({ color, max, format }) => (
+  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+    <span>{format(0)}</span>
+    {[0, 0.2, 0.4, 0.6, 0.8, 1].map((t) => (
+      <span key={t} className="w-4 h-2.5 rounded-sm" style={{ background: color, opacity: heatOpacity(t * max, max) }} />
+    ))}
+    <span>{format(max)} or more</span>
+  </div>
+);
+
 /** Legend row: swatch + name (+ optional value). Text stays in ink colors; the swatch carries identity. */
 export const Legend: React.FC<{ items: { name: string; color: string; value?: string }[] }> = ({ items }) => (
   <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
