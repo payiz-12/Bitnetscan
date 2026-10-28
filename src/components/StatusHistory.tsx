@@ -105,16 +105,14 @@ export const StatusHistory: React.FC = () => {
                   <StateBadge state={states[states.length - 1].state} />
                 </div>
               </div>
-              <div className="flex h-6 gap-px" role="img" aria-label={`${meta.name} ${meta.host}: hourly checks over the last 7 days, ${(uptime * 100).toFixed(1)}% up over 30 days`}>
+              {/* One unit per hour, no gaps, so 168 hours fit a phone. */}
+              <svg viewBox={`0 0 ${HOURS} 1`} preserveAspectRatio="none" className="w-full h-6 rounded-sm" role="img" aria-label={`${meta.name} ${meta.host}: hourly checks over the last 7 days, ${(uptime * 100).toFixed(1)}% up over 30 days`}>
                 {slots.map((s, h) => (
-                  <span
-                    key={h}
-                    className={`flex-1 min-w-0 rounded-[1px] ${s ? '' : 'bg-slate-200'}`}
-                    style={s ? { background: COLORS[s.state] } : undefined}
-                    title={s ? `${hourLabel(s.at)} UTC · ${LABEL[s.state]}${s.checks[i][1] !== null ? ` · block #${s.checks[i][1]!.toLocaleString()}` : ''}${s.checks[i][2] !== null ? ` · ${s.checks[i][2]} ms` : ''}` : `${hourLabel(firstHour + h * 3600)} UTC · no check`}
-                  />
+                  <rect key={h} x={h} y={0} width={1} height={1} fill={s ? COLORS[s.state] : 'var(--chart-grid)'} shapeRendering="crispEdges">
+                    <title>{s ? `${hourLabel(s.at)} UTC · ${LABEL[s.state]}${s.checks[i][1] !== null ? ` · block #${s.checks[i][1]!.toLocaleString()}` : ''}${s.checks[i][2] !== null ? ` · ${s.checks[i][2]} ms` : ''}` : `${hourLabel(firstHour + h * 3600)} UTC · no check`}</title>
+                  </rect>
                 ))}
-              </div>
+              </svg>
             </div>
           );
         })}

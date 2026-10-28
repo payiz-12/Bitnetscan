@@ -124,20 +124,18 @@ export const MajorityHistory: React.FC<{ onSelectMiner: (address: string) => voi
           return (
             <div key={year} className="flex items-center gap-2">
               <span className="w-9 shrink-0 text-[11px] text-slate-500 tabular-nums">{year}</span>
-              <div className="flex flex-1 h-5 gap-px min-w-0" role="img" aria-label={`${year}: ${days.filter((d) => d.date.startsWith(year) && d.share > 0.5).length} days with a majority miner`}>
+              {/* One unit per day, no gaps, so a year fits any width (365 cells with gaps did not fit a phone). */}
+              <svg viewBox={`0 0 ${count} 1`} preserveAspectRatio="none" className="flex-1 h-5 min-w-0 rounded-sm" role="img" aria-label={`${year}: ${days.filter((d) => d.date.startsWith(year) && d.share > 0.5).length} days with a majority miner`}>
                 {Array.from({ length: count }, (_, k) => {
                   const date = new Date(start + k * 86400000).toISOString().slice(0, 10);
                   const d = byDate.get(date);
-                  return (
-                    <span
-                      key={date}
-                      className="flex-1 min-w-0 rounded-[1px]"
-                      style={{ background: d ? levelOf(d.share).color : 'transparent' }}
-                      title={d ? `${longDate(date)}: ${minerName(d.miner)} mined ${pct(d.share)} of ${d.blocks.toLocaleString()} blocks` : `${longDate(date)}: no data`}
-                    />
-                  );
+                  return d ? (
+                    <rect key={date} x={k} y={0} width={1} height={1} fill={levelOf(d.share).color} shapeRendering="crispEdges">
+                      <title>{`${longDate(date)}: ${minerName(d.miner)} mined ${pct(d.share)} of ${d.blocks.toLocaleString()} blocks`}</title>
+                    </rect>
+                  ) : null;
                 })}
-              </div>
+              </svg>
             </div>
           );
         })}
