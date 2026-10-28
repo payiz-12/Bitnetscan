@@ -5,7 +5,8 @@
 // rest of its time budget going further back in history until it reaches the genesis block.
 // Whatever time is left goes to the exact mining, supply and holding history
 // (scripts/chain-history.mjs), which reads forward from the genesis block, and then to the largest
-// transfers (scripts/chain-transfers.mjs). Each run starts with an availability check of the RPC
+// transfers (scripts/chain-transfers.mjs) and what each miner earned and sent
+// (scripts/chain-rewards.mjs). Each run starts with an availability check of the RPC
 // nodes, explorers and pools (scripts/chain-status.mjs).
 //
 // Usage: node scripts/chain-daily.mjs <previous.json|none> <output.json> [--backfill-seconds N]
@@ -14,6 +15,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { rpcBatch, headBlock, fetchBlocks, groupByDay, finishDay, extendForward } from '../api/_lib/daily.js';
 import { emptyHistory, extendHistory } from './chain-history.mjs';
 import { emptyTransfers, extendTransfers } from './chain-transfers.mjs';
+import { emptyRewards, extendRewards } from './chain-rewards.mjs';
 import { sampleStatus } from './chain-status.mjs';
 
 const [input = 'none', output = 'chain-daily.json', ...rest] = process.argv.slice(2);
@@ -127,3 +129,8 @@ data.transfers ??= emptyTransfers(data);
 await extendTransfers(data.transfers, head, startedAt + BACKFILL_SECONDS * 1000, { log: (...a) => log(...a), save: () => save(data) });
 save(data);
 log(`transfers: to block ${data.transfers.to}, all-time list read to ${data.transfers.backTo} of ${data.transfers.start - 1}`);
+
+data.rewards ??= emptyRewards();
+await extendRewards(data.rewards, head, startedAt + BACKFILL_SECONDS * 1000, { log: (...a) => log(...a), save: () => save(data) });
+save(data);
+log(`rewards: to block ${data.rewards.to} of ${head}, ${data.rewards.days.length} days, ${data.rewards.miners.length} miners`);
