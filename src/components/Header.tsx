@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Cpu, Layers, Coins, Image, Terminal,
   Activity, Menu, X, PlusCircle, CheckCircle2, Globe, Trophy,
-  FileCode, LineChart, PieChart, Box, ArrowRightLeft, GitBranch, ChevronDown, ShieldCheck, Wrench, Braces, Star, Sun, Moon
+  FileCode, LineChart, PieChart, Box, ArrowRightLeft, Banknote, GitBranch, ChevronDown, ShieldCheck, Wrench, Braces, Star, Sun, Moon
 } from 'lucide-react';
 import { useWatchlist } from '../services/watchlist';
 import { useTheme, setTheme } from '../services/theme';
@@ -88,6 +88,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
         { id: 'transactions', label: 'Transactions', icon: ArrowRightLeft, description: 'The full transaction archive' },
         { id: 'uncles', label: 'Uncle Blocks', icon: GitBranch, description: 'Uncles and uncle rate by miner' },
         { id: 'rich-list', label: 'Rich List', icon: Trophy, description: 'Largest BTN balances' },
+        { id: 'transfers', label: 'Large Transfers', icon: Banknote, description: 'Largest BTN transfers by day and of all time' },
       ],
     },
     {

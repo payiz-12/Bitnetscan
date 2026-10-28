@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Activity, RefreshCw, CheckCircle2, XCircle, AlertTriangle, Server, ShieldCheck, Zap } from 'lucide-react';
 import { rpcService } from '../services/rpc';
 import { RpcEndpointStatus } from '../types/blockchain';
+import { StatusHistory } from '../components/StatusHistory';
 
 export const RpcStatusView: React.FC = () => {
   const [endpoints, setEndpoints] = useState<RpcEndpointStatus[]>([]);
@@ -181,6 +182,8 @@ export const RpcStatusView: React.FC = () => {
           )}
         </div>
       </div>
+
+      <StatusHistory />
     </div>
   );
 };

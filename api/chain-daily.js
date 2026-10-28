@@ -2,27 +2,27 @@
 // the chain. The history comes from chain-daily.json on the `chain-data` branch (kept hourly by
 // .github/workflows/chain-daily.yml); the blocks mined since then are read here, so the current
 // day is up to date. Cached at the edge for five minutes.
+//
+// The same function serves the other views of the dataset (the Hobby plan allows 12 functions):
+// ?view=history (/api/chain-history), ?view=holding (/api/holding), ?view=transfers
+// (/api/transfers) and ?view=status (/api/network-status).
 import { headBlock, extendForward } from './_lib/daily.js';
-import { historyHandler } from './_lib/history.js';
+import { historyHandler, holdingHandler } from './_lib/history.js';
+import { loadDataset } from './_lib/dataset.js';
+import { transfersHandler } from './_lib/transfers.js';
+import { statusHandler } from './_lib/status.js';
 
-const DATA_URL = 'https://raw.githubusercontent.com/payiz-12/Bitnetscan/chain-data/chain-daily.json';
+const VIEWS = { history: historyHandler, holding: holdingHandler, transfers: transfersHandler, status: statusHandler };
 // Blocks read live past the stored dataset: about two days, so the page stays current even if
 // some hourly runs are missed. Beyond that it waits for the next run.
 const MAX_TAIL = 12000;
 
 export default async function handler(req, res) {
-  if (req.query?.view === 'history') return historyHandler(req, res);
+  const view = VIEWS[req.query?.view];
+  if (view) return view(req, res);
   res.setHeader('Access-Control-Allow-Origin', '*');
-  let data;
-  try {
-    const r = await fetch(DATA_URL, { signal: AbortSignal.timeout(8000) });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    data = await r.json();
-  } catch {
-    res.setHeader('Cache-Control', 'public, s-maxage=60');
-    res.status(503).json({ error: 'The daily dataset is not available yet' });
-    return;
-  }
+  const data = await loadDataset(res, 8000);
+  if (!data) return;
 
   let live = data;
   let liveTail = 0;

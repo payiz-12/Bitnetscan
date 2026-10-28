@@ -20,6 +20,7 @@ const MiningView = lazy(() => import('./views/MiningView').then((m) => ({ defaul
 const ConsoleView = lazy(() => import('./views/ConsoleView').then((m) => ({ default: m.ConsoleView })));
 const NetworkView = lazy(() => import('./views/NetworkView').then((m) => ({ default: m.NetworkView })));
 const RichListView = lazy(() => import('./views/RichListView').then((m) => ({ default: m.RichListView })));
+const TransfersView = lazy(() => import('./views/TransfersView').then((m) => ({ default: m.TransfersView })));
 const ContractsView = lazy(() => import('./views/ContractsView').then((m) => ({ default: m.ContractsView })));
 const ChartsView = lazy(() => import('./views/ChartsView').then((m) => ({ default: m.ChartsView })));
 const UnclesView = lazy(() => import('./views/UnclesView').then((m) => ({ default: m.UnclesView })));
@@ -75,6 +76,7 @@ const parseRoute = (): { view: string; param?: string | number } => {
   if (route === 'blocks') return { view: 'blocks' };
   if (route === 'transactions' || route === 'txs') return { view: 'transactions' };
   if (route === 'rich-list' || route === 'richlist') return { view: 'rich-list' };
+  if (route === 'transfers' || route === 'large-transfers' || route === 'whales') return { view: 'transfers' };
   if (route === 'tokens' || route === 'token') return { view: 'tokens' };
   if (route === 'nfts' || route === 'nft') return { view: 'nfts' };
   if (route === 'contracts' || route === 'contract') return { view: 'contracts' };
@@ -103,7 +105,7 @@ const getPathForView = (view: string, param?: string | number): string => {
 };
 
 const PAGE_TITLES: Record<string, string> = {
-  blocks: 'Blocks', transactions: 'Transactions', uncles: 'Uncle Blocks', 'rich-list': 'Rich List',
+  blocks: 'Blocks', transactions: 'Transactions', uncles: 'Uncle Blocks', 'rich-list': 'Rich List', transfers: 'Large Transfers',
   tokens: 'BTS-20 Tokens', nfts: 'NFT Collections', contracts: 'Verified Contracts', mining: 'Mining',
   security: 'Chain Security', charts: 'Charts', supply: 'Supply & Market', nodes: 'Network & RPC',
   console: 'RPC Console', tools: 'Developer Tools', api: 'API', watchlist: 'Watchlist',
@@ -530,6 +532,10 @@ export const App: React.FC = () => {
               onNavigate={(view) => navigateTo(view)}
               onSelectToken={handleSelectToken}
             />
+          )}
+
+          {currentView === 'transfers' && (
+            <TransfersView onSelectTx={handleSelectTx} onSelectAddress={handleSelectAddress} />
           )}
 
           {currentView === 'rich-list' && (

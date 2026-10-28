@@ -23,6 +23,9 @@
     { "source": "/token/:id", "destination": "/api/share?type=address&id=:id" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/api/chain-history", "destination": "/api/chain-daily?view=history" },
+    { "source": "/api/holding", "destination": "/api/chain-daily?view=holding" },
+    { "source": "/api/transfers", "destination": "/api/chain-daily?view=transfers" },
+    { "source": "/api/network-status", "destination": "/api/chain-daily?view=status" },
     { "source": "/api/coolpool/:path*", "destination": "https://coolpool.top/:path*" },
     {
       "source": "/api/nestex/:path*",

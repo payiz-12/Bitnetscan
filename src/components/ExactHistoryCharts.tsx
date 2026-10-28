@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Coins, Pickaxe, GitBranch, Layers, Hourglass, PieChart, AlertTriangle } from 'lucide-react';
 import { BarChart, LineChart, StackedShareChart, HeatmapChart, HeatScale, Legend, ShareGroup } from './charts/ChartPrimitives';
 import { SkeletonChart } from './Skeleton';
-import { loadExactHistory, miningPeriods, ExactHistory, MiningPeriod, HoldingSnapshot, PENDING } from '../services/exactHistory';
+import { loadExactHistory, miningPeriods, ExactHistory, MiningPeriod, HoldingSnapshot, PENDING, HOLD_BANDS } from '../services/exactHistory';
 import { getAddressLabel } from '../services/addressLabels';
 import type { HistoryRange } from '../services/chainHistory';
 
@@ -13,8 +13,6 @@ const GROUPING: Record<HistoryRange, { grouping: 'day' | 'week' | 'month'; lastD
   all: { grouping: 'month', unit: 'per month' },
 };
 
-/** Holding-time bands, matching holdBandDays (30, 90, 180, 365, 730, 1095 days). */
-const HOLD_BANDS = ['Under 1 month', '1–3 months', '3–6 months', '6–12 months', '1–2 years', '2–3 years', 'Over 3 years'];
 /** The same bands as heatmap row labels, oldest at the top. */
 const HOLD_ROWS = ['3+ yr', '2–3 yr', '1–2 yr', '6–12 mo', '3–6 mo', '1–3 mo', '< 1 mo'];
 /** Share of BTN at which a heatmap cell reaches full color. */

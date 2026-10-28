@@ -19,6 +19,7 @@ import { blockRewardLabel } from '../services/blockReward';
 import { AddressTag } from '../components/AddressTag';
 import { Pickaxe3D } from '../components/Pickaxe3D';
 import { BalanceHistory } from '../components/BalanceHistory';
+import { HoldingAge } from '../components/HoldingAge';
 import { CsvExportButton } from '../components/CsvExportButton';
 import { WatchButton } from '../components/WatchButton';
 import { ContractInteract } from '../components/ContractInteract';
@@ -712,6 +713,9 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
 
       {/* Balance over time, from the archive node */}
       <BalanceHistory address={address} />
+
+      {/* How long its BTN has stayed, from the history of every block */}
+      <HoldingAge address={address} />
 
       {/* Mobile Segmented Action Grid (sm:hidden) - Zero horizontal scrolling */}
       <div className="sm:hidden space-y-2">

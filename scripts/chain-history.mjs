@@ -33,7 +33,7 @@ const epochDay = (ts) => Math.floor(ts / 86400);
 export const emptyHistory = () => ({ version: 1, to: 0, supply: 0, miners: [], days: [], open: null, known: [], held: {}, months: [], latest: null });
 
 /** Runs `fn` until it succeeds, waiting a minute after each failure; null once `until` has passed. */
-async function patiently(fn, label, until, log) {
+export async function patiently(fn, label, until, log) {
   for (;;) {
     try {
       return await fn();
@@ -46,7 +46,7 @@ async function patiently(fn, label, until, log) {
 }
 
 /** Answers to many calls, in order, sent as batches of `size` by `workers` parallel requests. */
-async function batched(calls, { size = 200, workers = 3 } = {}) {
+export async function batched(calls, { size = 200, workers = 3 } = {}) {
   const out = new Array(calls.length);
   let next = 0;
   const worker = async () => {

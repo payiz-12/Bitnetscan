@@ -43,6 +43,9 @@ export interface ExactHistory {
   latest: HoldingSnapshot | null;
 }
 
+/** Holding-time bands, matching holdBandDays (30, 90, 180, 365, 730, 1095 days). */
+export const HOLD_BANDS = ['Under 1 month', '1–3 months', '3–6 months', '6–12 months', '1–2 years', '2–3 years', 'Over 3 years'];
+
 const RAW_URL = 'https://raw.githubusercontent.com/payiz-12/Bitnetscan/chain-data/chain-daily.json';
 const HOLD_BAND_DAYS = [30, 90, 180, 365, 730, 1095];
 let cache: { at: number; data: ExactHistory } | null = null;
@@ -153,4 +156,29 @@ export function miningPeriods(h: ExactHistory, grouping: 'day' | 'week' | 'month
       partial: n === values.length - 1 && (grouping === 'week' ? list.length < 7 : grouping === 'month' && !lastOfMonth(list[list.length - 1].d.date)),
     };
   });
+}
+
+export interface AddressHolding {
+  asOf: string;
+  block: number;
+  followed: boolean;
+  balance: number;
+  holdingBands: number[];
+  /** Amounts that have not left the address since a day, oldest first. */
+  layers: { since: string; days: number; btn: number }[];
+}
+
+const holdingCache = new Map<string, Promise<AddressHolding | null>>();
+
+/** How long the BTN at an address has stayed there (null when the history has no answer). */
+export function loadAddressHolding(address: string): Promise<AddressHolding | null> {
+  const key = address.toLowerCase();
+  let job = holdingCache.get(key);
+  if (!job) {
+    job = fetch(`/api/holding?address=${key}`, { signal: AbortSignal.timeout(20000) })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+    holdingCache.set(key, job);
+  }
+  return job;
 }

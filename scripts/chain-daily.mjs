@@ -4,13 +4,17 @@
 // .github/workflows/chain-daily.yml: it adds the blocks mined since the last run, then spends the
 // rest of its time budget going further back in history until it reaches the genesis block.
 // Whatever time is left goes to the exact mining, supply and holding history
-// (scripts/chain-history.mjs), which reads forward from the genesis block.
+// (scripts/chain-history.mjs), which reads forward from the genesis block, and then to the largest
+// transfers (scripts/chain-transfers.mjs). Each run starts with an availability check of the RPC
+// nodes, explorers and pools (scripts/chain-status.mjs).
 //
 // Usage: node scripts/chain-daily.mjs <previous.json|none> <output.json> [--backfill-seconds N]
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { rpcBatch, headBlock, fetchBlocks, groupByDay, finishDay, extendForward } from '../api/_lib/daily.js';
 import { emptyHistory, extendHistory } from './chain-history.mjs';
+import { emptyTransfers, extendTransfers } from './chain-transfers.mjs';
+import { sampleStatus } from './chain-status.mjs';
 
 const [input = 'none', output = 'chain-daily.json', ...rest] = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -103,6 +107,9 @@ if (!data) {
   log(`new dataset from block ${first}`);
 }
 
+const checks = await sampleStatus(data);
+log(`status: ${checks.filter((c) => c[0]).length} of ${checks.length} services answered`);
+
 data = (await patiently(() => extendForward(data, head), 'forward', Date.now() + BACKFILL_SECONDS * 1000)) ?? data;
 save(data);
 log(`forward: to block ${data.to}, ${data.days.length} days, today ${data.partial?.txs ?? 0} txs`);
@@ -115,3 +122,8 @@ data.history ??= emptyHistory();
 await extendHistory(data.history, head, startedAt + BACKFILL_SECONDS * 1000, { log: (...a) => log(...a), save: () => save(data) });
 save(data);
 log(`history: to block ${data.history.to} of ${head}, ${data.history.days.length} days, ${data.history.months.length} month ends`);
+
+data.transfers ??= emptyTransfers(data);
+await extendTransfers(data.transfers, head, startedAt + BACKFILL_SECONDS * 1000, { log: (...a) => log(...a), save: () => save(data) });
+save(data);
+log(`transfers: to block ${data.transfers.to}, all-time list read to ${data.transfers.backTo} of ${data.transfers.start - 1}`);
