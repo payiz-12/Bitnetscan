@@ -5,14 +5,15 @@
 //
 // The same function serves the other views of the dataset (the Hobby plan allows 12 functions):
 // ?view=history (/api/chain-history), ?view=holding (/api/holding), ?view=transfers
-// (/api/transfers) and ?view=status (/api/network-status).
+// (/api/transfers), ?view=status (/api/network-status) and ?view=miner (/api/miner).
 import { headBlock, extendForward } from './_lib/daily.js';
 import { historyHandler, holdingHandler } from './_lib/history.js';
 import { loadDataset } from './_lib/dataset.js';
 import { transfersHandler } from './_lib/transfers.js';
 import { statusHandler } from './_lib/status.js';
+import { minerHandler } from './_lib/miners.js';
 
-const VIEWS = { history: historyHandler, holding: holdingHandler, transfers: transfersHandler, status: statusHandler };
+const VIEWS = { history: historyHandler, holding: holdingHandler, transfers: transfersHandler, status: statusHandler, miner: minerHandler };
 // Blocks read live past the stored dataset: about two days, so the page stays current even if
 // some hourly runs are missed. Beyond that it waits for the next run.
 const MAX_TAIL = 12000;

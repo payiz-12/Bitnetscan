@@ -37,6 +37,7 @@ interface AddressDetailViewProps {
   onSelectAddress?: (addr: string) => void;
   onSelectToken?: (addr: string) => void;
   onNavigate?: (view: string) => void;
+  onSelectMiner?: (addr: string) => void;
 }
 
 export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
@@ -47,6 +48,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
   onSelectBlock,
   onSelectAddress,
   onNavigate,
+  onSelectMiner,
   onSelectToken,
 }) => {
   const [balance, setBalance] = useState<string | null>(null);
@@ -707,6 +709,11 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 ? `≥ ${minedBlocksTotalCount.toLocaleString()} BTN in subsidies`
                 : minedBlocks.length > 0 ? 'Total unavailable' : 'Bitnet EVM Mainnet'}
             </span>
+            {onSelectMiner && (minedBlocksTotalCount > 0 || minedBlocks.length > 0) && (
+              <button type="button" onClick={() => onSelectMiner(address)} className="mt-1.5 text-[11px] font-bold text-petrol hover:underline cursor-pointer">
+                Miner history: rewards and payouts →
+              </button>
+            )}
           </div>
         </div>
       </div>

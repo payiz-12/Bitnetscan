@@ -21,6 +21,7 @@ const ConsoleView = lazy(() => import('./views/ConsoleView').then((m) => ({ defa
 const NetworkView = lazy(() => import('./views/NetworkView').then((m) => ({ default: m.NetworkView })));
 const RichListView = lazy(() => import('./views/RichListView').then((m) => ({ default: m.RichListView })));
 const TransfersView = lazy(() => import('./views/TransfersView').then((m) => ({ default: m.TransfersView })));
+const MinerView = lazy(() => import('./views/MinerView').then((m) => ({ default: m.MinerView })));
 const ContractsView = lazy(() => import('./views/ContractsView').then((m) => ({ default: m.ContractsView })));
 const ChartsView = lazy(() => import('./views/ChartsView').then((m) => ({ default: m.ChartsView })));
 const UnclesView = lazy(() => import('./views/UnclesView').then((m) => ({ default: m.UnclesView })));
@@ -73,6 +74,9 @@ const parseRoute = (): { view: string; param?: string | number } => {
   if (route === 'token' && param) {
     return { view: 'token-detail', param };
   }
+  if (route === 'miner' && /^0x[0-9a-fA-F]{40}$/.test(param)) {
+    return { view: 'miner-detail', param: param.toLowerCase() };
+  }
   if (route === 'blocks') return { view: 'blocks' };
   if (route === 'transactions' || route === 'txs') return { view: 'transactions' };
   if (route === 'rich-list' || route === 'richlist') return { view: 'rich-list' };
@@ -100,6 +104,7 @@ const getPathForView = (view: string, param?: string | number): string => {
   if (view === 'tx-detail' && param) return `/tx/${param}`;
   if (view === 'address-detail' && param) return `/address/${param}`;
   if (view === 'token-detail' && param) return `/token/${param}`;
+  if (view === 'miner-detail' && param) return `/miner/${param}`;
   if (view === 'transactions') return '/transactions';
   return `/${view}`;
 };
@@ -116,6 +121,7 @@ const pageTitle = (view: string, param?: string | number) => {
   if (view === 'tx-detail') return `Transaction ${shortId(param ?? '')}`;
   if (view === 'address-detail') return `Address ${shortId(param ?? '')}`;
   if (view === 'token-detail') return `Token ${shortId(param ?? '')}`;
+  if (view === 'miner-detail') return `Miner ${shortId(param ?? '')}`;
   return PAGE_TITLES[view] ?? null;
 };
 
@@ -133,6 +139,9 @@ export const App: React.FC = () => {
   );
   const [selectedToken, setSelectedToken] = useState<string>(
     initialRoute.view === 'token-detail' && initialRoute.param ? String(initialRoute.param) : ''
+  );
+  const [selectedMiner, setSelectedMiner] = useState<string>(
+    initialRoute.view === 'miner-detail' && initialRoute.param ? String(initialRoute.param) : ''
   );
 
   const [stats, setStats] = useState<NetworkStats | null>(null);
@@ -314,6 +323,7 @@ export const App: React.FC = () => {
     if (view === 'tx-detail' && param !== undefined) setSelectedTx(String(param));
     if (view === 'address-detail' && param !== undefined) setSelectedAddress(String(param));
     if (view === 'token-detail' && param !== undefined) setSelectedToken(String(param));
+    if (view === 'miner-detail' && param !== undefined) setSelectedMiner(String(param));
 
     const newPath = getPathForView(view, param);
     if (window.location.pathname !== newPath || window.location.hash) {
@@ -350,6 +360,8 @@ export const App: React.FC = () => {
         setSelectedAddress(String(parsed.param));
       } else if (parsed.view === 'token-detail' && parsed.param) {
         setSelectedToken(String(parsed.param));
+      } else if (parsed.view === 'miner-detail' && parsed.param) {
+        setSelectedMiner(String(parsed.param));
       }
     };
 
@@ -423,11 +435,16 @@ export const App: React.FC = () => {
     navigateTo('token-detail', addr);
   };
 
+  const handleSelectMiner = (addr: string) => {
+    navigateTo('miner-detail', addr.toLowerCase());
+  };
+
   const routeKey =
     currentView === 'block-detail' ? `block:${selectedBlock}`
     : currentView === 'tx-detail' ? `tx:${selectedTx}`
     : currentView === 'address-detail' ? `address:${selectedAddress}`
     : currentView === 'token-detail' ? `token:${selectedToken}`
+    : currentView === 'miner-detail' ? `miner:${selectedMiner}`
     : currentView;
 
   // Title and canonical link of the visible page, for search results and browser history.
@@ -436,6 +453,7 @@ export const App: React.FC = () => {
       : currentView === 'tx-detail' ? selectedTx
       : currentView === 'address-detail' ? selectedAddress
       : currentView === 'token-detail' ? selectedToken
+      : currentView === 'miner-detail' ? selectedMiner
       : undefined;
     const title = pageTitle(currentView, param);
     document.title = title ? `${title} | BitnetScan` : 'BitnetScan | Bitnet (BTN) Blockchain Explorer';
@@ -449,6 +467,7 @@ export const App: React.FC = () => {
     : currentView === 'tx-detail' ? ['/tx/[hash]', `/tx/${selectedTx}`]
     : currentView === 'address-detail' ? ['/address/[address]', `/address/${selectedAddress}`]
     : currentView === 'token-detail' ? ['/token/[address]', `/token/${selectedToken}`]
+    : currentView === 'miner-detail' ? ['/miner/[address]', `/miner/${selectedMiner}`]
     : [`/${currentView}`, `/${currentView}`];
 
   return (
@@ -530,6 +549,7 @@ export const App: React.FC = () => {
               onSelectBlock={handleSelectBlock}
               onSelectAddress={handleSelectAddress}
               onNavigate={(view) => navigateTo(view)}
+              onSelectMiner={handleSelectMiner}
               onSelectToken={handleSelectToken}
             />
           )}
@@ -577,6 +597,7 @@ export const App: React.FC = () => {
               stats={stats}
               recentBlocks={recentBlocks}
               onSelectAddress={handleSelectAddress}
+              onSelectMiner={handleSelectMiner}
             />
           )}
 
@@ -615,7 +636,12 @@ export const App: React.FC = () => {
               onSelectAddress={handleSelectAddress}
               onSelectBlock={handleSelectBlock}
               onNavigate={(view) => navigateTo(view)}
+              onSelectMiner={handleSelectMiner}
             />
+          )}
+
+          {currentView === 'miner-detail' && (
+            <MinerView address={selectedMiner} onSelectAddress={handleSelectAddress} />
           )}
 
           {currentView === 'supply' && (

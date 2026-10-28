@@ -146,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
   );
   const isActive = (id: string) =>
     currentView === id ||
-    (id === 'blocks' && currentView === 'block-detail') ||
+    (id === 'blocks' && currentView === 'block-detail') || (id === 'mining' && currentView === 'miner-detail') ||
     (id === 'transactions' && currentView === 'tx-detail') ||
     (id === 'tokens' && currentView === 'token-detail');
 

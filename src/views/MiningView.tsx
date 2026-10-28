@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PoolPayouts } from '../components/PoolPayouts';
 import { Calculator, Server, Terminal, ExternalLink } from 'lucide-react';
 import { Block, NetworkStats } from '../types/blockchain';
 import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
@@ -33,9 +34,10 @@ interface MiningViewProps {
   stats: NetworkStats | null;
   recentBlocks?: Block[];
   onSelectAddress?: (address: string) => void;
+  onSelectMiner?: (address: string) => void;
 }
 
-export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onSelectAddress }) => {
+export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onSelectAddress, onSelectMiner }) => {
   const [userHashrate, setUserHashrate] = useState('100'); // in MH/s
   const [unit, setUnit] = useState<'MH' | 'GH'>('MH');
   const [gpuPreset, setGpuPreset] = useState('');
@@ -505,13 +507,20 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
                 </div>
               </div>
               <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2">
-                <button
-                  onClick={() => onSelectAddress?.(m.miner)}
-                  className="text-[10px] font-mono text-slate-400 hover:text-petrol hover:underline cursor-pointer"
-                  title={`View address ${m.miner}`}
-                >
-                  {m.miner.slice(0, 6)}...{m.miner.slice(-4)}
-                </button>
+                <span className="flex items-center gap-2">
+                  <button
+                    onClick={() => onSelectAddress?.(m.miner)}
+                    className="text-[10px] font-mono text-slate-400 hover:text-petrol hover:underline cursor-pointer"
+                    title={`View address ${m.miner}`}
+                  >
+                    {m.miner.slice(0, 6)}...{m.miner.slice(-4)}
+                  </button>
+                  {onSelectMiner && (
+                    <button onClick={() => onSelectMiner(m.miner)} className="text-[11px] font-bold text-petrol hover:underline cursor-pointer" title="Blocks, rewards and payouts from every block">
+                      History
+                    </button>
+                  )}
+                </span>
                 {m.poolUrl ? (
                   <a
                     href={m.poolUrl}
@@ -533,6 +542,8 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
           Workers and pool hashrate come from coolpool.top and gtpool.io. Solo miners do not publish workers; their hashrate is estimated from block share.
         </p>
       </div>
+
+      {onSelectMiner && <PoolPayouts onSelectMiner={onSelectMiner} />}
     </div>
   );
 };

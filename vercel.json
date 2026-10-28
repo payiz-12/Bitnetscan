@@ -26,6 +26,7 @@
     { "source": "/api/holding", "destination": "/api/chain-daily?view=holding" },
     { "source": "/api/transfers", "destination": "/api/chain-daily?view=transfers" },
     { "source": "/api/network-status", "destination": "/api/chain-daily?view=status" },
+    { "source": "/api/miner", "destination": "/api/chain-daily?view=miner" },
     { "source": "/api/coolpool/:path*", "destination": "https://coolpool.top/:path*" },
     {
       "source": "/api/nestex/:path*",

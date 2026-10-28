@@ -8,11 +8,13 @@ import { AddressTag } from '../components/AddressTag';
 import { getAddressLabel } from '../services/addressLabels';
 import { formatHashrate } from '../services/hashrate';
 import { SkeletonList } from '../components/Skeleton';
+import { MajorityHistory } from '../components/MajorityHistory';
 
 interface SecurityViewProps {
   onSelectAddress: (address: string) => void;
   onSelectBlock: (n: number) => void;
   onNavigate: (view: string) => void;
+  onSelectMiner?: (address: string) => void;
 }
 
 const pct = (v: number, digits = 1) => `${(v * 100).toFixed(digits)}%`;
@@ -54,7 +56,7 @@ const Card: React.FC<{ title: string; subtitle?: React.ReactNode; children: Reac
   </section>
 );
 
-export const SecurityView: React.FC<SecurityViewProps> = ({ onSelectAddress, onSelectBlock, onNavigate }) => {
+export const SecurityView: React.FC<SecurityViewProps> = ({ onSelectAddress, onSelectBlock, onNavigate, onSelectMiner }) => {
   const [scan, setScan] = useState<RecentScan | null>(() => getCachedRecentScan());
   const [range, setRange] = useState<HistoryRange>('30d');
   const [history, setHistory] = useState<ChainHistory | null>(() => getCachedHistory('30d'));
@@ -235,6 +237,8 @@ export const SecurityView: React.FC<SecurityViewProps> = ({ onSelectAddress, onS
           )}
         </Card>
       </div>
+
+      <MajorityHistory onSelectMiner={onSelectMiner ?? onSelectAddress} />
 
       <Card
         title="How many confirmations to wait"

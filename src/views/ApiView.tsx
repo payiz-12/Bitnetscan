@@ -99,6 +99,15 @@ const ENDPOINTS: Endpoint[] = [
     cache: '5 min',
   },
   {
+    path: '/api/miner',
+    example: '/api/miner?address=0xfad4a236c87880035497043f24ea58d73c3e50de',
+    title: 'Miner rewards and payouts',
+    about: 'Computed from every block. With an address: per UTC day, the blocks and uncles it mined, the BTN it earned (block and uncle rewards, exact; transaction fees left out), the BTN its transactions sent (a pool\'s payouts) and its balance at the end of the day; only days with activity are listed. Without an address: every miner\'s totals, most blocks first.',
+    params: [{ name: 'address', about: 'Optional: the miner (0x followed by 40 hex characters).' }],
+    returns: 'JSON',
+    cache: '15 min',
+  },
+  {
     path: '/api/network-status',
     example: '/api/network-status',
     title: 'Network service checks',
