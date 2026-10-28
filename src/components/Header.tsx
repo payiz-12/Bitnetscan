@@ -116,7 +116,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
     },
     { id: 'watchlist', label: 'Watchlist', icon: Star },
   ];
-  const allLinks = navEntries.flatMap((e) => ('children' in e ? e.children : [e]));
   const { unseen } = useWatchlist();
   const badge = (id: string) => id === 'watchlist' && unseen > 0 && currentView !== 'watchlist'
     ? <span className="ml-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold inline-flex items-center justify-center">{unseen > 9 ? '9+' : unseen}</span>
@@ -151,6 +150,31 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
     (id === 'tokens' && currentView === 'token-detail');
 
   const [openGroup, setOpenGroup] = useState<string | null>(null);
+  // Mobile menu: groups start closed (a dot marks the one holding the current page); one open at a time.
+  const [mobileGroup, setMobileGroup] = useState<string | null>(null);
+  useEffect(() => { if (mobileMenuOpen) setMobileGroup(null); }, [mobileMenuOpen]);
+  const mobileRow = (item: NavLink, nested = false) => {
+    const Icon = item.icon;
+    const active = isActive(item.id);
+    return (
+      <button
+        key={item.id}
+        type="button"
+        onClick={() => {
+          onNavigate(item.id);
+          setMobileMenuOpen(false);
+        }}
+        aria-current={active ? 'page' : undefined}
+        className={`w-full min-h-[44px] px-3 rounded-xl flex items-center gap-2.5 text-sm font-semibold cursor-pointer transition-colors ${
+          active ? 'bg-petrol text-white' : `${nested ? 'text-slate-600' : 'text-slate-800'} hover:bg-petrol-50 hover:text-petrol`
+        }`}
+      >
+        <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-white' : 'text-petrol'}`} />
+        <span className="truncate">{item.label}</span>
+        {badge(item.id)}
+      </button>
+    );
+  };
   const navRef = useRef<HTMLElement>(null);
   useEffect(() => setOpenGroup(null), [routeKey]);
   useEffect(() => {
@@ -364,32 +388,31 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
           <nav className="lg:hidden mt-2 pt-2 border-t border-slate-200 max-h-[calc(100dvh-8rem)] overflow-y-auto overscroll-contain" aria-label="Main">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-              {allLinks.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.id);
+            <div className="space-y-0.5">
+              {navEntries.map((entry) => {
+                if (!('children' in entry)) return mobileRow(entry);
+                const GroupIcon = entry.icon;
+                const open = mobileGroup === entry.label;
+                const holdsActive = entry.children.some((c) => isActive(c.id));
                 return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      onNavigate(item.id);
-                      setMobileMenuOpen(false);
-                    }}
-                    aria-current={active ? 'page' : undefined}
-                    className={`px-3 py-2.5 rounded-xl flex items-center gap-2.5 transition-all text-xs font-bold cursor-pointer border ${
-                      active
-                        ? 'bg-petrol text-white border-transparent shadow-xs'
-                        : 'bg-white text-slate-700 border-slate-200 hover:bg-petrol-50 hover:text-petrol'
-                    }`}
-                  >
-                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
-                      active ? 'bg-white/20 text-white' : 'bg-petrol-50 text-petrol border border-petrol-100'
-                    }`}>
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <span className="truncate">{item.label}</span>
-                    {badge(item.id)}
-                  </button>
+                  <div key={entry.label}>
+                    <button
+                      type="button"
+                      onClick={() => setMobileGroup(open ? null : entry.label)}
+                      aria-expanded={open}
+                      className={`w-full min-h-[44px] px-3 rounded-xl flex items-center gap-2.5 text-sm font-semibold cursor-pointer transition-colors hover:bg-petrol-50 ${holdsActive ? 'text-petrol' : 'text-slate-800'}`}
+                    >
+                      <GroupIcon className="w-4 h-4 shrink-0 text-petrol" />
+                      <span className="flex-1 text-left">{entry.label}</span>
+                      {!open && holdsActive && <span className="w-1.5 h-1.5 rounded-full bg-petrol" aria-hidden="true" />}
+                      <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+                    </button>
+                    {open && (
+                      <div className="ml-5 pl-2 border-l border-slate-200 space-y-0.5 mb-1">
+                        {entry.children.map((c) => mobileRow(c, true))}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
