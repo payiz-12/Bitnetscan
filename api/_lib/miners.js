@@ -18,7 +18,7 @@ export async function minerHandler(req, res) {
   const r = data.rewards;
   if (!r || !r.days.length) return notReady(res, 'miner history');
 
-  const progress = { toBlock: r.days.at(-1)[2], chainBlock: data.to, firstDay: r.days[0][0], lastDay: r.days.at(-1)[0] };
+  const progress = { datasetGeneratedAt: data.generatedAt, toBlock: r.days.at(-1)[2], chainBlock: data.to, firstDay: r.days[0][0], lastDay: r.days.at(-1)[0] };
   res.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=3600');
 
   if (address === null) {

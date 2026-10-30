@@ -19,6 +19,8 @@ export interface MinerDay {
 }
 
 export interface MinerProgress {
+  /** When the hourly job wrote the dataset. */
+  datasetGeneratedAt?: string;
   toBlock: number;
   chainBlock: number;
   firstDay: string;

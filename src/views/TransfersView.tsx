@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Banknote, ArrowRight, RefreshCw, AlertTriangle } from 'lucide-react';
 import { AddressTag } from '../components/AddressTag';
 import { SkeletonList } from '../components/Skeleton';
+import { StaleDataNotice } from '../components/StaleDataNotice';
 import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
 
 interface Transfer {
@@ -14,6 +15,7 @@ interface Transfer {
 }
 
 interface TransfersData {
+  datasetGeneratedAt?: string;
   toBlock: number;
   allTimeComplete: boolean;
   allTimeReadTo: number;
@@ -109,6 +111,8 @@ export const TransfersView: React.FC<TransfersViewProps> = ({ onSelectTx, onSele
           )}
         </p>
       </div>
+
+      {data && <StaleDataNotice at={data.datasetGeneratedAt} what="the 7-day, 30-day and all-time lists" />}
 
       {error === 'pending' && (
         <div className="p-4 rounded-2xl bg-white border border-slate-200 text-slate-600 text-xs">

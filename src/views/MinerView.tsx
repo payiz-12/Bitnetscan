@@ -3,6 +3,7 @@ import { Pickaxe, Coins, GitBranch, Wallet, Download, AlertTriangle, ArrowUpRigh
 import { BarChart, LineChart } from '../components/charts/ChartPrimitives';
 import { SkeletonChart } from '../components/Skeleton';
 import { AddressTag } from '../components/AddressTag';
+import { StaleDataNotice } from '../components/StaleDataNotice';
 import { getAddressLabel } from '../services/addressLabels';
 import { loadMinerReport, minerPeriods, MinerReport, MinerPeriod, MINERS_PENDING } from '../services/miners';
 import { loadExactHistory, ExactHistory } from '../services/exactHistory';
@@ -140,6 +141,7 @@ export const MinerView: React.FC<MinerViewProps> = ({ address, onSelectAddress }
     <div className="space-y-5 sm:space-y-6 w-full animate-fade-in">
       {header}
 
+      <StaleDataNotice at={report.datasetGeneratedAt} what="this miner's figures" />
       {catchingUp && (
         <div className="p-3 rounded-xl bg-petrol-50 border border-petrol-100 text-xs text-slate-700">
           The miner history is still being read from the first block: it reaches {longDate(report.lastDay)} (block #{report.toBlock.toLocaleString()} of #{report.chainBlock.toLocaleString()}) and grows with each hourly update.

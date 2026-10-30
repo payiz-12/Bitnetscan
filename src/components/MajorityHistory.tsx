@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { BarChart } from './charts/ChartPrimitives';
+import { StaleDataNotice } from './StaleDataNotice';
 import { loadExactHistory, ExactHistory } from '../services/exactHistory';
 import { getAddressLabel } from '../services/addressLabels';
 
@@ -153,6 +154,8 @@ export const MajorityHistory: React.FC<{ onSelectMiner: (address: string) => voi
           </p>
         </div>
       </div>
+
+      <StaleDataNotice at={history?.generatedAt} what="the majority history" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {tiles.map((t) => (

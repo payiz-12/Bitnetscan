@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { History, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { StaleDataNotice } from './StaleDataNotice';
 
 type Check = [number, number | null, number | null];
 interface StatusData {
@@ -73,6 +74,7 @@ export const StatusHistory: React.FC = () => {
         <p className="text-xs text-slate-500">
           Checked every hour by BitnetScan from GitHub Actions servers (last check {hourLabel(last[0])} UTC). A service is behind when it reports a block more than {BEHIND} blocks below the highest RPC head of the same check. Uptime counts the checks of the last 30 days.
         </p>
+        <StaleDataNotice at={last[0]} what="these checks" />
         <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
           {(Object.keys(COLORS) as State[]).map((s) => (
             <span key={s} className="flex items-center gap-1.5 text-xs text-slate-600">

@@ -33,6 +33,8 @@ export interface HoldingSnapshot {
 }
 
 export interface ExactHistory {
+  /** When the hourly job wrote the dataset. */
+  generatedAt?: string;
   toBlock: number;
   chainBlock: number;
   supply: number;
@@ -62,7 +64,7 @@ async function fromApi(): Promise<ExactHistory> {
   if (res.status === 503 && /not computed/.test((await res.json().catch(() => ({}))).error ?? '')) throw new Error(PENDING);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const d = await res.json();
-  return { ...d, days: toDays(d.days) };
+  return { ...d, generatedAt: d.datasetGeneratedAt, days: toDays(d.days) };
 }
 
 /** The same figures read from the stored dataset (amounts there are in µBTN). */
@@ -88,6 +90,7 @@ async function fromDataset(): Promise<ExactHistory> {
     return w;
   });
   return {
+    generatedAt: data.generatedAt,
     toBlock: h.to,
     chainBlock: data.to,
     supply: btn(h.supply - (h.open?.issued ?? 0)),

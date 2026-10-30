@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Coins, Pickaxe, GitBranch, Layers, Hourglass, PieChart, AlertTriangle, Cpu } from 'lucide-react';
 import { BarChart, LineChart, StackedShareChart, HeatmapChart, HeatScale, Legend, ShareGroup } from './charts/ChartPrimitives';
 import { SkeletonChart } from './Skeleton';
+import { StaleDataNotice } from './StaleDataNotice';
 import { loadExactHistory, miningPeriods, ExactHistory, MiningPeriod, HoldingSnapshot, PENDING, HOLD_BANDS, btnPerGhDay } from '../services/exactHistory';
 import { priceService, BtnPriceData } from '../services/priceService';
 import { getAddressLabel } from '../services/addressLabels';
@@ -157,6 +158,7 @@ export const ExactHistoryCharts: React.FC<{ range: HistoryRange }> = ({ range })
             BitnetScan reads every block from #1 and adds up what it created: 1 BTN per block, 1/32 BTN per uncle the block includes and (8 − depth)/8 BTN to the uncle's miner. Fees only move coins, so this is the exact supply.
           </p>
         </div>
+        <StaleDataNotice at={history.generatedAt} what="the mining, supply and holdings figures" />
         {catchingUp && (
           <div className="p-3 rounded-xl bg-petrol-50 border border-petrol-100 text-xs text-slate-700">
             Reading the chain from the first block: {pct(history.toBlock, history.chainBlock, 0)} done (block #{history.toBlock.toLocaleString()} of #{history.chainBlock.toLocaleString()}). The charts below grow as the hourly job continues.

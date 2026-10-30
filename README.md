@@ -85,6 +85,8 @@ All endpoints are free, need no key and allow cross-origin requests. The site's 
 | [`/api/reorgs`](https://bitnetscan.vercel.app/api/reorgs) | Blocks the explorer indexer saw replaced by a chain reorganization (cached 15 min) |
 | `/api/og?type=tx\|block\|address&id=…` | 1200×630 PNG share card for a transaction, block or address |
 
+Pages built on the hourly dataset show a warning when the hourly job has not run for more than 4 hours, as their figures may then be behind.
+
 Supply is the sum of all account balances indexed by the explorer, recomputed every hour by `.github/workflows/supply-snapshot.yml` (`scripts/supply-snapshot.mjs`) and stored on the `data` branch. Block height alone undercounts supply because Bitnet pays uncle rewards ((8 − depth) / 8 BTN to the uncle miner, 1/32 BTN to the including miner). Circulating supply excludes the balances of `0x0…0` and `0x…dEaD`.
 
 ## Development
