@@ -1,0 +1,26 @@
+name: Keep scheduled jobs running
+
+# GitHub turns off scheduled workflows in a public repository after 60 days without activity.
+# Enabling a workflow through the API restarts that count, so once a week this job enables the
+# dataset jobs and itself.
+on:
+  schedule:
+    - cron: '41 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Enable the scheduled workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for wf in chain-daily.yml supply-snapshot.yml keepalive.yml; do
+            gh workflow enable "$wf" --repo "$GITHUB_REPOSITORY"
+            echo "enabled $wf"
+          done
