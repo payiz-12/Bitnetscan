@@ -77,7 +77,7 @@ const ENDPOINTS: Endpoint[] = [
     path: '/api/chain-history',
     example: '/api/chain-history',
     title: 'Mining, supply and holdings history',
-    about: 'Computed from every block since genesis and the archive state. Per UTC day: blocks, uncles, BTN issued and blocks by miner (rows are [date, firstBlock, lastBlock, blocks, uncles, issuedBtn, [[minerIndex, blocks], …], workHashes], with minerIndex pointing into miners and workHashes the total difficulty the day's blocks added, so issuedBtn × 86,400 × 10⁹ / workHashes is what 1 GH/s earned that day). At each month\'s end and for the latest complete day: exact supply, BTN at the followed addresses, burned BTN, addresses with BTN, the holdings of the 1, 10 and 100 largest addresses, and BTN by how long it has stayed at its address (bands up to holdBandDays).',
+    about: 'Computed from every block since genesis and the archive state. Per UTC day: blocks, uncles, BTN issued and blocks by miner (rows are [date, firstBlock, lastBlock, blocks, uncles, issuedBtn, [[minerIndex, blocks], …], workHashes], with minerIndex pointing into miners and workHashes the total difficulty the day\'s blocks added, so issuedBtn × 86,400 × 10⁹ / workHashes is what 1 GH/s earned that day). At each month\'s end and for the latest complete day: exact supply, BTN at the followed addresses, burned BTN, addresses with BTN, the holdings of the 1, 10 and 100 largest addresses, and BTN by how long it has stayed at its address (bands up to holdBandDays).',
     returns: 'JSON',
     cache: '15 min',
   },
