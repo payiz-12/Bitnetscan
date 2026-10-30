@@ -17,7 +17,8 @@ export const BitnetScanIcon: React.FC<BitnetScanIconProps> = ({
       aria-label="BitnetScan Logo"
     >
       {/* Base B Mark with filled teal bottom loop */}
-      <image href="/bitnetscan-icon-filled.png" width="512" height="512" />
+      {/* 128 px WebP (4 KB): sharp at the sizes it is shown; the 512 px PNG took 110 KB. */}
+      <image href="/bitnetscan-icon-128.webp" width="512" height="512" />
 
       {/* 360° Rotating White Cube (True Propeller centered at X: 309, Y: 377) */}
       <g transform="translate(309, 377)">

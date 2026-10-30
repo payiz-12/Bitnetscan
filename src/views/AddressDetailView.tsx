@@ -1447,7 +1447,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                         <td className="py-3 px-3 text-slate-500" title={blk.hash}>
                           {blk.hash.slice(0, 12)}...{blk.hash.slice(-8)}
                         </td>
-                        <td className="py-3 px-3 text-slate-500 whitespace-nowrap" title={new Date(blk.timestamp * 1000).toLocaleString()}>
+                        <td className="py-3 px-3 text-slate-500 whitespace-nowrap" title={`${new Date(blk.timestamp * 1000).toISOString().slice(0, 19).replace('T', ' ')} UTC`}>
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3 text-slate-400" />
                             {formatTimeAgo(blk.timestamp)}

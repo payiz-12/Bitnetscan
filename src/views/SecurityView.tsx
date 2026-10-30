@@ -319,7 +319,7 @@ export const SecurityView: React.FC<SecurityViewProps> = ({ onSelectAddress, onS
                       <li key={e.detectedAt} className="text-xs text-slate-700 flex items-center gap-2">
                         <span className="px-1.5 py-px rounded bg-amber-50 border border-amber-200 text-amber-800 font-bold text-[10px]">depth {e.depth}</span>
                         <button onClick={() => onSelectBlock(e.from)} className="font-mono text-petrol hover:underline cursor-pointer">#{e.from.toLocaleString()}{e.depth > 1 ? `–#${e.to.toLocaleString()}` : ''}</button>
-                        <span className="text-slate-500">{new Date(e.detectedAt).toLocaleTimeString('en-US', { hour12: false })}</span>
+                        <span className="text-slate-500">{new Date(e.detectedAt).toLocaleTimeString('en-US', { hour12: false, timeZone: 'UTC' })} UTC</span>
                       </li>
                     ))}
                   </ul>
@@ -337,7 +337,7 @@ export const SecurityView: React.FC<SecurityViewProps> = ({ onSelectAddress, onS
                         <li key={r.from} className="text-xs text-slate-700 flex flex-wrap items-center gap-x-2">
                           <span className={`px-1.5 py-px rounded border font-bold text-[10px] ${r.depth > 1 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>depth {r.depth}</span>
                           <span className="font-mono">#{r.from.toLocaleString()}{r.depth > 1 ? `–#${r.to.toLocaleString()}` : ''}</span>
-                          <span className="text-slate-500 flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(r.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          <span className="text-slate-500 flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(r.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span>
                         </li>
                       ))}
                     </ul>

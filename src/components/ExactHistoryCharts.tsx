@@ -3,6 +3,7 @@ import { Coins, Pickaxe, GitBranch, Layers, Hourglass, PieChart, AlertTriangle, 
 import { BarChart, LineChart, StackedShareChart, HeatmapChart, HeatScale, Legend, ShareGroup } from './charts/ChartPrimitives';
 import { SkeletonChart } from './Skeleton';
 import { StaleDataNotice } from './StaleDataNotice';
+import { SECTION_ANCHOR } from './PageNav';
 import { loadExactHistory, miningPeriods, ExactHistory, MiningPeriod, HoldingSnapshot, PENDING, HOLD_BANDS, btnPerGhDay } from '../services/exactHistory';
 import { priceService, BtnPriceData } from '../services/priceService';
 import { getAddressLabel } from '../services/addressLabels';
@@ -151,7 +152,7 @@ export const ExactHistoryCharts: React.FC<{ range: HistoryRange }> = ({ range })
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-3">
+      <div id="mining-supply" className={`bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-3 ${SECTION_ANCHOR}`}>
         <div>
           <h2 className="text-base sm:text-lg font-black text-slate-900">Mining and supply, from every block</h2>
           <p className="text-xs text-slate-500">
@@ -273,7 +274,7 @@ export const ExactHistoryCharts: React.FC<{ range: HistoryRange }> = ({ range })
 
       {latest && snapshots.length > 0 && (
         <>
-          <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-3">
+          <div id="holdings" className={`bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-3 ${SECTION_ANCHOR}`}>
             <div>
               <h2 className="text-base sm:text-lg font-black text-slate-900">Who holds BTN</h2>
               <p className="text-xs text-slate-500">

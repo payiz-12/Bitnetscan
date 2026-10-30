@@ -16,7 +16,7 @@ interface NftsViewProps {
 }
 const shortAddress = (address: string) => address ? `${address.slice(0, 6)}…${address.slice(-4)}` : 'Unknown';
 const count = (value: number | null) => value == null ? '0' : value.toLocaleString();
-const date = (value?: string) => value ? new Date(value).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unavailable';
+const date = (value?: string) => value ? new Date(value).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }) : 'Unavailable';
 const statusLabel = (status: NftCollection['dataStatus']) => ({
   unloaded: 'Awaiting indexer', indexed: 'Live Indexed', cached: 'Cached', partial: 'Partial data', error: 'Offline',
 }[status]);

@@ -84,6 +84,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
         minute: '2-digit',
         second: '2-digit',
         hour12: false,
+        timeZone: 'UTC',
+        timeZoneName: 'short',
       });
     } catch {
       return `${sec}`;

@@ -765,13 +765,13 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
                             className="text-[9px] font-bold text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap"
                             title={item.category === 'known'
                               ? 'Pool statistics could not be loaded. Hashrate estimated from its share of recent blocks.'
-                              : 'Solo miner: no pool publishes its workers. Hashrate estimated from its share of recent blocks.'}
+                              : 'Not a known pool, so no pool publishes its workers. Hashrate estimated from its share of recent blocks.'}
                           >
-                            {item.category === 'known' ? 'Pool' : 'Solo'} · ≈ {item.estimatedHashrateGh} GH/s
+                            {item.category === 'known' ? 'Pool' : 'Miner'} · ≈ {item.estimatedHashrateGh} GH/s
                           </span>
                         ) : (
                           <span className="text-[9px] font-bold text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap">
-                            {item.category === 'known' ? 'Pool data unavailable' : 'Solo miner'}
+                            {item.category === 'known' ? 'Pool data unavailable' : 'No pool data'}
                           </span>
                         )}
                       </div>
@@ -910,7 +910,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           <p className="text-xs text-slate-500">
             Network hashrate from on-chain difficulty and block times, averaged per period.{' '}
             {hashState && <span className="font-semibold text-terracotta">{hashState}</span>}
-            {hashHistory.length > 0 && ` · Latest data: ${new Date(hashHistory[hashHistory.length - 1].timestamp * 1000).toLocaleString('en-US')}`}
+            {hashHistory.length > 0 && ` · Latest data: ${new Date(hashHistory[hashHistory.length - 1].timestamp * 1000).toLocaleString('en-US', { hour12: false, timeZone: 'UTC' })} UTC`}
           </p>
         )}
 

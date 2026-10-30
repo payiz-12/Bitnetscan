@@ -21,10 +21,10 @@ for (const c of OFFICIAL_BITNET_VERIFIED_CONTRACTS) {
 for (const t of KNOWN_BTS20_TOKENS) {
   staticLabels.set(t.address.toLowerCase(), { name: `${t.name} (${t.symbol})`, kind: 'token', detail: 'BTS-20 token contract' });
 }
+// Pools are named; other mining addresses get no label (a "solo miner" label would only be a guess).
 for (const p of Object.values(KNOWN_MINING_POOLS)) {
-  staticLabels.set(p.address.toLowerCase(), p.category === 'known'
-    ? { name: p.name, kind: 'pool', detail: `Mining pool address: mines blocks and pays miners${p.url ? ` (${p.url.replace('https://', '')})` : ''}` }
-    : { name: 'Solo miner', kind: 'solo', detail: 'Mines blocks directly; not a pool address' });
+  if (p.category !== 'known') continue;
+  staticLabels.set(p.address.toLowerCase(), { name: p.name, kind: 'pool', detail: `Mining pool address: mines blocks and pays miners${p.url ? ` (${p.url.replace('https://', '')})` : ''}` });
 }
 staticLabels.set('0x0000000000000000000000000000000000000000', { name: 'Burn address', kind: 'burn', detail: 'Zero address; coins sent here cannot be spent' });
 staticLabels.set('0x000000000000000000000000000000000000dead', { name: 'Burn address', kind: 'burn', detail: '0x…dEaD; coins sent here cannot be spent' });
@@ -75,7 +75,7 @@ export function loadPoolPayoutLabels(): Promise<Map<string, AddressLabel>> {
       for (const [addr, n] of counts) {
         if (n >= MIN_PAYOUTS && !staticLabels.has(addr) && !labels.has(addr)) {
           labels.set(addr, pool.soloMode
-            ? { name: `${pool.name} solo miner`, kind: 'solo', detail: `Mines solo through ${pool.name}: received ${n} block rewards from the ${pool.name} address in its recent transactions` }
+            ? { name: `${pool.name} miner`, kind: 'miner', detail: `Mines through ${pool.name} in its solo mode: received ${n} block rewards from the ${pool.name} address in its recent transactions` }
             : { name: `${pool.name} miner`, kind: 'miner', detail: `Received ${n} payouts from the ${pool.name} pool address in its recent transactions` });
         }
       }

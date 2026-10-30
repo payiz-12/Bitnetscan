@@ -17,6 +17,11 @@ import { getAddressLabel } from '../services/addressLabels';
 import { SkeletonList } from '../components/Skeleton';
 import { MiningPickaxe } from '../components/MiningPickaxe';
 import { NextBlockRhythm } from '../components/NextBlockRhythm';
+import { SectionNav, SECTION_ANCHOR } from '../components/PageNav';
+import { loadExactHistory, ExactHistory, exactSupplyAtBlock } from '../services/exactHistory';
+
+/** A placeholder bar for a value that is still loading, sized like the text it stands in for. */
+const Skel: React.FC<{ w?: string }> = ({ w = 'w-20' }) => <span className={`skeleton inline-block align-middle rounded-md h-[0.8em] ${w}`} aria-hidden="true" />;
 
 interface DashboardViewProps {
   stats: NetworkStats | null;
@@ -94,6 +99,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   // Refreshed by the app-level poll (the indexer scan itself is cached for 30 s).
   const dailyTxCount = stats?.transactionsToday ?? null;
+  // Until the first stats arrive the tiles show placeholders, not "Unknown".
+  const statsLoading = stats === null;
+  const [priceSettled, setPriceSettled] = useState(false);
+  React.useEffect(() => { priceService.getPrice().catch(() => null).finally(() => setPriceSettled(true)); }, []);
+  const priceLoading = !priceData.available && !priceSettled;
+  // Exact supply after the latest block, from BitnetScan's count of every block.
+  const [history, setHistory] = useState<ExactHistory | null>(null);
+  React.useEffect(() => { loadExactHistory().then(setHistory).catch(() => {}); }, []);
+  const exactSupply = history && stats?.latestBlock ? exactSupplyAtBlock(history, stats.latestBlock) : null;
   const [richAccounts, setRichAccounts] = useState<RichAccount[]>([]);
   const [richSource, setRichSource] = useState<'indexer' | 'snapshot' | null>(null);
   const [richBasis, setRichBasis] = useState<'supply' | 'issuance'>('issuance');
@@ -164,10 +178,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="hidden sm:inline">Latest </span>Block
               </span>
               <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono tracking-tight text-slate-900 mt-0.5 truncate">
-                {stats ? `#${stats.latestBlock.toLocaleString()}` : '...'}
+                {stats ? `#${stats.latestBlock.toLocaleString()}` : <Skel w="w-24 sm:w-36" />}
               </div>
               <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
-                {stats?.avgBlockTimeSeconds != null ? `~${Number(stats.avgBlockTimeSeconds).toFixed(2)}s block` : 'Block time …'}
+                {statsLoading ? <Skel w="w-14" /> : stats?.avgBlockTimeSeconds != null ? `~${Number(stats.avgBlockTimeSeconds).toFixed(2)}s block` : '—'}
               </div>
             </div>
           </div>
@@ -182,12 +196,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 Gas Price<span className="hidden sm:inline"> & Fee</span>
               </span>
               <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono tracking-tight text-slate-900 mt-0.5 truncate">
-                {stats?.gasPriceGwei !== null && stats?.gasPriceGwei !== undefined ? `${stats.gasPriceGwei} Gwei` : 'Unknown'}
+                {statsLoading ? <Skel w="w-16 sm:w-28" /> : stats?.gasPriceGwei !== null && stats?.gasPriceGwei !== undefined ? `${stats.gasPriceGwei} Gwei` : 'Unavailable'}
               </div>
               <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
-                {stats?.gasPriceGwei !== null && stats?.gasPriceGwei !== undefined
+                {statsLoading
+                  ? <Skel w="w-16" />
+                  : stats?.gasPriceGwei !== null && stats?.gasPriceGwei !== undefined
                   ? <><span className="hidden sm:inline">Transfer </span>≈ {Number((21000 * Number(stats.gasPriceGwei) / 1e9).toPrecision(6))} BTN</>
-                  : 'Live rate'}
+                  : '—'}
               </div>
             </div>
           </div>
@@ -211,7 +227,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
                   : 'bg-rose-50 text-rose-700 border border-rose-200'
               }`}>
-                {priceData.change24hFormatted}
+                {priceLoading ? '…' : priceData.change24hFormatted}
               </span>
             </div>
             <div className="min-w-0 flex-1 w-full">
@@ -226,14 +242,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
                     : 'bg-rose-50 text-rose-700 border border-rose-200'
                 }`}>
-                  {priceData.change24hFormatted}
+                  {priceLoading ? '…' : priceData.change24hFormatted}
                 </span>
               </div>
               <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono tracking-tight text-slate-900 mt-0.5 truncate">
-                {priceData.priceFormatted}
+                {priceLoading ? <Skel w="w-16 sm:w-28" /> : priceData.priceFormatted}
               </div>
               <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 flex items-center justify-between truncate">
-                <span>{priceData.available ? `High: $${priceData.high24h.toFixed(priceData.high24h < 0.1 ? 4 : 2)}` : 'NestEx unavailable'}</span>
+                <span>{priceLoading ? <Skel w="w-16" /> : priceData.available ? `High: $${priceData.high24h.toFixed(priceData.high24h < 0.1 ? 4 : 2)}` : 'NestEx unavailable'}</span>
                 <span className="text-[10px] text-slate-400 hidden sm:inline">NestEx ↗</span>
               </div>
             </div>
@@ -249,7 +265,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 Hashrate<span className="hidden sm:inline"> (PoW)</span>
               </span>
               <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono tracking-tight text-slate-900 mt-0.5 truncate">
-                {stats?.hashrateEstimate || 'Active (PoW)'}
+                {statsLoading ? <Skel w="w-20 sm:w-32" /> : stats?.hashrateEstimate || '—'}
               </div>
               {/* Hashrate over the last 120 blocks (about half an hour); difficulty of the newest block.
                   Two short lines so neither is cut off in the narrow tablet and phone tiles. */}
@@ -258,7 +274,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 title="Hashrate over the last 120 blocks; difficulty of the latest block"
               >
                 <span className="block truncate"><span className="hidden sm:inline">Last </span>120 blocks</span>
-                <span className="block truncate">Diff {formatCompactDifficulty(stats?.difficulty)}</span>
+                <span className="block truncate">{statsLoading ? <Skel w="w-14" /> : <>Diff {formatCompactDifficulty(stats?.difficulty)}</>}</span>
               </div>
             </div>
           </div>
@@ -278,7 +294,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
               <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
                 <span className="sm:hidden">Per block</span>
-                <span className="hidden sm:inline">{stats?.circulatingEstimate ? `~${stats.circulatingEstimate} base issuance` : 'Miner Subsidy'}</span>
+                <span className="hidden sm:inline" title="Total supply after the latest block, counted by BitnetScan from every block's rewards">
+                  {exactSupply !== null ? `${Math.round(exactSupply).toLocaleString('en-US')} BTN supply` : 'Plus uncle rewards'}
+                </span>
               </div>
             </div>
           </div>
@@ -300,17 +318,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight sm:tracking-wider block truncate">
                   Daily <span className="sm:hidden">Txs</span><span className="hidden sm:inline">Transactions</span>
                 </span>
-                <span className={`hidden sm:inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 ${
+                {!statsLoading && <span className={`hidden sm:inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 ${
                   dailyTxCount !== null
                     ? 'text-emerald-600 bg-emerald-50 border-emerald-200'
                     : 'text-amber-700 bg-amber-50 border-amber-200'
                 }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${dailyTxCount !== null ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                   {dailyTxCount !== null ? 'Indexed' : 'Unavailable'}
-                </span>
+                </span>}
               </div>
               <div className="text-xs min-[400px]:text-sm sm:text-2xl font-black font-mono tracking-tight text-slate-900 mt-0.5 truncate">
-                {dailyTxCount !== null ? dailyTxCount.toLocaleString() : 'Unknown'}
+                {statsLoading ? <Skel w="w-12 sm:w-20" /> : dailyTxCount !== null ? dailyTxCount.toLocaleString() : '—'}
               </div>
               <div className="text-[9px] sm:text-xs text-slate-500 font-medium mt-0.5 truncate">
                 Today (UTC)<span className="hidden sm:inline"> · Confirmed transactions</span>
@@ -322,8 +340,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
 
 
+      <SectionNav items={[{ id: 'latest', label: 'Latest blocks' }, { id: 'activity', label: 'Activity charts' }, { id: 'accounts', label: 'Top accounts' }]} />
+
       {/* Main Two-Column Feed: Latest Blocks & Latest Transactions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8">
+      <div id="latest" className={`grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 ${SECTION_ANCHOR}`}>
         {/* Left Column: Latest Blocks */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col">
           <div className="px-3.5 py-3 sm:p-5 border-b border-slate-200 bg-slate-50">
@@ -598,15 +618,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Network Activity & Live Analytics Charts */}
-      <NetworkActivityCharts
-        recentBlocks={recentBlocks}
-        stats={stats}
-        onSelectBlock={onSelectBlock}
-        onSelectAddress={onSelectAddress}
-      />
+      <div id="activity" className={SECTION_ANCHOR}>
+        <NetworkActivityCharts
+          recentBlocks={recentBlocks}
+          stats={stats}
+          onSelectBlock={onSelectBlock}
+          onSelectAddress={onSelectAddress}
+        />
+      </div>
 
       {/* Bitnet HODL Rich List Preview Section on Dashboard */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs p-5 sm:p-6 space-y-4">
+      <div id="accounts" className={`bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs p-5 sm:p-6 space-y-4 ${SECTION_ANCHOR}`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-2xs">

@@ -35,15 +35,15 @@ export const KNOWN_MINING_POOLS: Record<string, MiningEntityInfo> = {
     description: 'Active public mining pool for Bitnet Ethash PoW.',
     soloMode: true, // coolpool.top/api/coin/btnsolo reports type "solo"
   },
-  // 3. Unknown Mining: Solo Miner / Node
+  // 3. A large mining address that is not a known pool (named by its address, not guessed)
   '0x6afcdfec8066a7fbf1295f10c4907924e99e72a4': {
     address: '0x6afcdfec8066a7fbf1295f10c4907924e99e72a4',
-    name: 'Unknown Solo Node',
+    name: 'Unknown (0x6afc...72a4)',
     tag: 'Geth Linux Node',
     category: 'unknown',
     categoryLabel: 'Unknown Mining',
-    badge: 'Unknown Solo',
-    description: 'Community full node / solo miner running Geth on Linux directly on-chain.',
+    badge: 'Unknown',
+    description: 'Mining address that is not a known pool; its blocks name a Geth node on Linux.',
   },
 };
 
@@ -82,12 +82,12 @@ export function identifyMinerPool(address: string, extraDataAscii?: string): Min
     if (lower.includes('geth')) {
       return {
         address: clean,
-        name: 'Unknown Solo Node',
+        name: `Unknown (${clean.slice(0, 6)}...${clean.slice(-4)})`,
         tag: 'Geth Node',
         category: 'unknown',
         categoryLabel: 'Unknown Mining',
-        badge: 'Unknown Solo',
-        description: 'Unknown independent solo miner',
+        badge: 'Unknown',
+        description: 'Mining address that is not a known pool; its blocks name a Geth node.',
       };
     }
   }

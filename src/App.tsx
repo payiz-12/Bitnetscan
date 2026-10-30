@@ -5,6 +5,7 @@ import { DashboardView } from './views/DashboardView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Analytics } from '@vercel/analytics/react';
 import { WatchToasts } from './components/WatchToasts';
+import { BackToTop } from './components/PageNav';
 import { startWatchlistMonitor } from './services/watchlist';
 
 // Secondary pages load on first visit so the dashboard bundle stays small.
@@ -660,6 +661,7 @@ export const App: React.FC = () => {
 
       <Footer latestBlock={recentBlocks[0]} />
       <WatchToasts onSelectAddress={handleSelectAddress} />
+      <BackToTop />
       <Analytics route={analyticsRoute} path={analyticsPath} />
     </div>
   );

@@ -219,7 +219,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
           {listSource === 'snapshot'
             ? 'Explorer ranking unavailable — showing previously known large holders with live balances.'
             : 'Top 50 accounts from the Bitnet explorer, with balances read live from the RPC.'}
-          {updatedAt && ` Updated ${new Date(updatedAt).toLocaleTimeString('en-US', { hour12: false })}.`}
+          {updatedAt && ` Updated ${new Date(updatedAt).toLocaleTimeString('en-US', { hour12: false, timeZone: 'UTC' })} UTC.`}
         </p>
         <button
           onClick={() => loadBalances(true)}

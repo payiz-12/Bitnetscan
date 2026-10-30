@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PoolPayouts } from '../components/PoolPayouts';
+import { SectionNav, SECTION_ANCHOR } from '../components/PageNav';
 import { Calculator, Server, Terminal, ExternalLink } from 'lucide-react';
 import { Block, NetworkStats } from '../types/blockchain';
 import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
@@ -243,8 +244,10 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
         </div>
       </div>
 
+      <SectionNav items={[{ id: 'calculator', label: 'Calculator' }, { id: 'how-to-mine', label: 'How to mine' }, { id: 'miners', label: 'Miners and pools' }, ...(onSelectMiner ? [{ id: 'payouts', label: 'Pool payouts' }] : [])]} />
+
       {/* Interactive Mining Profitability Calculator */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-6 shadow-sm">
+      <div id="calculator" className={`bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-6 shadow-sm ${SECTION_ANCHOR}`}>
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
           <Calculator className="w-5 h-5 text-petrol" />
           <h3 className="text-lg font-bold text-slate-900">Mining Profitability Calculator</h3>
@@ -408,7 +411,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       </div>
 
       {/* How to Mine Quickstart Guide */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm">
+      <div id="how-to-mine" className={`bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm ${SECTION_ANCHOR}`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <Terminal className="w-5 h-5 text-terracotta" />
@@ -465,7 +468,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       </div>
 
       {/* Active Mining Pools Section */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm">
+      <div id="miners" className={`bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm ${SECTION_ANCHOR}`}>
         <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <Server className="w-5 h-5 text-petrol" />
@@ -506,9 +509,9 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
                   ) : (
                     <span
                       className="inline-flex items-center gap-1.5 text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-md"
-                      title="A solo miner is not part of a pool, so no service publishes its workers. The hashrate is estimated from its share of recent blocks."
+                      title="Not a known pool, so no service publishes its workers. The hashrate is estimated from its share of recent blocks."
                     >
-                      {m.category === 'known' ? 'Pool data unavailable' : 'Solo miner'}
+                      {m.category === 'known' ? 'Pool data unavailable' : 'No pool data'}
                       {m.estimatedHashrateGh !== null && m.count > 0 ? ` · ≈ ${m.estimatedHashrateGh} GH/s` : ''}
                     </span>
                   )}
@@ -547,11 +550,11 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
           ))}
         </div>
         <p className="text-[11px] text-slate-500">
-          Workers and pool hashrate come from coolpool.top and gtpool.io. Solo miners do not publish workers; their hashrate is estimated from block share.
+          Workers and pool hashrate come from coolpool.top and gtpool.io. Other miners publish no workers; their hashrate is estimated from block share.
         </p>
       </div>
 
-      {onSelectMiner && <PoolPayouts onSelectMiner={onSelectMiner} />}
+      {onSelectMiner && <div id="payouts" className={SECTION_ANCHOR}><PoolPayouts onSelectMiner={onSelectMiner} /></div>}
     </div>
   );
 };

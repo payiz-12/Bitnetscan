@@ -213,7 +213,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
                 <span className="hidden sm:inline">Bitnet Mainnet (Chain 210)</span>
               </span>
               <span className="text-petrol-300 text-[10px] font-mono font-bold bg-slate-900/60 px-1.5 py-0.5 rounded group-hover:bg-slate-900 text-center inline-flex items-center justify-center tabular-nums">
-                {rpcLatency !== null ? `${rpcLatency}ms` : '…'}
+                {rpcLatency !== null ? `${rpcLatency}ms` : <span className="inline-block w-7 h-2.5 rounded bg-slate-700 animate-pulse" aria-hidden="true" />}
               </span>
             </button>
 
@@ -221,13 +221,13 @@ export const Header: React.FC<HeaderProps> = ({ currentView, routeKey, onNavigat
             <div className="flex items-center gap-1 text-[11px] sm:text-xs">
               <span className="text-slate-400 font-medium">Block:</span>
               <span className="text-sky-400 font-mono font-bold">
-                {stats ? `#${stats.latestBlock.toLocaleString()}` : '…'}
+                {stats ? `#${stats.latestBlock.toLocaleString()}` : <span className="inline-block align-middle w-16 h-2.5 rounded bg-slate-700 animate-pulse" aria-hidden="true" />}
               </span>
             </div>
             <div className="hidden md:flex items-center gap-1">
               <span className="text-slate-400 font-medium">Gas:</span>
               <span className="text-amber-400 font-mono font-bold">
-                {stats?.gasPriceGwei !== null && stats?.gasPriceGwei !== undefined ? `${stats.gasPriceGwei} Gwei` : 'Unknown'}
+                {!stats ? <span className="inline-block align-middle w-12 h-2.5 rounded bg-slate-700 animate-pulse" aria-hidden="true" /> : stats.gasPriceGwei !== null && stats.gasPriceGwei !== undefined ? `${stats.gasPriceGwei} Gwei` : '—'}
               </span>
             </div>
           </div>
