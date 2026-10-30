@@ -285,7 +285,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
     const totalWei = known.reduce((sum, d) => sum + BigInt(String(('volumeWei' in d ? d.volumeWei : undefined) || '0')), 0n);
     return {
       txs: known.reduce((sum, d) => sum + (d.txs ?? 0), 0),
-      volFormatted: known.length ? `${formatEther(totalWei)} BTN` : 'Unavailable',
+      volFormatted: known.length ? `${(Number(formatEther(totalWei))).toLocaleString('en-US', { maximumFractionDigits: totalWei >= 100n * 10n ** 18n ? 0 : 2 })} BTN` : 'Unavailable',
       covered: known.length,
       total: timeframeData.length,
       partial: known.length > 0 && known.length < timeframeData.length,
