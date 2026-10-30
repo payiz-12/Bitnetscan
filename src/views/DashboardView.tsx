@@ -17,7 +17,6 @@ import { getAddressLabel } from '../services/addressLabels';
 import { SkeletonList } from '../components/Skeleton';
 import { MiningPickaxe } from '../components/MiningPickaxe';
 import { NextBlockRhythm } from '../components/NextBlockRhythm';
-import { SectionNav, SECTION_ANCHOR } from '../components/PageNav';
 import { loadExactHistory, ExactHistory, exactSupplyAtBlock } from '../services/exactHistory';
 
 /** A placeholder bar for a value that is still loading, sized like the text it stands in for. */
@@ -340,10 +339,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
 
 
-      <SectionNav items={[{ id: 'latest', label: 'Latest blocks' }, { id: 'activity', label: 'Activity charts' }, { id: 'accounts', label: 'Top accounts' }]} />
-
       {/* Main Two-Column Feed: Latest Blocks & Latest Transactions */}
-      <div id="latest" className={`grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 ${SECTION_ANCHOR}`}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8">
         {/* Left Column: Latest Blocks */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col">
           <div className="px-3.5 py-3 sm:p-5 border-b border-slate-200 bg-slate-50">
@@ -618,17 +615,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Network Activity & Live Analytics Charts */}
-      <div id="activity" className={SECTION_ANCHOR}>
-        <NetworkActivityCharts
-          recentBlocks={recentBlocks}
-          stats={stats}
-          onSelectBlock={onSelectBlock}
-          onSelectAddress={onSelectAddress}
-        />
-      </div>
+      <NetworkActivityCharts
+        recentBlocks={recentBlocks}
+        stats={stats}
+        onSelectBlock={onSelectBlock}
+        onSelectAddress={onSelectAddress}
+      />
 
       {/* Bitnet HODL Rich List Preview Section on Dashboard */}
-      <div id="accounts" className={`bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs p-5 sm:p-6 space-y-4 ${SECTION_ANCHOR}`}>
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs p-5 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-2xs">

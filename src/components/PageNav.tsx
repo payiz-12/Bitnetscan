@@ -13,32 +13,6 @@ function scrollWith(move: (behavior: ScrollBehavior) => void) {
   window.setTimeout(() => { if (Math.abs(window.scrollY - start) < 2) move('auto'); }, 400);
 }
 
-/**
- * "On this page" links for a long page: each item scrolls to the element with its id (the target
- * carries a scroll margin, so it lands below the sticky header). Scrolls sideways on phones.
- */
-export const SectionNav: React.FC<{ items: { id: string; label: string }[] }> = ({ items }) => (
-  <nav aria-label="On this page" className="flex items-center gap-2 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider shrink-0">On this page</span>
-    {items.map((item) => (
-      <button
-        key={item.id}
-        type="button"
-        onClick={() => {
-          const target = document.getElementById(item.id);
-          if (target) scrollWith((behavior) => target.scrollIntoView({ behavior, block: 'start' }));
-        }}
-        className="shrink-0 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:border-petrol hover:text-petrol cursor-pointer transition-colors"
-      >
-        {item.label}
-      </button>
-    ))}
-  </nav>
-);
-
-/** Class for the elements SectionNav scrolls to: keeps them clear of the sticky header. */
-export const SECTION_ANCHOR = 'scroll-mt-28';
-
 /** A round button that appears after scrolling down a long page and goes back to the top. */
 export const BackToTop: React.FC = () => {
   const [show, setShow] = useState(false);

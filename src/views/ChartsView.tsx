@@ -6,7 +6,6 @@ import { formatHashrate } from '../services/hashrate';
 import { SkeletonChart } from '../components/Skeleton';
 import { NetworkUsageCharts } from '../components/NetworkUsageCharts';
 import { ExactHistoryCharts } from '../components/ExactHistoryCharts';
-import { SectionNav, SECTION_ANCHOR } from '../components/PageNav';
 
 interface ChartsViewProps {
   onNavigate: (view: string) => void;
@@ -137,15 +136,10 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
         {error && <div role="alert" className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">{error}</div>}
       </div>
 
-      <SectionNav items={[{ id: 'usage', label: 'Network usage' }, { id: 'mining-supply', label: 'Mining and supply' }, { id: 'holdings', label: 'Who holds BTN' }, { id: 'hashrate', label: 'Hashrate and difficulty' }]} />
-
-      <div id="usage" className={SECTION_ANCHOR}>
-        <NetworkUsageCharts range={range} />
-      </div>
+      <NetworkUsageCharts range={range} />
 
       <ExactHistoryCharts range={range} />
 
-      <div id="hashrate" className={`space-y-5 sm:space-y-6 ${SECTION_ANCHOR}`}>
       {buckets.length === 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
           {[0, 1, 2, 3].map((i) => <SkeletonChart key={i} />)}
@@ -255,7 +249,6 @@ export const ChartsView: React.FC<ChartsViewProps> = ({ onNavigate }) => {
           </details>
         </>
       )}
-      </div>
     </div>
   );
 };

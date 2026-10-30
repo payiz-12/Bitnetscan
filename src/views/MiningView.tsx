@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { PoolPayouts } from '../components/PoolPayouts';
-import { SectionNav, SECTION_ANCHOR } from '../components/PageNav';
 import { Calculator, Server, Terminal, ExternalLink } from 'lucide-react';
 import { Block, NetworkStats } from '../types/blockchain';
 import { priceService, BtnPriceData, formatBtnInUsd } from '../services/priceService';
@@ -244,10 +243,8 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
         </div>
       </div>
 
-      <SectionNav items={[{ id: 'calculator', label: 'Calculator' }, { id: 'how-to-mine', label: 'How to mine' }, { id: 'miners', label: 'Miners and pools' }, ...(onSelectMiner ? [{ id: 'payouts', label: 'Pool payouts' }] : [])]} />
-
       {/* Interactive Mining Profitability Calculator */}
-      <div id="calculator" className={`bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-6 shadow-sm ${SECTION_ANCHOR}`}>
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-6 shadow-sm">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
           <Calculator className="w-5 h-5 text-petrol" />
           <h3 className="text-lg font-bold text-slate-900">Mining Profitability Calculator</h3>
@@ -411,7 +408,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       </div>
 
       {/* How to Mine Quickstart Guide */}
-      <div id="how-to-mine" className={`bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm ${SECTION_ANCHOR}`}>
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <Terminal className="w-5 h-5 text-terracotta" />
@@ -468,7 +465,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
       </div>
 
       {/* Active Mining Pools Section */}
-      <div id="miners" className={`bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm ${SECTION_ANCHOR}`}>
+      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <Server className="w-5 h-5 text-petrol" />
@@ -554,7 +551,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
         </p>
       </div>
 
-      {onSelectMiner && <div id="payouts" className={SECTION_ANCHOR}><PoolPayouts onSelectMiner={onSelectMiner} /></div>}
+      {onSelectMiner && <PoolPayouts onSelectMiner={onSelectMiner} />}
     </div>
   );
 };

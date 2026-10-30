@@ -6,7 +6,6 @@ import { fetchLivePoolStats, getCachedPoolStats, LivePoolStats, COOLPOOL_ADDR, G
 import { fetchSupplySnapshot, SupplySnapshot } from '../services/supply';
 import { ETHASH_EPOCH_LENGTH, ethashDagSize } from '../services/ethash';
 import { RpcStatusView } from './RpcStatusView';
-import { SectionNav, SECTION_ANCHOR } from '../components/PageNav';
 
 const RPC_URLS = ['https://rpc.bitnetmoney.org', 'https://rpc.bitnetmoney.com'];
 const EXPLORERS = [
@@ -98,9 +97,7 @@ export const NetworkView: React.FC<{ stats: NetworkStats | null }> = ({ stats })
         </div>
       </div>
 
-      <SectionNav items={[{ id: 'chain', label: 'Chain and mining' }, { id: 'endpoints', label: 'Endpoints' }, { id: 'pools', label: 'Pools and nodes' }, { id: 'rpc-status', label: 'RPC status' }]} />
-
-      <div id="chain" className={`grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 ${SECTION_ANCHOR}`}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
         <Card title="Chain" icon={Server}>
           <Row label="Chain ID">210 (0xd2)</Row>
           <Row label="Network ID">{node.networkId ?? '…'}</Row>
@@ -140,7 +137,6 @@ export const NetworkView: React.FC<{ stats: NetworkStats | null }> = ({ stats })
         </Card>
       </div>
 
-      <div id="endpoints" className={SECTION_ANCHOR}>
       <Card title="Endpoints" icon={Code}>
         {RPC_URLS.map((url) => <Row key={url} label="JSON-RPC">{url}</Row>)}
         {EXPLORERS.map((e) => <Row key={e.url} label={e.name}>{e.url} <span className="text-slate-400">(/tx, /address, /block, /token)</span></Row>)}
@@ -167,9 +163,7 @@ export const NetworkView: React.FC<{ stats: NetworkStats | null }> = ({ stats })
           <pre className="p-3 rounded-2xl theme-island bg-[#0B132B] text-emerald-300 text-[11px] sm:text-xs overflow-x-auto">{JSON.stringify(WALLET_CONFIG, null, 2)}</pre>
         </div>
       </Card>
-      </div>
 
-      <div id="pools" className={SECTION_ANCHOR}>
       <Card title="Pools and nodes" icon={Server}>
         {poolList.map(({ name, site, stats: pool }) => (
           <Row key={name} label={name}>
@@ -200,11 +194,8 @@ export const NetworkView: React.FC<{ stats: NetworkStats | null }> = ({ stats })
           </div>
         </Row>
       </Card>
-      </div>
 
-      <div id="rpc-status" className={SECTION_ANCHOR}>
-        <RpcStatusView />
-      </div>
+      <RpcStatusView />
     </div>
   );
 };
