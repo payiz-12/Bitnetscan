@@ -78,7 +78,7 @@ export const ConsoleView: React.FC = () => {
             <Terminal className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Interactive JSON-RPC Console</h1>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">RPC Console</h1>
           </div>
         </div>
 
@@ -171,7 +171,7 @@ export const ConsoleView: React.FC = () => {
           )}
 
           <div className="flex-1 theme-island bg-[#0B132B] rounded-2xl border border-slate-700 p-4 font-mono text-xs text-emerald-400 overflow-y-auto max-h-[320px] whitespace-pre-wrap break-all shadow-inner">
-            {responseJson || '// Output will be displayed here after execution.'}
+            {responseJson || '// The response appears here.'}
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   ArrowLeft, ArrowRightLeft, Search, RefreshCw, ChevronLeft, ChevronRight, 
-  Copy, Check, Clock, ShieldCheck, Flame, Filter, ExternalLink, Sparkles,
+  Copy, Check, Clock, ShieldCheck, Flame, Filter, ExternalLink,
   Layers, Landmark, ArrowUpRight, CheckCircle2, FileCode
 } from 'lucide-react';
 import { explorerApiService } from '../services/explorerApi';

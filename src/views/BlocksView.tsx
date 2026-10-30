@@ -249,7 +249,7 @@ export const BlocksView: React.FC<BlocksViewProps> = ({
               Blocks ({blocks.length > 0 ? `#${blocks[blocks.length - 1].number} - #${blocks[0].number}` : '...'})
             </h2>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Live on-chain block stream ordered by height descending
+              Newest first, updated as blocks arrive
             </p>
           </div>
 

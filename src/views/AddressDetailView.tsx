@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   User, ArrowLeft, Copy, QrCode, Shield, Coins, FileCode, CheckCircle2, 
   ExternalLink, Layers, ArrowRightLeft, Code, Send, RefreshCw, X, Pickaxe, 
-  ArrowDownLeft, ArrowUpRight, Clock, Sparkles, Image as ImageIcon, Eye, Tag, GitMerge
+  ArrowDownLeft, ArrowUpRight, Clock, Plus, Image as ImageIcon, Eye, Tag, GitMerge
 } from 'lucide-react';
 import { Block } from '../types/blockchain';
 import { rpcService } from '../services/rpc';
@@ -686,7 +686,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 min-w-0">
-            <span className="text-xs text-slate-500 font-semibold block mb-1">Nonce (Outgoing Index)</span>
+            <span className="text-xs text-slate-500 font-semibold block mb-1">Nonce</span>
             <div className="text-base sm:text-lg font-bold font-mono text-slate-900 break-all">
               {nonce === null ? (loading ? 'Loading…' : 'Unable to fetch data') : `#${nonce}`}
             </div>
@@ -697,17 +697,17 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
             <span className="text-xs text-slate-500 font-semibold block mb-1">
-              {(minedBlocksTotalCount > 0 || minedBlocks.length > 0) ? 'Mined PoW Blocks' : 'Network Protocol'}
+              {(minedBlocksTotalCount > 0 || minedBlocks.length > 0) ? 'Mined blocks' : 'Network'}
             </span>
             <div className="text-lg font-bold font-mono text-petrol">
               {minedBlocksTotalCount > 0
-                ? `${minedBlocksTotalCount.toLocaleString()} Blocks`
+                ? `${minedBlocksTotalCount.toLocaleString()} blocks`
                 : minedBlocks.length > 0 ? `${minedBlocks.length.toLocaleString()} recent` : 'Chain ID 210'}
             </div>
             <span className="text-[11px] text-slate-500 mt-1 block">
               {minedBlocksTotalCount > 0
                 ? `≥ ${minedBlocksTotalCount.toLocaleString()} BTN in subsidies`
-                : minedBlocks.length > 0 ? 'Total unavailable' : 'Bitnet EVM Mainnet'}
+                : minedBlocks.length > 0 ? 'Total unavailable' : 'Bitnet mainnet'}
             </span>
             {onSelectMiner && (minedBlocksTotalCount > 0 || minedBlocks.length > 0) && (
               <button type="button" onClick={() => onSelectMiner(address)} className="mt-1.5 text-[11px] font-bold text-petrol hover:underline cursor-pointer">
@@ -792,7 +792,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between w-full">
-              <Sparkles className="w-4 h-4" />
+              <ImageIcon className="w-4 h-4" />
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                 activeTab === 'nft-transfers' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
               }`}>
@@ -947,7 +947,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5" />
+          <ImageIcon className="w-3.5 h-3.5" />
           <span>NFT Transfers</span>
           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
             activeTab === 'nft-transfers' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
@@ -1006,7 +1006,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             {liveSyncFlash ? (
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
             ) : (
-              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" title="Live RPC Synced" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" title="Up to date" />
             )}
           </button>
         )}
@@ -1093,12 +1093,12 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             <div className="py-16 text-center text-slate-500">
               <div className="flex flex-col items-center gap-3">
                 <RefreshCw className="w-6 h-6 animate-spin text-petrol" />
-                <span className="text-xs font-medium">Fetching transaction history and ledger records...</span>
+                <span className="text-xs font-medium">Loading transactions…</span>
               </div>
             </div>
           ) : filteredTransactions.length === 0 ? (
             <div className="p-12 text-center text-slate-500 text-xs border border-dashed border-slate-200 rounded-2xl space-y-2 bg-slate-50/50">
-              <p className="font-bold text-slate-800">No transaction records found matching the selected filter.</p>
+              <p className="font-bold text-slate-800">No transactions for this filter.</p>
               <p className="text-slate-500">
                 {nonce === null ? 'Nonce unavailable.' : nonce === 0
                   ? 'No outgoing transactions sent yet (nonce 0).'
@@ -1368,7 +1368,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             <div className="py-16 text-center text-slate-500">
               <div className="flex flex-col items-center gap-3">
                 <RefreshCw className="w-6 h-6 animate-spin text-amber-600" />
-                <span className="text-xs font-medium">Scanning validated blocks and mining rewards...</span>
+                <span className="text-xs font-medium">Loading mined blocks…</span>
               </div>
             </div>
           ) : minedBlocks.length === 0 ? (
@@ -1514,7 +1514,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-petrol-50 border border-petrol-100 flex items-center justify-center text-petrol shadow-xs">
-                <Sparkles className="w-5 h-5" />
+                <ImageIcon className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-slate-900">
@@ -1577,7 +1577,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             <div className="py-16 text-center text-slate-500">
               <div className="flex flex-col items-center gap-3">
                 <RefreshCw className="w-6 h-6 animate-spin text-petrol" />
-                <span className="text-xs font-medium">Scanning BTS-721 NFT transfers on Bitnet L1...</span>
+                <span className="text-xs font-medium">Loading NFT transfers…</span>
               </div>
             </div>
           ) : nftTransfers.filter((t) => {
@@ -1589,21 +1589,21 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             }).length === 0 ? (
             <div className="p-12 text-center text-slate-500 text-xs border border-dashed border-slate-200 rounded-2xl space-y-3 bg-slate-50/50">
               <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-                <Sparkles className="w-6 h-6" />
+                <ImageIcon className="w-6 h-6" />
               </div>
               <p className="font-bold text-slate-800 text-sm">
-                No BTS NFT activity found matching the selected filter.
+                No NFT transfers for this filter.
               </p>
               <p className="text-slate-500 max-w-md mx-auto">
-                No matching records were returned. Check the data coverage status above.
+                See the coverage note above.
               </p>
               {onNavigate && (
                 <button
                   onClick={() => onNavigate('nfts')}
                   className="mt-2 px-4 py-2 rounded-xl bg-petrol hover:bg-[#01545e] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Explore Bitnet NFT Hub</span>
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span>Browse NFT collections</span>
                 </button>
               )}
             </div>
@@ -1686,7 +1686,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                           >
                             {tx.type === 'MINT' ? (
                               <>
-                                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                                <Plus className="w-3.5 h-3.5 text-amber-600" />
                                 <span>MINT</span>
                               </>
                             ) : tx.type === 'IN' ? (
@@ -1816,7 +1816,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             <div className="py-16 text-center text-slate-500">
               <div className="flex flex-col items-center gap-3">
                 <RefreshCw className="w-6 h-6 animate-spin text-petrol" />
-                <span className="text-xs font-medium">Fetching wallet NFT holdings...</span>
+                <span className="text-xs font-medium">Loading NFTs…</span>
               </div>
             </div>
           ) : nftHoldings.length === 0 ? (
@@ -1835,8 +1835,8 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   onClick={() => onNavigate('nfts')}
                   className="mt-2 px-4 py-2 rounded-xl bg-petrol hover:bg-[#01545e] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Explore Bitnet NFT Hub</span>
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span>Browse NFT collections</span>
                 </button>
               )}
             </div>
@@ -1916,8 +1916,8 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 <Coins className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base sm:text-lg font-bold text-slate-900">BTS-20 Token Holdings & Balances</h3>
-                <p className="text-xs text-slate-500">BTS-20 fungible tokens and verified on-chain balances on Bitnet L1.</p>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">Tokens</h3>
+                <p className="text-xs text-slate-500">BTS-20 and ERC-20 balances, read from the token contracts.</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -1931,7 +1931,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
             <div className="py-16 text-center text-slate-500">
               <div className="flex flex-col items-center gap-3">
                 <RefreshCw className="w-6 h-6 animate-spin text-petrol" />
-                <span className="text-xs font-medium">Querying on-chain BTS-20 token balances...</span>
+                <span className="text-xs font-medium">Loading token balances…</span>
               </div>
             </div>
           ) : tokens.length === 0 ? (
@@ -1943,7 +1943,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 No BTS-20 tokens found in this wallet.
               </p>
               <p className="text-slate-500 max-w-md mx-auto">
-                No confirmed BTS-20 or ERC-20 token balances were detected for this address. Learn more about Bitnet token standards.
+                This address holds no BTS-20 or ERC-20 tokens.
               </p>
               {onNavigate && (
                 <button
@@ -1951,7 +1951,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                   className="mt-2 px-4 py-2 rounded-xl bg-petrol hover:bg-[#01545e] text-white text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                 >
                   <Coins className="w-3.5 h-3.5" />
-                  <span>Explore BTS-20 Standards</span>
+                  <span>Browse tokens</span>
                 </button>
               )}
             </div>
@@ -2085,8 +2085,8 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
                 }}
                 className="w-full py-2.5 rounded-xl bg-petrol hover:bg-[#01545e] text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>View Collection in NFT Explorer</span>
+                <ImageIcon className="w-3.5 h-3.5" />
+                <span>Open collection</span>
               </button>
             )}
           </div>

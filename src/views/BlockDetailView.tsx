@@ -153,7 +153,7 @@ export const BlockDetailView: React.FC<BlockDetailViewProps> = ({
     return (
       <div className="py-20 text-center space-y-4">
         <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto"></div>
-        <p className="text-slate-400 font-mono text-sm">Querying Bitnet block details...</p>
+        <p className="text-slate-400 font-mono text-sm">Loading block…</p>
       </div>
     );
   }

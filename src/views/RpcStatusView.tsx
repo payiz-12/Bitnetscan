@@ -113,7 +113,7 @@ export const RpcStatusView: React.FC = () => {
       {/* Endpoints Table */}
       <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-          <h3 className="text-sm font-bold text-slate-900">Monitored Endpoints ({endpoints.length})</h3>
+          <h3 className="text-sm font-bold text-slate-900">Endpoints ({endpoints.length})</h3>
           <span className="text-xs text-slate-600 font-mono font-semibold">Chain ID: 210</span>
         </div>
 

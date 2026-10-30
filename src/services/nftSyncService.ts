@@ -233,7 +233,7 @@ export class NftSyncService {
         return {
           id: previous?.id || `onchain-${address}`, name: token.name || previous?.name || address,
           symbol: token.symbol || '', contract: address, standard: 'ERC-721',
-          description: 'ERC-721 collection on Bitnet. Ownership, mint events and metadata below are indexed blockchain records.',
+          description: 'ERC-721 collection on Bitnet.',
           bannerImage: image, iconImage: image,
           totalSupply: ownershipComplete && consistent ? liveSupply : null,
           minted: transfersComplete ? transfers.filter(transfer => transfer.type === 'MINT').length : null,

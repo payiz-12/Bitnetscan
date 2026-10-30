@@ -173,7 +173,7 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
             <img src="/bitnet-logo-blue.svg" alt="BTN" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Bitnet PoW & Mining Analytics</h1>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Mining</h1>
           </div>
         </div>
 

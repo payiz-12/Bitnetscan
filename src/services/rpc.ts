@@ -548,10 +548,10 @@ class BitnetRpcService {
 
   public async checkAllEndpoints(): Promise<RpcEndpointStatus[]> {
     const endpointsToTest = [
-      { url: '/api/rpc', name: 'Primary RPC Proxy (rpc.bitnetmoney.org)' },
-      { url: '/api/rpc2', name: 'Backup RPC Proxy (rpc.bitnetmoney.com)' },
-      { url: 'https://rpc.bitnetmoney.org/', name: 'Bitnet Foundation RPC (Direct)' },
-      { url: 'https://rpc.bitnetmoney.com/', name: 'Bitnet Core RPC #2 (Direct)' },
+      { url: '/api/rpc', name: 'BitnetScan proxy to rpc.bitnetmoney.org' },
+      { url: '/api/rpc2', name: 'BitnetScan proxy to rpc.bitnetmoney.com' },
+      { url: 'https://rpc.bitnetmoney.org/', name: 'rpc.bitnetmoney.org (direct)' },
+      { url: 'https://rpc.bitnetmoney.com/', name: 'rpc.bitnetmoney.com (direct)' },
     ];
 
     return Promise.all(

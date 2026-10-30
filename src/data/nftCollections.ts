@@ -75,7 +75,7 @@ const COLLECTION_HINTS = [
 export const BITNET_NFT_COLLECTIONS: NftCollection[] = COLLECTION_HINTS.map(([id, name, symbol, contract]) => ({
   id, name, symbol, contract,
   standard: 'ERC-721',
-  description: 'NFT collection on Bitnet. Live indexed records are loaded when available.',
+  description: 'NFT collection on Bitnet.',
   bannerImage: '', iconImage: '',
   totalSupply: null, minted: null, holdersCount: null,
   verified: false, category: 'NFT Collection',

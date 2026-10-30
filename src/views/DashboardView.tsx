@@ -151,11 +151,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div>
               <div className="flex items-center gap-2 mb-1 sm:mb-2 flex-wrap">
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-petrol-50 text-petrol border border-petrol-200">
-                  Ethash Layer-1 Blockchain
+                  Ethash · Chain ID 210
                 </span>
                 <span className="hidden sm:flex text-xs text-slate-600 items-center gap-1.5 font-semibold">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  PoW Consensus • 1.0 BTN / block reward
+                  Proof of work · 1 BTN per block
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">

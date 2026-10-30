@@ -217,7 +217,7 @@ export const RichListView: React.FC<RichListViewProps> = ({ onSelectAddress, lat
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
         <p>
           {listSource === 'snapshot'
-            ? 'Explorer ranking unavailable — showing previously known large holders with live balances.'
+            ? 'The explorer ranking is unavailable, so this lists previously known large holders with live balances.'
             : 'Top 50 accounts from the Bitnet explorer, with balances read live from the RPC.'}
           {updatedAt && ` Updated ${new Date(updatedAt).toLocaleTimeString('en-US', { hour12: false, timeZone: 'UTC' })} UTC.`}
         </p>

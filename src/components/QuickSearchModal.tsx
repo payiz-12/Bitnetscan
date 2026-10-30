@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, X, Layers, Trophy, Coins, Image as ImageIcon, Cpu, 
-  Terminal, Activity, ArrowRight, CornerDownLeft, Sparkles, Hash, Wallet
+  Terminal, Activity, ArrowRight, CornerDownLeft, Hash, Wallet
 } from 'lucide-react';
 
 interface QuickSearchModalProps {
@@ -62,14 +62,14 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
   const isBlockNum = /^\d+$/.test(clean);
 
   const quickLinks = [
-    { id: 'dashboard', label: 'Dashboard', icon: Layers, desc: 'Latest blocks, live transactions, and market metrics' },
-    { id: 'nfts', label: 'NFT & BTS-721 Hub', icon: ImageIcon, desc: 'BitnetPunks, Milestone, and verified on-chain collections' },
-    { id: 'tokens', label: 'BTS-20 Token Explorer', icon: Coins, desc: 'BPEPE, STRAT, reUSDT, WBTN, and Bitnet token standards' },
-    { id: 'rich-list', label: 'Rich List (Top Holders)', icon: Trophy, desc: 'Largest BTN balance whale accounts and ranking' },
-    { id: 'blocks', label: 'All Blocks', icon: Hash, desc: 'Full chronological ledger of Bitnet PoW blocks' },
-    { id: 'mining', label: 'Mining & Hashrate', icon: Cpu, desc: 'PoW network difficulty, hashrate stats, and mining pools' },
+    { id: 'dashboard', label: 'Dashboard', icon: Layers, desc: 'Latest blocks, transactions and price' },
+    { id: 'nfts', label: 'NFT Collections', icon: ImageIcon, desc: 'BTS-721 collections on Bitnet' },
+    { id: 'tokens', label: 'Tokens', icon: Coins, desc: 'BTS-20 tokens by holders' },
+    { id: 'rich-list', label: 'Rich List', icon: Trophy, desc: 'Largest BTN balances' },
+    { id: 'blocks', label: 'Blocks', icon: Hash, desc: 'Latest blocks, miners and rewards' },
+    { id: 'mining', label: 'Mining', icon: Cpu, desc: 'Hashrate, pools and the mining calculator' },
     { id: 'nodes', label: 'Network & RPC', icon: Activity, desc: 'Chain parameters, Ethash epoch and DAG, pools, API and RPC status' },
-    { id: 'console', label: 'Web3 JSON-RPC Console', icon: Terminal, desc: 'Direct on-chain RPC query tool for developers' },
+    { id: 'console', label: 'RPC Console', icon: Terminal, desc: 'Send RPC calls to a Bitnet node' },
   ];
 
   const filteredLinks = quickLinks.filter(
@@ -182,7 +182,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
             <span>or</span>
             <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[10px] font-mono font-bold text-slate-700">Ctrl+K</kbd>
           </div>
-          <span>Bitnet L1 EVM • Chain ID: 210</span>
+          <span>Bitnet · Chain ID 210</span>
         </div>
       </div>
     </div>

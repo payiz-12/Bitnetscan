@@ -526,7 +526,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
           <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs">
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] text-slate-500 block">Peak Block Volume</span>
+              <span className="text-[10px] text-slate-500 block">Most in one block</span>
               <span className="font-black font-mono text-slate-900">{maxTxCount} tx</span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
@@ -542,7 +542,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <Flame className="w-4 h-4 text-amber-600" />
-                <h3 className="text-sm font-bold text-slate-900">Block Capacity & Gas Load</h3>
+                <h3 className="text-sm font-bold text-slate-900">Gas used per block</h3>
               </div>
               <span className="text-[11px] font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
                 {blocksData.some(b => b.txCount > 0 || b.gasUsed > 0)
@@ -605,7 +605,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
 
           <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs">
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] text-slate-500 block">Network Congestion</span>
+              <span className="text-[10px] text-slate-500 block">Load</span>
               {(() => {
                 const pct = parseFloat(String(avgGasPercent));
                 const level = blocksData.length === 0 ? null : pct < 25 ? 'Low' : pct < 70 ? 'Moderate' : 'High';
@@ -681,7 +681,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
           {/* Breakdown progress rows */}
           <div className="space-y-2.5 py-1">
             {minerDistribution.length === 0 ? (
-              <div className="text-xs text-slate-400 py-6 text-center">Scanning miner distribution...</div>
+              <div className="text-xs text-slate-400 py-6 text-center">Loading miners…</div>
             ) : (
               minerDistribution.map((item, idx) => {
                 const colors = [
@@ -1198,7 +1198,7 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] text-slate-500 font-semibold block">
-                    {hoveredPointIndex !== null ? 'Selected Point Details' : 'Point Inspector'}
+                    {hoveredPointIndex !== null ? 'Selected point' : 'Details'}
                   </span>
                   <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-teal-100/60 text-petrol rounded">
                     {metric === 'hashrate' ? 'Block intervals' : timeframe === '1d'

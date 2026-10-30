@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { 
   Image as ImageIcon, Search, RefreshCw, X, Layers, 
   ArrowRightLeft, Loader2, AlertCircle, ChevronLeft, ChevronRight,
-  CheckCircle2, Shield, Sparkles, Copy, Check, Users
+  CheckCircle2, Shield, Copy, Check, Users
 } from 'lucide-react';
 import { BITNET_NFT_COLLECTIONS, NftCollection, NftItem } from '../data/nftCollections';
 import { NftImage } from '../components/NftImage';
@@ -18,7 +18,7 @@ const shortAddress = (address: string) => address ? `${address.slice(0, 6)}…${
 const count = (value: number | null) => value == null ? '0' : value.toLocaleString();
 const date = (value?: string) => value ? new Date(value).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }) : 'Unavailable';
 const statusLabel = (status: NftCollection['dataStatus']) => ({
-  unloaded: 'Awaiting indexer', indexed: 'Live Indexed', cached: 'Cached', partial: 'Partial data', error: 'Offline',
+  unloaded: 'Awaiting indexer', indexed: 'Indexed', cached: 'Cached', partial: 'Partial data', error: 'Offline',
 }[status]);
 const PAGE_SIZE = 24;
 
@@ -196,7 +196,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
                 <span className="text-[11px] font-bold tracking-wider text-purple-600 uppercase">BITNET L1</span>
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">BTS-721 / ERC-721</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">NFT & Digital Asset Explorer</h1>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">NFT Collections</h1>
             </div>
           </div>
           <button 
@@ -205,7 +205,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
             className="self-start sm:self-center flex items-center gap-2 px-4 py-2.5 rounded-xl bg-petrol-50 hover:bg-petrol-100 text-petrol border border-petrol-200 text-xs font-bold transition-colors disabled:opacity-60 cursor-pointer shadow-2xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-            <span>{syncing ? 'Syncing On-Chain…' : 'Refresh Live Data'}</span>
+            <span>{syncing ? 'Refreshing…' : 'Refresh'}</span>
           </button>
         </div>
 
@@ -697,8 +697,8 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
             <Search className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-lg font-black text-slate-900">Inspect Any ERC-721 NFT</h2>
-            <p className="text-xs text-slate-500">Read live owner and original tokenURI metadata directly from the contract via Bitnet RPC.</p>
+            <h2 className="text-lg font-black text-slate-900">Look up an NFT</h2>
+            <p className="text-xs text-slate-500">Reads the owner and tokenURI metadata from the contract.</p>
           </div>
         </div>
 
@@ -728,7 +728,7 @@ export const NftsView: React.FC<NftsViewProps> = ({ onSelectAddress, onSelectTx 
             className="rounded-xl bg-petrol hover:bg-[#015661] px-5 py-3 text-xs font-bold text-white transition-colors disabled:opacity-60 cursor-pointer shadow-xs flex items-center justify-center gap-2"
           >
             {customLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-            <span>{customLoading ? 'Inspecting…' : 'Inspect NFT'}</span>
+            <span>{customLoading ? 'Looking up…' : 'Look up'}</span>
           </button>
         </form>
         {customError && (

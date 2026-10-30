@@ -50,7 +50,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
               </span>
             </div>
             <p className="text-slate-500 text-xs">
-              Bitnet Money (BTN) L1 Block Explorer
+              Block explorer for Bitnet (BTN)
             </p>
           </div>
 
@@ -86,7 +86,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
           {/* Col 3: Ecosystem & Code */}
           <div className="space-y-2">
             <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-3">
-              Ecosystem & Code
+              Links
             </h4>
             <ul className="space-y-2">
               <li>
@@ -97,7 +97,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
                   className="flex items-center gap-2 text-slate-700 hover:text-petrol transition-colors"
                 >
                   <Github className="w-3.5 h-3.5 text-slate-800" />
-                  <span>BitnetScan Explorer (Source Code)</span>
+                  <span>BitnetScan source code</span>
                   <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
                 </a>
               </li>
@@ -109,7 +109,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
                   className="flex items-center gap-2 text-slate-700 hover:text-petrol transition-colors"
                 >
                   <Github className="w-3.5 h-3.5 text-slate-800" />
-                  <span>Bitnet Core (Golang Geth)</span>
+                  <span>Bitnet client (Geth)</span>
                   <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
                 </a>
               </li>
@@ -133,7 +133,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
                   className="flex items-center gap-2 text-slate-700 hover:text-petrol transition-colors"
                 >
                   <Cpu className="w-3.5 h-3.5 text-slate-800" />
-                  <span>Desktop Node & Miner GUI</span>
+                  <span>Bitnet Desktop Node</span>
                   <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
                 </a>
               </li>
@@ -145,7 +145,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
                   className="flex items-center gap-2 text-slate-700 hover:text-petrol transition-colors"
                 >
                   <FileText className="w-3.5 h-3.5 text-slate-800" />
-                  <span>BTIPs (Improvement Proposals)</span>
+                  <span>Bitnet improvement proposals</span>
                   <ExternalLink className="w-3 h-3 text-slate-400 ml-auto" />
                 </a>
               </li>
@@ -156,7 +156,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
         {/* Bottom bar */}
         <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-[11px]">
           <div>
-            &copy; {new Date().getFullYear()} BitnetScan. Built for the decentralized Bitnet Money community.
+            &copy; {new Date().getFullYear()} BitnetScan.
           </div>
           <div className="flex flex-wrap items-center gap-3">
             {/* Red Heart Donate Button (Address hidden, opens QR modal on click) */}

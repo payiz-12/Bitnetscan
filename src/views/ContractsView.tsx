@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   FileCode, CheckCircle2, Search, RefreshCw, Copy, ExternalLink, 
   ArrowUpRight, ShieldCheck, Code, Layers, Zap, Check, ArrowLeft,
-  Sparkles, Filter, Terminal, CheckCircle, XCircle, Shield
+  Filter, Terminal, CheckCircle, XCircle, Shield
 } from 'lucide-react';
 import { 
   VerifiedContractItem, OFFICIAL_BITNET_VERIFIED_CONTRACTS, 

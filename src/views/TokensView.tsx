@@ -15,20 +15,20 @@ export const TokensView: React.FC<TokensViewProps> = ({ onSelectToken }) => {
   const standardsInfo = [
     {
       name: 'BTS-20',
-      type: 'Fungible Token Standard',
-      desc: 'Bitnet’s enhanced counterpart to ERC-20, powering decentralized tokens, payments, and utilities on the Bitnet L1 chain.',
+      type: 'Fungible tokens',
+      desc: 'Bitnet’s version of ERC-20, used by most tokens on the chain.',
       spec: 'BitnetMoney/contract-standards/blob/main/BTS-20/BTS-20.sol',
     },
     {
       name: 'BTS-21',
-      type: 'Oracle & Managed Standard',
-      desc: 'Token standard equipped with native oracle price feeds and security freeze controls for institutional compliance.',
+      type: 'Freezing and oracle price',
+      desc: 'BTS-20 plus an owner who can freeze accounts (and switch freezing off for good) and oracles that set a price.',
       spec: 'BitnetMoney/contract-standards/blob/main/BTS-21/BTS-21.sol',
     },
     {
       name: 'BTS-HCE',
-      type: 'High Compliance Environment',
-      desc: 'Token standard engineered for strict financial transparency, customizable taxation, role-based controls, and whitelisting.',
+      type: 'Managed tokens',
+      desc: 'Minting and burning by treasurers, a transfer tax, a whitelist, account freezing, pausing and manager roles.',
       spec: 'BitnetMoney/contract-standards/blob/main/BTS-HCE/BTS-HCE.sol',
     },
   ];

@@ -174,7 +174,7 @@ export const TxDetailView: React.FC<TxDetailViewProps> = ({
     return (
       <div className="py-20 text-center space-y-4">
         <div className="w-12 h-12 border-4 border-petrol/20 border-t-petrol rounded-full animate-spin mx-auto"></div>
-        <p className="text-slate-600 font-medium text-sm">Decoding Bitnet transaction details...</p>
+        <p className="text-slate-600 font-medium text-sm">Loading transaction…</p>
       </div>
     );
   }
