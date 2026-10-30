@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Coins, Pickaxe, GitBranch, Layers, Hourglass, PieChart, AlertTriangle } from 'lucide-react';
+import { Coins, Pickaxe, GitBranch, Layers, Hourglass, PieChart, AlertTriangle, Cpu } from 'lucide-react';
 import { BarChart, LineChart, StackedShareChart, HeatmapChart, HeatScale, Legend, ShareGroup } from './charts/ChartPrimitives';
 import { SkeletonChart } from './Skeleton';
-import { loadExactHistory, miningPeriods, ExactHistory, MiningPeriod, HoldingSnapshot, PENDING, HOLD_BANDS } from '../services/exactHistory';
+import { loadExactHistory, miningPeriods, ExactHistory, MiningPeriod, HoldingSnapshot, PENDING, HOLD_BANDS, btnPerGhDay } from '../services/exactHistory';
+import { priceService, BtnPriceData } from '../services/priceService';
 import { getAddressLabel } from '../services/addressLabels';
 import type { HistoryRange } from '../services/chainHistory';
 
@@ -66,8 +67,17 @@ export const ExactHistoryCharts: React.FC<{ range: HistoryRange }> = ({ range })
     return () => { active = false; };
   }, []);
 
+  const [price, setPrice] = useState<BtnPriceData>(priceService.getCachedPrice());
+  useEffect(() => priceService.subscribe(setPrice), []);
+
   const cfg = GROUPING[range];
   const periods = useMemo(() => (history ? miningPeriods(history, cfg.grouping, cfg.lastDays) : []), [history, range]);
+
+  // BTN per GH/s per day for the periods whose work is known.
+  const earnings = useMemo(() => periods
+    .map((period) => ({ period, value: btnPerGhDay(period.workIssued, period.work) }))
+    .filter((e): e is { period: MiningPeriod; value: number } => e.value !== null), [periods]);
+  const latestEarning = earnings[earnings.length - 1];
 
   // Each of the eight miners with the most blocks overall keeps one color in every range.
   const slots = useMemo(() => {
@@ -229,6 +239,34 @@ export const ExactHistoryCharts: React.FC<{ range: HistoryRange }> = ({ range })
             ariaLabel={`Uncle rate ${cfg.unit}`}
           />
         </Card>
+        {earnings.length > 1 && (
+          <div className="lg:col-span-2 min-w-0">
+            <Card
+              title={`What 1 GH/s earned, ${cfg.unit}`}
+              subtitle="BTN a miner with 1 GH/s would have earned per day, block and uncle rewards included: each period's new BTN times 86,400 × 10⁹, divided by the hashes behind its blocks (the total difficulty they added)."
+              icon={<Cpu className="w-4 h-4" />}
+            >
+              {latestEarning && (
+                <p className="text-xs text-slate-600 mb-3">
+                  Latest: <span className="font-bold text-slate-900">{btn(latestEarning.value, 2)} BTN per GH/s per day</span>
+                  {price.available && <> (≈ ${(latestEarning.value * price.priceUsd).toFixed(2)} at the NestEx price)</>} for {label(latestEarning.period)}.
+                </p>
+              )}
+              <LineChart
+                points={earnings.map((e, i) => ({ x: i, y: e.value }))}
+                color="var(--chart-primary)"
+                formatY={(v) => `${btn(v, 2)} BTN`}
+                formatAxisY={axis}
+                formatX={(i) => label(earnings[i].period)}
+                describe={(i) => {
+                  const e = earnings[i];
+                  return <>{head(e.period)}Network ≈ {btn(e.period.work / (e.period.days * 86400) / 1e9, 1)} GH/s</>;
+                }}
+                ariaLabel="BTN earned per GH/s per day over time"
+              />
+            </Card>
+          </div>
+        )}
       </div>
 
       {latest && snapshots.length > 0 && (

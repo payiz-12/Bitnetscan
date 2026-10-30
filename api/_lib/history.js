@@ -31,6 +31,15 @@ export async function historyHandler(req, res) {
   if (!h) return notReady(res, 'history');
 
   const lastDay = h.days.at(-1);
+  // Work behind each day's blocks: total difficulty at its end minus at the previous day's end.
+  const td = h.td ?? {};
+  let before = td.genesis !== undefined ? BigInt(td.genesis) : null;
+  const work = h.days.map(([date]) => {
+    const end = td[date] !== undefined ? BigInt(td[date]) : null;
+    const w = end !== null && before !== null ? Number(end - before) : null;
+    before = end;
+    return w;
+  });
   res.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=3600');
   res.status(200).json({
     source: 'Computed from every Bitnet block and the archive state',
@@ -43,8 +52,8 @@ export async function historyHandler(req, res) {
     addresses: h.known.length,
     holdBandDays: HOLD_BAND_DAYS,
     miners: h.miners,
-    columns: ['date', 'firstBlock', 'lastBlock', 'blocks', 'uncles', 'issuedBtn', 'blocksByMiner'],
-    days: h.days.map(([date, first, last, blocks, uncles, issued, miners]) => [date, first, last, blocks, uncles, BTN(issued), miners]),
+    columns: ['date', 'firstBlock', 'lastBlock', 'blocks', 'uncles', 'issuedBtn', 'blocksByMiner', 'workHashes'],
+    days: h.days.map(([date, first, last, blocks, uncles, issued, miners], i) => [date, first, last, blocks, uncles, BTN(issued), miners, work[i]]),
     monthEnds: h.months.map(snapshot),
     latest: snapshot(h.latest),
   });

@@ -10,6 +10,7 @@ import { rpcService } from '../services/rpc';
 import { identifyMinerPool } from '../data/miningPools';
 import { loadTransactionHistory, loadSupplyHistory, TransactionHistory, TransactionHistoryPoint, activityBuckets } from '../services/transactionHistory';
 import { loadWhitepaperSupplyHistory, getCachedWhitepaperSupply } from '../services/whitepaperSupply';
+import { loadExactHistory, getCachedExactHistory, exactSupplyAtBlock, ExactHistory } from '../services/exactHistory';
 import { fetchLivePoolStats, getCachedPoolStats, LivePoolStats, computeLiveMiningSummary } from '../services/miningPoolStats';
 import { isPageHidden } from '../services/pageVisibility';
 import { loadMinerSample, getCachedMinerSample } from '../services/minerSample';
@@ -199,31 +200,31 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
   const hasLatestBlock = !!latestForHash;
 
   const [supplyHistories, setSupplyHistories] = useState<Record<string, TransactionHistoryPoint[]>>({});
-  // 'indexer' = official circulatingSupply series; 'estimate' = block height × 1 BTN base issuance.
-  const [supplySources, setSupplySources] = useState<Record<string, 'indexer' | 'estimate'>>({});
+  // 'exact' = BitnetScan's count of every block's rewards; 'indexer' = official circulatingSupply
+  // series; 'estimate' = block height × 1 BTN base issuance (when neither is available).
+  const [supplySources, setSupplySources] = useState<Record<string, 'exact' | 'indexer' | 'estimate'>>({});
   const [supplyState, setSupplyState] = useState('');
 
   useEffect(() => {
     if (metric !== 'supply') return;
     const controller = new AbortController();
 
+    // The block-height points carry their block number as `supply`; with the exact history they
+    // become the exact supply after that block.
+    const toExact = (points: TransactionHistoryPoint[], history: ExactHistory) => points.map((p) => {
+      const exact = p.supply !== null ? exactSupplyAtBlock(history, Math.round(p.supply)) : null;
+      return exact === null ? p : { ...p, supply: exact, supplyText: exact.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) };
+    });
+    const historyNow = getCachedExactHistory();
     const cached = getCachedWhitepaperSupply(timeframe);
-    if (cached.length > 0) {
-      setSupplyHistories((prev) => (prev[timeframe]?.length ? prev : { ...prev, [timeframe]: cached }));
-      setSupplySources((prev) => (prev[timeframe] ? prev : { ...prev, [timeframe]: 'estimate' }));
+    if (cached.length > 0 && historyNow) {
+      setSupplyHistories((prev) => (prev[timeframe]?.length ? prev : { ...prev, [timeframe]: toExact(cached, historyNow) }));
+      setSupplySources((prev) => (prev[timeframe] ? prev : { ...prev, [timeframe]: 'exact' }));
     }
-    setSupplyState(cached.length ? 'Showing cached estimate; refreshing…' : 'Loading supply data…');
+    setSupplyState(cached.length && historyNow ? 'Refreshing…' : 'Loading supply data…');
 
     (async () => {
-      // 1. Try official indexer first if available
-      try {
-        const indexerPoints = await loadSupplyHistory(timeframe, controller.signal);
-        if (indexerPoints.some(p => p.supply !== null)) {
-          return { points: indexerPoints, source: 'indexer' as const };
-        }
-      } catch {}
-
-      // 2. Estimate base issuance from block heights via RPC
+      const historyJob = loadExactHistory().catch(() => null);
       const latest = latestBlockRef.current || (await rpcService.getBlock('latest', false));
       if (!latest) throw new Error('Latest block unavailable');
       const onChainPoints = await loadWhitepaperSupplyHistory(
@@ -232,6 +233,20 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
         (n) => rpcService.getBlock(n, false),
         controller.signal
       );
+
+      // 1. Exact supply from BitnetScan's count of every block
+      const history = await historyJob;
+      if (history && history.days.length > 0) return { points: toExact(onChainPoints, history), source: 'exact' as const };
+
+      // 2. The official indexer series, if available
+      try {
+        const indexerPoints = await loadSupplyHistory(timeframe, controller.signal);
+        if (indexerPoints.some(p => p.supply !== null)) {
+          return { points: indexerPoints, source: 'indexer' as const };
+        }
+      } catch {}
+
+      // 3. Base issuance from block heights
       return { points: onChainPoints, source: 'estimate' as const };
     })()
       .then(({ points, source }) => {
@@ -255,8 +270,8 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
   }, [metric, timeframe, refreshTick, hasLatestBlock]);
 
   const supplyData = supplyHistories[timeframe] || [];
-  const supplyIsEstimate = supplySources[timeframe] !== 'indexer';
-  const supplyLabel = supplyIsEstimate ? 'Base issuance (est.)' : 'Circulating supply';
+  const supplyIsEstimate = supplySources[timeframe] === 'estimate' || !supplySources[timeframe];
+  const supplyLabel = supplySources[timeframe] === 'exact' ? 'Total supply' : supplyIsEstimate ? 'Base issuance (est.)' : 'Circulating supply';
   const latestSupply = [...supplyData].reverse().find(p => p.supply !== null && Number.isFinite(p.supply));
 
   const timeframeData = metric === 'hashrate'
@@ -902,7 +917,9 @@ export const NetworkActivityCharts: React.FC<NetworkActivityChartsProps> = ({
         {metric === 'supply' && (
           <p className="text-xs text-slate-500">
             {supplyState && <span className="font-semibold text-petrol">{supplyState} </span>}
-            {supplyIsEstimate
+            {supplySources[timeframe] === 'exact'
+              ? 'Exact supply counted by BitnetScan from every block: 1 BTN per block plus uncle rewards (burned coins included); blocks after the last complete day at that day\'s rate.'
+              : supplyIsEstimate
               ? 'Estimated from block height × 1 BTN (excludes uncle rewards and burned coins).'
               : 'Circulating supply from the Bitnet explorer.'}
             {latestSupply && ` Latest: ${latestSupply.supplyText} BTN.`}

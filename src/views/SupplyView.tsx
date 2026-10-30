@@ -5,6 +5,7 @@ import { fetchSupplySnapshot, SupplySnapshot } from '../services/supply';
 import { loadRecentScan, getCachedRecentScan, RecentScan, issuancePerBlock, scanBlockTime, weiToBtn } from '../services/chainScan';
 import { priceService, BtnPriceData } from '../services/priceService';
 import { fetchTopAccounts, TopAccountsResult } from '../data/richList';
+import { loadExactHistory, ExactHistory } from '../services/exactHistory';
 
 interface SupplyViewProps {
   stats: NetworkStats | null;
@@ -51,6 +52,7 @@ export const SupplyView: React.FC<SupplyViewProps> = ({ stats, onNavigate }) => 
   const [price, setPrice] = useState<BtnPriceData>(priceService.getCachedPrice());
   const [top, setTop] = useState<TopAccountsResult | null>(null);
   const [scanError, setScanError] = useState(false);
+  const [history, setHistory] = useState<ExactHistory | null>(null);
 
   useEffect(() => priceService.subscribe(setPrice), []);
   useEffect(() => {
@@ -58,6 +60,7 @@ export const SupplyView: React.FC<SupplyViewProps> = ({ stats, onNavigate }) => 
     fetchSupplySnapshot().then((s) => { if (active) setSupply(s); });
     loadRecentScan().then((s) => { if (active) setScan(s); }).catch(() => { if (active) setScanError(true); });
     fetchTopAccounts(stats?.latestBlock || undefined).then((t) => { if (active) setTop(t); }).catch(() => {});
+    loadExactHistory().then((h) => { if (active) setHistory(h); }).catch(() => {});
     return () => { active = false; };
   }, []);
 
@@ -134,6 +137,13 @@ export const SupplyView: React.FC<SupplyViewProps> = ({ stats, onNavigate }) => 
             note={total !== null && base !== null ? `Uncle and 1/32 BTN inclusion rewards · ${((total - base) / total * 100).toFixed(1)}% of total supply` : undefined}
           />
           <Row label="Premine" value="0 BTN" note="No balances at genesis" />
+          {history && (
+            <Row
+              label="Counted from every block"
+              value={`${fmt(history.supply, 2)} BTN`}
+              note={<>BitnetScan's own count of every block and uncle reward, up to block #{history.supplyBlock.toLocaleString()} (end of {history.days[history.days.length - 1]?.date} UTC), a check on the balance sum above.</>}
+            />
+          )}
           <p className="text-[11px] text-slate-500 pt-2">
             Snapshot {supply ? new Date(supply.updatedAt).toLocaleString('en-US', { timeZone: 'UTC', hour12: false }) + ' UTC' : '…'} ·{' '}
             <a href="/api/supply?format=json" target="_blank" rel="noopener noreferrer" className="text-petrol font-semibold hover:underline">/api/supply</a>

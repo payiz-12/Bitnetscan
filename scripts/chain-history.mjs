@@ -237,3 +237,20 @@ export async function extendHistory(h, head, until, { log = console.log, save = 
   persistOpen();
   return h;
 }
+
+/**
+ * Total difficulty at the end of every written day (and at block 0), in `h.td`, so the work behind
+ * each day's blocks (the hashes the network did) is the difference between two days.
+ */
+export async function fillDayWork(h, until, { log = console.log } = {}) {
+  h.td ??= {};
+  const wanted = [];
+  if (h.td.genesis === undefined) wanted.push(['genesis', 0]);
+  for (const [date, , last] of h.days) if (h.td[date] === undefined) wanted.push([date, last]);
+  if (!wanted.length) return h;
+  const headers = await patiently(() => batched(wanted.map(([, n]) => ({ method: 'eth_getBlockByNumber', params: [hex(n), false] }))), 'day work', until, log);
+  if (!headers) return h;
+  wanted.forEach(([key], i) => { h.td[key] = BigInt(headers[i].totalDifficulty).toString(); });
+  log(`history: total difficulty read for ${wanted.length} days`);
+  return h;
+}

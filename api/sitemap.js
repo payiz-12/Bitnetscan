@@ -10,6 +10,7 @@ const PAGES = [
   ['/tokens', 'daily', '0.8'],
   ['/rich-list', 'daily', '0.8'],
   ['/transfers', 'hourly', '0.7'],
+  ['/mine', 'weekly', '0.8'],
   ['/mining', 'hourly', '0.8'],
   ['/charts', 'hourly', '0.7'],
   ['/supply', 'hourly', '0.7'],

@@ -13,7 +13,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { rpcBatch, headBlock, fetchBlocks, groupByDay, finishDay, extendForward } from '../api/_lib/daily.js';
-import { emptyHistory, extendHistory } from './chain-history.mjs';
+import { emptyHistory, extendHistory, fillDayWork } from './chain-history.mjs';
 import { emptyTransfers, extendTransfers } from './chain-transfers.mjs';
 import { emptyRewards, extendRewards } from './chain-rewards.mjs';
 import { sampleStatus } from './chain-status.mjs';
@@ -124,6 +124,8 @@ data.history ??= emptyHistory();
 await extendHistory(data.history, head, startedAt + BACKFILL_SECONDS * 1000, { log: (...a) => log(...a), save: () => save(data) });
 save(data);
 log(`history: to block ${data.history.to} of ${head}, ${data.history.days.length} days, ${data.history.months.length} month ends`);
+await fillDayWork(data.history, startedAt + BACKFILL_SECONDS * 1000, { log: (...a) => log(...a) });
+save(data);
 
 data.transfers ??= emptyTransfers(data);
 await extendTransfers(data.transfers, head, startedAt + BACKFILL_SECONDS * 1000, { log: (...a) => log(...a), save: () => save(data) });

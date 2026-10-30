@@ -12,6 +12,8 @@ export interface HistoryDay {
   issued: number;
   /** [miner index, blocks], most blocks first. */
   miners: [number, number][];
+  /** Hashes behind the day's blocks (total difficulty added that day), or null while unknown. */
+  work: number | null;
 }
 
 export interface HoldingSnapshot {
@@ -53,7 +55,7 @@ let cache: { at: number; data: ExactHistory } | null = null;
 export const PENDING = 'pending';
 
 const toDays = (rows: any[]): HistoryDay[] =>
-  rows.map(([date, first, last, blocks, uncles, issued, miners]) => ({ date, first, last, blocks, uncles, issued, miners }));
+  rows.map(([date, first, last, blocks, uncles, issued, miners, work]) => ({ date, first, last, blocks, uncles, issued, miners, work: work ?? null }));
 
 async function fromApi(): Promise<ExactHistory> {
   const res = await fetch('/api/chain-history', { signal: AbortSignal.timeout(30000) });
@@ -77,6 +79,14 @@ async function fromDataset(): Promise<ExactHistory> {
     holdingBands: s.bands.map(btn),
   });
   const last = h.days[h.days.length - 1];
+  const td = h.td ?? {};
+  let before: bigint | null = td.genesis !== undefined ? BigInt(td.genesis) : null;
+  const work = h.days.map((d: any[]) => {
+    const end = td[d[0]] !== undefined ? BigInt(td[d[0]]) : null;
+    const w = end !== null && before !== null ? Number(end - before) : null;
+    before = end;
+    return w;
+  });
   return {
     toBlock: h.to,
     chainBlock: data.to,
@@ -85,11 +95,48 @@ async function fromDataset(): Promise<ExactHistory> {
     addresses: h.known.length,
     holdBandDays: HOLD_BAND_DAYS,
     miners: h.miners,
-    days: toDays(h.days.map((d: any[]) => [...d.slice(0, 5), btn(d[5]), d[6]])),
+    days: toDays(h.days.map((d: any[], i: number) => [...d.slice(0, 5), btn(d[5]), d[6], work[i]])),
     monthEnds: h.months.map(snapshot),
     latest: snapshot(h.latest),
   };
 }
+
+/** The history if it has been loaded in this page already. */
+export const getCachedExactHistory = (): ExactHistory | null => cache?.data ?? null;
+
+const cumulative = new WeakMap<ExactHistory, number[]>();
+
+/**
+ * Exact supply (BTN) after `block`: exact at the end of every day, spread evenly over the blocks
+ * within a day; after the last written day, at that day's rate per block.
+ */
+export function exactSupplyAtBlock(h: ExactHistory, block: number): number | null {
+  const days = h.days;
+  if (block < 1) return 0;
+  if (!days.length) return null;
+  let cum = cumulative.get(h);
+  if (!cum) {
+    let sum = 0;
+    cum = days.map((d) => (sum += d.issued));
+    cumulative.set(h, cum);
+  }
+  const lastIndex = days.length - 1;
+  if (block > days[lastIndex].last) {
+    const d = days[lastIndex];
+    return cum[lastIndex] + (block - d.last) * (d.issued / d.blocks);
+  }
+  let lo = 0;
+  let hi = lastIndex;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (days[mid].last >= block) hi = mid; else lo = mid + 1;
+  }
+  const d = days[lo];
+  return (lo > 0 ? cum[lo - 1] : 0) + (block - d.first + 1) * (d.issued / d.blocks);
+}
+
+/** BTN one GH/s would have earned per day: the day's issuance times 86,400 × 10⁹ over its work. */
+export const btnPerGhDay = (issued: number, work: number) => (work > 0 ? (issued * 86400 * 1e9) / work : null);
 
 export async function loadExactHistory(): Promise<ExactHistory> {
   if (cache && Date.now() - cache.at < 10 * 60_000) return cache.data;
@@ -111,6 +158,9 @@ export interface MiningPeriod {
   supply: number;
   /** Blocks by miner address. */
   miners: Map<string, number>;
+  /** Hashes behind the period's blocks, and the BTN issued on the days whose work is known. */
+  work: number;
+  workIssued: number;
   /** The latest week or month, not over yet (or not read to its end yet). */
   partial: boolean;
 }
@@ -152,6 +202,8 @@ export function miningPeriods(h: ExactHistory, grouping: 'day' | 'week' | 'month
       uncles: list.reduce((s, x) => s + x.d.uncles, 0),
       issued: list.reduce((s, x) => s + x.d.issued, 0),
       supply: list[list.length - 1].supply,
+      work: list.reduce((s, x) => s + (x.d.work ?? 0), 0),
+      workIssued: list.reduce((s, x) => s + (x.d.work !== null ? x.d.issued : 0), 0),
       miners,
       partial: n === values.length - 1 && (grouping === 'week' ? list.length < 7 : grouping === 'month' && !lastOfMonth(list[list.length - 1].d.date)),
     };

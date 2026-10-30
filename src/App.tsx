@@ -22,6 +22,7 @@ const NetworkView = lazy(() => import('./views/NetworkView').then((m) => ({ defa
 const RichListView = lazy(() => import('./views/RichListView').then((m) => ({ default: m.RichListView })));
 const TransfersView = lazy(() => import('./views/TransfersView').then((m) => ({ default: m.TransfersView })));
 const MinerView = lazy(() => import('./views/MinerView').then((m) => ({ default: m.MinerView })));
+const MineView = lazy(() => import('./views/MineView').then((m) => ({ default: m.MineView })));
 const ContractsView = lazy(() => import('./views/ContractsView').then((m) => ({ default: m.ContractsView })));
 const ChartsView = lazy(() => import('./views/ChartsView').then((m) => ({ default: m.ChartsView })));
 const UnclesView = lazy(() => import('./views/UnclesView').then((m) => ({ default: m.UnclesView })));
@@ -85,6 +86,7 @@ const parseRoute = (): { view: string; param?: string | number } => {
   if (route === 'nfts' || route === 'nft') return { view: 'nfts' };
   if (route === 'contracts' || route === 'contract') return { view: 'contracts' };
   if (route === 'mining' || route === 'miner') return { view: 'mining' };
+  if (route === 'mine' || route === 'how-to-mine') return { view: 'mine' };
   if (route === 'console') return { view: 'console' };
   if (route === 'charts' || route === 'stats') return { view: 'charts' };
   if (route === 'uncles' || route === 'uncle') return { view: 'uncles' };
@@ -110,7 +112,7 @@ const getPathForView = (view: string, param?: string | number): string => {
 };
 
 const PAGE_TITLES: Record<string, string> = {
-  blocks: 'Blocks', transactions: 'Transactions', uncles: 'Uncle Blocks', 'rich-list': 'Rich List', transfers: 'Large Transfers',
+  blocks: 'Blocks', transactions: 'Transactions', uncles: 'Uncle Blocks', 'rich-list': 'Rich List', transfers: 'Large Transfers', mine: 'How to Mine Bitnet',
   tokens: 'BTS-20 Tokens', nfts: 'NFT Collections', contracts: 'Verified Contracts', mining: 'Mining',
   security: 'Chain Security', charts: 'Charts', supply: 'Supply & Market', nodes: 'Network & RPC',
   console: 'RPC Console', tools: 'Developer Tools', api: 'API', watchlist: 'Watchlist',
@@ -598,6 +600,7 @@ export const App: React.FC = () => {
               recentBlocks={recentBlocks}
               onSelectAddress={handleSelectAddress}
               onSelectMiner={handleSelectMiner}
+              onNavigate={(view) => navigateTo(view)}
             />
           )}
 
@@ -638,6 +641,10 @@ export const App: React.FC = () => {
               onNavigate={(view) => navigateTo(view)}
               onSelectMiner={handleSelectMiner}
             />
+          )}
+
+          {currentView === 'mine' && (
+            <MineView stats={stats} onSelectMiner={handleSelectMiner} onSelectAddress={handleSelectAddress} onNavigate={(view) => navigateTo(view)} />
           )}
 
           {currentView === 'miner-detail' && (

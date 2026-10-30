@@ -35,9 +35,10 @@ interface MiningViewProps {
   recentBlocks?: Block[];
   onSelectAddress?: (address: string) => void;
   onSelectMiner?: (address: string) => void;
+  onNavigate?: (view: string) => void;
 }
 
-export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onSelectAddress, onSelectMiner }) => {
+export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onSelectAddress, onSelectMiner, onNavigate }) => {
   const [userHashrate, setUserHashrate] = useState('100'); // in MH/s
   const [unit, setUnit] = useState<'MH' | 'GH'>('MH');
   const [gpuPreset, setGpuPreset] = useState('');
@@ -408,10 +409,17 @@ export const MiningView: React.FC<MiningViewProps> = ({ stats, recentBlocks, onS
 
       {/* How to Mine Quickstart Guide */}
       <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 space-y-4 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <Terminal className="w-5 h-5 text-terracotta" />
-          <span>How to Mine Bitnet (BTN)</span>
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <Terminal className="w-5 h-5 text-terracotta" />
+            <span>How to Mine Bitnet (BTN)</span>
+          </h3>
+          {onNavigate && (
+            <button type="button" onClick={() => onNavigate('mine')} className="px-3.5 py-2 rounded-xl bg-petrol hover:bg-petrol-600 text-white text-xs font-bold cursor-pointer">
+              Step-by-step guide and miner commands →
+            </button>
+          )}
+        </div>
 
         <div className="space-y-3 text-xs text-slate-600 leading-relaxed">
           <p>
