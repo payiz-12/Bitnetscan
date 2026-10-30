@@ -156,7 +156,7 @@ export const Footer: React.FC<{ latestBlock?: Block }> = ({ latestBlock }) => {
         {/* Bottom bar */}
         <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-[11px]">
           <div>
-            &copy; {new Date().getFullYear()} BitnetScan.
+            &copy; {new Date().getFullYear()} BitnetScan. Built for the decentralized Bitnet Money community.
           </div>
           <div className="flex flex-wrap items-center gap-3">
             {/* Red Heart Donate Button (Address hidden, opens QR modal on click) */}
