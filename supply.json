@@ -1,0 +1,14 @@
+{
+  "updatedAt": "2026-10-31T20:36:50.618Z",
+  "blockRange": [
+    7909491,
+    7909492
+  ],
+  "totalSupply": "8287175.35091671",
+  "circulatingSupply": "8286519.34970170999998",
+  "burned": "656.00121500000002",
+  "baseIssuance": "7909492",
+  "accounts": 7951,
+  "pages": 160,
+  "method": "Sum of all account balances indexed by explorer.bitnetmoney.com; burned = balance of 0x0…0 and 0x…dEaD."
+}
