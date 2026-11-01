@@ -5,7 +5,7 @@ import { loadVerifiedContract, VerifiedContract } from '../services/contractAbi'
 import { AbiValue } from './AbiValue';
 import { verifyIndependently, VerifyResult } from '../services/bytecodeVerify';
 
-const EXPLORER = 'https://explorer.bitnetmoney.com';
+const EXPLORER = 'https://explorer.bitnetmoney.org';
 
 const KEYWORDS = 'pragma|solidity|contract|interface|library|abstract|function|modifier|event|error|struct|enum|mapping|returns|return|public|private|internal|external|view|pure|payable|virtual|override|constant|immutable|memory|storage|calldata|if|else|for|while|do|break|continue|emit|revert|require|assert|new|delete|import|from|as|is|using|unchecked|try|catch|constructor|fallback|receive|indexed|anonymous|true|false|this|super|type|assembly|let';
 const TOKEN = new RegExp(

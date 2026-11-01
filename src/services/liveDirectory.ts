@@ -13,7 +13,7 @@ export interface DirectoryEntry {
   kind: DirectoryKind;
 }
 
-const BASES = ['/api/explorer', 'https://explorer.bitnetmoney.com'];
+const BASES = ['/api/explorer', 'https://explorer.bitnetmoney.org'];
 const MAX_AGE_MS = 60_000;
 
 async function allPages(path: string, maxPages: number): Promise<any[]> {

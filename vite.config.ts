@@ -26,7 +26,7 @@ export default defineConfig({
         secure: true,
       },
       '/api/explorer': {
-        target: 'https://explorer.bitnetmoney.com',
+        target: 'https://explorer.bitnetmoney.org',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/explorer/, '') || '/',
         secure: true,

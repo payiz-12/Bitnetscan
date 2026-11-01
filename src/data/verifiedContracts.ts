@@ -321,7 +321,7 @@ export const OFFICIAL_BITNET_VERIFIED_CONTRACTS: VerifiedContractItem[] = [
   },
 ];
 
-const INDEXER_BASES = ['/api/explorer', 'https://explorer.bitnetmoney.com'];
+const INDEXER_BASES = ['/api/explorer', 'https://explorer.bitnetmoney.org'];
 
 async function explorerList(path: string, maxPages: number): Promise<any[]> {
   for (const base of INDEXER_BASES) {

@@ -16,7 +16,7 @@ export class IndexedTransactions {
 
   constructor(
     private fetcher: typeof fetch = (input, init) => fetch(input, init),
-    private bases = ['/api/explorer', '/api/bitnet-explorer', 'https://explorer.bitnetmoney.com'],
+    private bases = ['/api/explorer', '/api/bitnet-explorer', 'https://explorer.bitnetmoney.org'],
     private now = () => Date.now(),
   ) {}
 

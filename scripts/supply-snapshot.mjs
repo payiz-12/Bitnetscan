@@ -10,7 +10,7 @@
 
 import { writeFileSync } from 'node:fs';
 
-const INDEXER = 'https://explorer.bitnetmoney.com/api/v2/addresses';
+const INDEXER = 'https://explorer.bitnetmoney.org/api/v2/addresses';
 const RPC = ['https://rpc.bitnetmoney.org', 'https://rpc.bitnetmoney.com'];
 const BURN_ADDRESSES = [
   '0x0000000000000000000000000000000000000000',
@@ -95,7 +95,7 @@ const snapshot = {
   baseIssuance: String(endBlock),
   accounts,
   pages,
-  method: 'Sum of all account balances indexed by explorer.bitnetmoney.com; burned = balance of 0x0…0 and 0x…dEaD.',
+  method: 'Sum of all account balances indexed by explorer.bitnetmoney.org; burned = balance of 0x0…0 and 0x…dEaD.',
 };
 
 const output = process.argv[2];

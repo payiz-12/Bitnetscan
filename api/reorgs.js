@@ -4,7 +4,7 @@
 // The indexer takes about 20 s to answer this query, so the result is cached at the edge
 // for 15 minutes and served stale while it refreshes.
 
-const INDEXER_URL = 'https://explorer.bitnetmoney.com/api/v2/blocks?type=reorg';
+const INDEXER_URL = 'https://explorer.bitnetmoney.org/api/v2/blocks?type=reorg';
 
 export default async function handler(req, res) {
   try {
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       miner: String(b.miner?.hash || '').toLowerCase(),
     }));
     res.setHeader('Cache-Control', 'public, s-maxage=900, stale-while-revalidate=86400');
-    res.status(200).json({ updatedAt: new Date().toISOString(), source: 'explorer.bitnetmoney.com', items });
+    res.status(200).json({ updatedAt: new Date().toISOString(), source: 'explorer.bitnetmoney.org', items });
   } catch (err) {
     res.setHeader('Cache-Control', 'no-store');
     res.status(503).json({ error: 'Explorer did not answer' });

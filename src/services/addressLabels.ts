@@ -30,7 +30,7 @@ staticLabels.set('0x0000000000000000000000000000000000000000', { name: 'Burn add
 staticLabels.set('0x000000000000000000000000000000000000dead', { name: 'Burn address', kind: 'burn', detail: '0x…dEaD; coins sent here cannot be spent' });
 
 const PAYOUT_POOLS = Object.values(KNOWN_MINING_POOLS).filter((p) => p.category === 'known');
-const INDEXER_BASES = ['/api/explorer', 'https://explorer.bitnetmoney.com'];
+const INDEXER_BASES = ['/api/explorer', 'https://explorer.bitnetmoney.org'];
 const PAGES_PER_POOL = 3;
 const MIN_PAYOUTS = 2;
 

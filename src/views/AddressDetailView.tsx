@@ -194,7 +194,7 @@ export const AddressDetailView: React.FC<AddressDetailViewProps> = ({
       if (needsBal || needsNonce || needsCode) {
         const indexerUrls = [
           `/api/explorer/api/v2/addresses/${cleanAddr}`,
-          `https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}`,
+          `https://explorer.bitnetmoney.org/api/v2/addresses/${cleanAddr}`,
           `/api/bitnet-explorer/api/v2/addresses/${cleanAddr}`,
         ];
 

@@ -9,7 +9,7 @@ import { RpcStatusView } from './RpcStatusView';
 
 const RPC_URLS = ['https://rpc.bitnetmoney.org', 'https://rpc.bitnetmoney.com'];
 const EXPLORERS = [
-  { name: 'Bitnet Explorer (Blockscout)', url: 'https://explorer.bitnetmoney.com' },
+  { name: 'Bitnet Explorer (Blockscout)', url: 'https://explorer.bitnetmoney.org' },
   { name: 'BitnetScan', url: 'https://bitnetscan.vercel.app' },
 ];
 

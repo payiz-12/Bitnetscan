@@ -34,7 +34,7 @@
     },
     {
       "source": "/api/explorer/:path*",
-      "destination": "https://explorer.bitnetmoney.com/:path*"
+      "destination": "https://explorer.bitnetmoney.org/:path*"
     },
     {
       "source": "/api/stats/:path*",

@@ -1,7 +1,7 @@
 // /sitemap.xml (rewritten here by vercel.json): the pages search engines should index. The
 // main pages, every BTS-20 token page, verified contracts and the largest accounts, read from
 // the Bitnet explorer index. Cached at the edge for an hour, so new tokens are listed within the hour.
-const EXPLORER = 'https://explorer.bitnetmoney.com/api/v2';
+const EXPLORER = 'https://explorer.bitnetmoney.org/api/v2';
 
 const PAGES = [
   ['/', 'always', '1.0'],

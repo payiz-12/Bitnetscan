@@ -6,7 +6,7 @@ export type AbiSource =
   | { kind: 'standard'; name: string; abi: ethers.InterfaceAbi; symbol: string; decimals: number }
   | { kind: 'none' };
 
-const INDEXER_BASES = ['/api/explorer', 'https://explorer.bitnetmoney.com'];
+const INDEXER_BASES = ['/api/explorer', 'https://explorer.bitnetmoney.org'];
 const WBTN = '0x8148b71232162ea7a0b1c8bfe2b8f023934bfb58';
 
 const ERC20 = [

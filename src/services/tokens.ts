@@ -6,7 +6,7 @@ import { rpcService } from './rpc';
  * holders and transfers. Token details fall back to the token contract itself over RPC when
  * the explorer cannot be reached.
  */
-const BASES = ['/api/explorer', 'https://explorer.bitnetmoney.com'];
+const BASES = ['/api/explorer', 'https://explorer.bitnetmoney.org'];
 
 async function explorerGet<T>(path: string): Promise<T> {
   let lastError: unknown = null;

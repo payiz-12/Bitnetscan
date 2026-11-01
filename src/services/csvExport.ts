@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 /** Most transactions written to one CSV; the explorer pages 50 at a time. */
 export const CSV_MAX_ROWS = 5000;
 
-const INDEXER_BASES = ['/api/explorer', 'https://explorer.bitnetmoney.com'];
+const INDEXER_BASES = ['/api/explorer', 'https://explorer.bitnetmoney.org'];
 
 async function page(path: string, signal: AbortSignal): Promise<any> {
   for (const base of INDEXER_BASES) {

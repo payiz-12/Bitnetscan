@@ -1,4 +1,5 @@
 import { formatEther } from 'ethers';
+import { loadDailyUsage } from './dailyUsage';
 const DAY = 86400000;
 const GENESIS_DAY = Date.UTC(2023, 6, 14);
 export interface ActivityBucket { start: number; end: number }
@@ -31,11 +32,11 @@ function point(bucket: ActivityBucket, timeframe: string): TransactionHistoryPoi
 }
 const jsonCache = new Map<string, { at: number; value: any }>();
 const inFlight = new Map<string, Promise<any>>();
-async function readJson(url: string): Promise<any> {
+async function readJson(url: string, timeout = 3500): Promise<any> {
   const cached=jsonCache.get(url); if(cached && Date.now()-cached.at<300000) return cached.value;
   if(inFlight.has(url)) return inFlight.get(url)!;
   const job=(async()=>{
-    const control=new AbortController(), timer=setTimeout(()=>control.abort(),3500);
+    const control=new AbortController(), timer=setTimeout(()=>control.abort(),timeout);
     try {
       const response=await fetch(url,{signal:control.signal,headers:{Accept:'application/json'}});
       if(!response.ok) throw new Error(`Explorer HTTP ${response.status}`);
@@ -46,8 +47,16 @@ async function readJson(url: string): Promise<any> {
   })();
   inFlight.set(url,job);try{return await job;}finally{inFlight.delete(url);}
 }
-async function explorerJson(path: string) {
-  try {return await readJson('/api/explorer'+path);} catch {return readJson('https://explorer.bitnetmoney.com'+path);}
+async function explorerJson(path: string, timeout?: number) {
+  try {return await readJson('/api/explorer'+path,timeout);} catch {return readJson('https://explorer.bitnetmoney.org'+path,timeout);}
+}
+// A long scan reads many pages, and the explorer answers some of them slowly. One slow page must
+// not discard the whole scan, so a page is tried three times with a longer wait each time.
+async function explorerPage(path: string, check: () => void) {
+  for (let attempt = 1; ; attempt++) {
+    try {return await explorerJson(path,3500*attempt);}
+    catch (error) {check(); if (attempt === 3) throw error; await new Promise(r=>setTimeout(r,1000));}
+  }
 }
 async function statsJson(path: string) {
   try {return await readJson('/api/stats'+path);} catch {return readJson('https://stats.explorer.bitnetmoney.com'+path);}
@@ -112,7 +121,7 @@ function transactionAccumulator(buckets: ActivityBucket[], timeframe: string) {
     },
   };
 }
-const inFlightScans = new Map<string, Promise<TransactionHistory>>();
+const inFlightScans = new Map<string, { job: Promise<TransactionHistory>; signal: AbortSignal }>();
 const completedPeriodCache = new Map<string, { points: TransactionHistoryPoint[]; at: number }>();
 
 // Supply is a balance at a date, not a flow: never sum daily balances.
@@ -185,8 +194,11 @@ export function aggregateTransactions(items: any[], buckets: ActivityBucket[], t
 
 export async function loadTransactionHistory(metric: 'txs'|'volume', timeframe: string, signal: AbortSignal, onProgress?: (result: TransactionHistory)=>void): Promise<TransactionHistory> {
   const scanKey = `${metric}:${timeframe}`;
-  if (inFlightScans.has(scanKey)) {
-    return inFlightScans.get(scanKey)!;
+  // Join a running scan only while the caller that started it still wants it: the scan stops
+  // when that caller's signal is aborted, and everyone who joined would get the cancellation.
+  const running = inFlightScans.get(scanKey);
+  if (running && !running.signal.aborted) {
+    return running.job;
   }
 
   const job = (async () => {
@@ -194,19 +206,31 @@ export async function loadTransactionHistory(metric: 'txs'|'volume', timeframe: 
     const check = () => { if (signal.aborted) throw new Error('Cancelled'); };
 
     if (metric === 'txs' && timeframe !== '1d') {
-      const query = new URLSearchParams({
-        resolution: 'DAY',
-        from: new Date(buckets[0].start).toISOString().slice(0, 10),
-        to: new Date(now).toISOString().slice(0, 10),
-      });
-      const data = await statsJson(`/api/v1/lines/newTxns?${query}`);
+      const from = new Date(buckets[0].start).toISOString().slice(0, 10);
+      const to = new Date(now).toISOString().slice(0, 10);
+      const query = new URLSearchParams({ resolution: 'DAY', from, to });
+      let chart: any[], source: string;
+      try {
+        const data = await statsJson(`/api/v1/lines/newTxns?${query}`);
+        if (!Array.isArray(data.chart)) throw new Error('Transaction chart unavailable');
+        chart = data.chart;
+        source = 'Verified Blockscout newTxns';
+      } catch {
+        // The explorer's stats service is not always up. The same daily counts are computed from
+        // the chain every hour (see dailyUsage); today's count is still growing.
+        check();
+        const usage = await loadDailyUsage();
+        chart = usage.rows
+          .filter(r => r.date >= from && r.date <= to)
+          .map(r => ({ date: r.date, value: String(r.txs), is_approximate: Boolean(r.partial) }));
+        source = 'Daily counts computed from the chain';
+      }
       check();
-      if (!Array.isArray(data.chart)) throw new Error('Transaction chart unavailable');
-      const points = aggregateOfficialCounts(data.chart, buckets, timeframe);
+      const points = aggregateOfficialCounts(chart, buckets, timeframe);
       const res: TransactionHistory = {
         points,
         fetchedAt: now,
-        message: 'Verified Blockscout newTxns · UTC. Missing periods remain blank (never filled with zero).',
+        message: `${source} · UTC. Missing periods remain blank (never filled with zero).`,
       };
       completedPeriodCache.set(scanKey, { points, at: now });
       return res;
@@ -217,7 +241,7 @@ export async function loadTransactionHistory(metric: 'txs'|'volume', timeframe: 
 
     for (;;) {
       check();
-      const data = await explorerJson('/api/v2/transactions?filter=validated' + cursor);
+      const data = await explorerPage('/api/v2/transactions?filter=validated' + cursor, check);
       check();
       if (!Array.isArray(data.items)) throw new Error('Transaction list unavailable');
       totals.add(data.items);
@@ -247,10 +271,10 @@ export async function loadTransactionHistory(metric: 'txs'|'volume', timeframe: 
     }
   })();
 
-  inFlightScans.set(scanKey, job);
+  inFlightScans.set(scanKey, { job, signal });
   try {
     return await job;
   } finally {
-    inFlightScans.delete(scanKey);
+    if (inFlightScans.get(scanKey)?.job === job) inFlightScans.delete(scanKey);
   }
 }

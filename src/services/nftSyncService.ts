@@ -55,8 +55,7 @@ export interface NftSyncResult {
 
 const STORAGE_KEY = 'bitnet_nft_indexed_collections_v4';
 const EXPLORER_ENDPOINTS = [
-  '/api/bitnet-explorer/api/v2', 'https://explorer.bitnetmoney.org/api/v2',
-  '/api/explorer/api/v2', 'https://explorer.bitnetmoney.com/api/v2',
+  '/api/bitnet-explorer/api/v2', 'https://explorer.bitnetmoney.org/api/v2', '/api/explorer/api/v2',
 ];
 
 class IpfsGatewayManager {

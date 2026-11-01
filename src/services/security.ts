@@ -73,7 +73,7 @@ export interface IndexedReorg {
   miners: string[];
 }
 
-const INDEXER_BASES = ['/api/explorer', 'https://explorer.bitnetmoney.com'];
+const INDEXER_BASES = ['/api/explorer', 'https://explorer.bitnetmoney.org'];
 
 /**
  * Blocks the explorer indexer had stored and later saw replaced by another chain ("reorg"

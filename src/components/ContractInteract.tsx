@@ -310,7 +310,7 @@ export const ContractInteract: React.FC<Props> = ({ address, onSelectAddress, on
         <div className="space-y-2" role="status" aria-label="Loading contract">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-10 rounded-2xl" />)}</div>
       ) : source.kind === 'none' ? (
         <p className="text-xs text-slate-600 py-4">
-          This contract's source is not verified on the Bitnet explorer, so its functions cannot be listed. Once the source is verified at explorer.bitnetmoney.com, every function appears here.
+          This contract's source is not verified on the Bitnet explorer, so its functions cannot be listed. Once the source is verified at explorer.bitnetmoney.org, every function appears here.
         </p>
       ) : mode === 'read' ? (
         <div className="space-y-2">

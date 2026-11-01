@@ -192,7 +192,7 @@ class ExplorerApiService {
     // 1. Try modern Blockscout API v2 endpoints (returns complete IN & OUT transactions)
     const v2Urls = [
       `/api/explorer/api/v2/addresses/${cleanAddr}/transactions`,
-      `https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/transactions`,
+      `https://explorer.bitnetmoney.org/api/v2/addresses/${cleanAddr}/transactions`,
       `/api/bitnet-explorer/api/v2/addresses/${cleanAddr}/transactions`
     ];
 
@@ -272,7 +272,7 @@ class ExplorerApiService {
     // 2. Fallback to legacy Etherscan-compatible txlist endpoint
     const legacyUrls = [
       `/api/explorer/api?module=account&action=txlist&address=${cleanAddr}&page=1&offset=50&sort=desc`,
-      `https://explorer.bitnetmoney.com/api?module=account&action=txlist&address=${cleanAddr}&page=1&offset=50&sort=desc`
+      `https://explorer.bitnetmoney.org/api?module=account&action=txlist&address=${cleanAddr}&page=1&offset=50&sort=desc`
     ];
 
     for (const url of legacyUrls) {
@@ -412,10 +412,10 @@ class ExplorerApiService {
       const [countersRes, blocksRes] = await Promise.all([
         fetch(`/api/explorer/api/v2/addresses/${cleanAddr}/counters`, {
           headers: { Accept: 'application/json' },
-        }).catch(() => fetch(`https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/counters`, { headers: { Accept: 'application/json' } })).catch(() => null),
+        }).catch(() => fetch(`https://explorer.bitnetmoney.org/api/v2/addresses/${cleanAddr}/counters`, { headers: { Accept: 'application/json' } })).catch(() => null),
         fetch(`/api/explorer/api/v2/addresses/${cleanAddr}/blocks-validated`, {
           headers: { Accept: 'application/json' },
-        }).catch(() => fetch(`https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/blocks-validated`, { headers: { Accept: 'application/json' } })).catch(() => null),
+        }).catch(() => fetch(`https://explorer.bitnetmoney.org/api/v2/addresses/${cleanAddr}/blocks-validated`, { headers: { Accept: 'application/json' } })).catch(() => null),
       ]);
 
       if (countersRes && countersRes.ok) {
@@ -470,7 +470,7 @@ class ExplorerApiService {
         headers: { Accept: 'application/json' },
       }).catch(() => null);
       if (!res || !res.ok) {
-        res = await fetch(`https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/tokens`, {
+        res = await fetch(`https://explorer.bitnetmoney.org/api/v2/addresses/${cleanAddr}/tokens`, {
           headers: { Accept: 'application/json' },
         }).catch(() => null);
       }
@@ -686,7 +686,7 @@ class ExplorerApiService {
     const cleanAddr = address.toLowerCase();
     const urls = [
       `/api/explorer/api/v2/addresses/${cleanAddr}/counters`,
-      `https://explorer.bitnetmoney.com/api/v2/addresses/${cleanAddr}/counters`,
+      `https://explorer.bitnetmoney.org/api/v2/addresses/${cleanAddr}/counters`,
       `/api/bitnet-explorer/api/v2/addresses/${cleanAddr}/counters`,
     ];
     for (const url of urls) {
@@ -787,7 +787,7 @@ class ExplorerApiService {
   } | null> {
     const urls = [
       '/api/explorer/api/v2/stats',
-      'https://explorer.bitnetmoney.com/api/v2/stats',
+      'https://explorer.bitnetmoney.org/api/v2/stats',
       '/api/bitnet-explorer/api/v2/stats',
     ];
     for (const url of urls) {

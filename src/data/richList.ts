@@ -28,7 +28,7 @@ export interface TopAccountsResult {
 // Previously known large holders; used only when the indexer ranking is unavailable.
 export const VERIFIED_HODL_WALLETS: RichAccount[] = officialData as RichAccount[];
 
-const INDEXER_BASES = ['/api/explorer', '/api/bitnet-explorer', 'https://explorer.bitnetmoney.com'];
+const INDEXER_BASES = ['/api/explorer', '/api/bitnet-explorer', 'https://explorer.bitnetmoney.org'];
 
 const formatBalance = (n: number) =>
   n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });

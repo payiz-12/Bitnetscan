@@ -274,7 +274,7 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
         {verifySuccess && verifySuccess.kind === 'unverified' && (
           <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1.5">
             <p>This address holds contract code ({(verifySuccess as { bytecodeLength: number }).bytecodeLength.toLocaleString()} bytes), but its source code is <strong>not verified</strong> on the Bitnet explorer.</p>
-            <a href={`https://explorer.bitnetmoney.com/address/${inputAddress.trim()}/contract-verification`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold hover:underline">
+            <a href={`https://explorer.bitnetmoney.org/address/${inputAddress.trim()}/contract-verification`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold hover:underline">
               Verify it on the Bitnet explorer <ArrowUpRight className="w-3.5 h-3.5" />
             </a>
           </div>
