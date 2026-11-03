@@ -15,11 +15,14 @@ export interface VerifiedContractItem {
   language: string;
   isVerified: boolean;
   bytecodeLength?: number;
+  /** Where the source was verified: the Bitnet explorer now, or only the former explorer. */
+  verifiedOn?: 'current' | 'former';
 }
 
-// Verified contracts stored with the site, shown until the current list loads from the Bitnet
-// explorer (and when the explorer cannot be reached).
-export const OFFICIAL_BITNET_VERIFIED_CONTRACTS: VerifiedContractItem[] = [
+// Contracts verified on the former Bitnet explorer, explorer.bitnetmoney.com. That host now
+// redirects to explorer.bitnetmoney.org, which did not take over its verifications, so most of
+// these sources can no longer be fetched; the list keeps their names and compiler details.
+export const FORMER_EXPLORER_VERIFIED_CONTRACTS: VerifiedContractItem[] = [
   {
     address: '0x637A1EFde216e372cF308A1e88337C03541c7D1a',
     name: 'Faucet',
@@ -365,6 +368,45 @@ export async function fetchLiveVerifiedContracts(): Promise<VerifiedContractItem
     language: String(c.language || 'solidity'),
     isVerified: true,
   }));
+}
+
+/** How many transactions the explorer has indexed for an address, or null if it does not answer. */
+async function indexedTxCount(address: string): Promise<number | null> {
+  for (const base of INDEXER_BASES) {
+    try {
+      const res = await fetch(`${base}/api/v2/addresses/${address}/counters`, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(12000) });
+      if (!res.ok) continue;
+      const count = Number((await res.json()).transactions_count);
+      if (Number.isSafeInteger(count)) return count;
+    } catch {
+      // try the next base
+    }
+  }
+  return null;
+}
+
+/**
+ * The contracts verified on the Bitnet explorer, then those verified only on the former explorer,
+ * so that they do not disappear from the list without a word. The transaction counts stored for
+ * the latter are replaced with the explorer's current ones where it answers. liveFailed is true
+ * when the explorer did not answer; the stored list is then all that is shown.
+ */
+export async function loadVerifiedContracts(): Promise<{ contracts: VerifiedContractItem[]; liveFailed: boolean }> {
+  let current: VerifiedContractItem[] = [];
+  let liveFailed = false;
+  try {
+    current = (await fetchLiveVerifiedContracts()).map((c) => ({ ...c, verifiedOn: 'current' as const }));
+  } catch {
+    liveFailed = true;
+  }
+  const verifiedNow = new Set(current.map((c) => c.address.toLowerCase()));
+  const former = await Promise.all(
+    FORMER_EXPLORER_VERIFIED_CONTRACTS.filter((c) => !verifiedNow.has(c.address.toLowerCase())).map(async (c) => {
+      const txCount = liveFailed ? null : await indexedTxCount(c.address);
+      return { ...c, txCount: txCount ?? c.txCount, verifiedOn: 'former' as const };
+    }),
+  );
+  return { contracts: [...current, ...former], liveFailed };
 }
 
 /** The same contracts with balance and code size read from the chain. */

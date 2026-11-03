@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { KNOWN_MINING_POOLS } from '../data/miningPools';
-import { OFFICIAL_BITNET_VERIFIED_CONTRACTS } from '../data/verifiedContracts';
+import { FORMER_EXPLORER_VERIFIED_CONTRACTS } from '../data/verifiedContracts';
 import { KNOWN_BTS20_TOKENS } from './explorerApi';
 import { findDirectoryEntry, loadDirectory, subscribeDirectory } from './liveDirectory';
 
@@ -15,7 +15,7 @@ export interface AddressLabel {
 
 const staticLabels = new Map<string, AddressLabel>();
 
-for (const c of OFFICIAL_BITNET_VERIFIED_CONTRACTS) {
+for (const c of FORMER_EXPLORER_VERIFIED_CONTRACTS) {
   staticLabels.set(c.address.toLowerCase(), { name: c.name, kind: 'contract', detail: 'Verified contract source on the Bitnet explorer' });
 }
 for (const t of KNOWN_BTS20_TOKENS) {

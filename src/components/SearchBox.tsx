@@ -6,7 +6,7 @@ import {
 import { rpcService } from '../services/rpc';
 import { KNOWN_BTS20_TOKENS } from '../services/explorerApi';
 import { getDirectory, loadDirectory, subscribeDirectory, DirectoryEntry } from '../services/liveDirectory';
-import { OFFICIAL_BITNET_VERIFIED_CONTRACTS } from '../data/verifiedContracts';
+import { FORMER_EXPLORER_VERIFIED_CONTRACTS } from '../data/verifiedContracts';
 import { BITNET_NFT_COLLECTIONS } from '../data/nftCollections';
 import { KNOWN_MINING_POOLS } from '../data/miningPools';
 import { VERIFIED_HODL_WALLETS } from '../data/richList';
@@ -88,7 +88,7 @@ const STATIC_INDEX: IndexEntry[] = (() => {
   KNOWN_BTS20_TOKENS.forEach((t) => add({ address: t.address, name: t.name, symbol: t.symbol, kind: 'BTS-20 Token', icon: Coins, tone: TONES.token }));
   BITNET_NFT_COLLECTIONS.forEach((c) => add({ address: c.contract, name: c.name, symbol: c.symbol || undefined, kind: 'NFT Collection', icon: ImageIcon, tone: TONES.nft }));
   Object.values(KNOWN_MINING_POOLS).forEach((p) => add({ address: p.address, name: p.name, kind: 'Miner', icon: Cpu, tone: TONES.pool }));
-  OFFICIAL_BITNET_VERIFIED_CONTRACTS.forEach((c) => add({ address: c.address, name: c.name, kind: 'Verified Contract', icon: FileCode, tone: TONES.contract }));
+  FORMER_EXPLORER_VERIFIED_CONTRACTS.forEach((c) => add({ address: c.address, name: c.name, kind: 'Verified Contract', icon: FileCode, tone: TONES.contract }));
   VERIFIED_HODL_WALLETS.forEach((w) => add({ address: w.address, name: 'Large holder', kind: 'Wallet', icon: Trophy, tone: TONES.rich }));
   return entries;
 })();

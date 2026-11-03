@@ -5,9 +5,11 @@ import {
   Filter, Terminal, CheckCircle, XCircle, Shield
 } from 'lucide-react';
 import { 
-  VerifiedContractItem, OFFICIAL_BITNET_VERIFIED_CONTRACTS, 
-  fetchLiveVerifiedContracts, withChainData, checkContract, ContractCheck 
+  VerifiedContractItem, loadVerifiedContracts, withChainData, checkContract, ContractCheck
 } from '../data/verifiedContracts';
+
+// Shown on contracts whose source was verified only on the former explorer.
+const FORMER_NOTE = 'Verified on the former explorer, explorer.bitnetmoney.com, which now redirects to explorer.bitnetmoney.org. It is not verified there yet, so its source code is not available.';
 
 interface ContractsViewProps {
   onSelectAddress: (address: string) => void;
@@ -15,8 +17,8 @@ interface ContractsViewProps {
 }
 
 export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, onBack }) => {
-  // Nothing is shown until the explorer's current list arrives, so the count is never an old one;
-  // the list stored with the site is only the fallback when the explorer does not answer.
+  // Nothing is shown until the explorer's current list arrives, so the count is never an old one.
+  // Contracts verified only on the former explorer follow it, marked as such.
   const [contracts, setContracts] = useState<VerifiedContractItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [balancesFromChain, setBalancesFromChain] = useState(false);
@@ -33,15 +35,8 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
 
   const loadLiveContracts = async () => {
     setLoading(true);
-    let list: VerifiedContractItem[];
-    try {
-      list = await fetchLiveVerifiedContracts();
-      setLiveFailed(false);
-    } catch (err) {
-      console.error('Failed to fetch verified contracts:', err);
-      list = OFFICIAL_BITNET_VERIFIED_CONTRACTS;
-      setLiveFailed(true);
-    }
+    const { contracts: list, liveFailed: failed } = await loadVerifiedContracts();
+    setLiveFailed(failed);
     setContracts(list);
     setBalancesFromChain(false);
     setLoading(false);
@@ -127,6 +122,8 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
     return contracts.reduce((acc, c) => acc + (c.txCount || 0), 0);
   }, [contracts]);
 
+  const formerCount = useMemo(() => contracts.filter((c) => c.verifiedOn === 'former').length, [contracts]);
+
   return (
     <div className="space-y-6 w-full animate-fade-in pb-16">
       {/* Top Header & Navigation */}
@@ -156,8 +153,13 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
               Verified Contracts
             </h1>
             <p className="text-xs text-slate-500 font-medium">
-              Contracts whose source code is verified on the Bitnet explorer. Balances and code size are read from the chain.
+              Contracts whose source code is verified on the Bitnet explorer, explorer.bitnetmoney.org. Balances and code size are read from the chain.
             </p>
+            {!loading && formerCount > 0 && (
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                The explorer moved there from explorer.bitnetmoney.com. Contracts verified only on the former explorer are listed below with a note until their source is verified again.
+              </p>
+            )}
           </div>
         </div>
 
@@ -191,6 +193,11 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
             {!loading && liveFailed && (
               <div className="text-[10px] text-amber-700 font-semibold">
                 Stored list: the explorer did not answer
+              </div>
+            )}
+            {!loading && !liveFailed && formerCount > 0 && (
+              <div className="text-[10px] text-slate-500">
+                {contracts.length - formerCount} on the explorer · {formerCount} on the former explorer
               </div>
             )}
           </div>
@@ -378,7 +385,11 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 font-bold text-slate-900 truncate">
                         <span className="truncate">{c.name}</span>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        {c.verifiedOn === 'former' ? (
+                          <span title={FORMER_NOTE} className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200 shrink-0">Former explorer</span>
+                        ) : (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        )}
                       </div>
                       <div className="flex items-center gap-1 text-[11px] text-slate-500 font-normal">
                         <span title={c.address}>{c.address.slice(0, 6)}...{c.address.slice(-4)}</span>
@@ -479,9 +490,13 @@ export const ContractsView: React.FC<ContractsViewProps> = ({ onSelectAddress, o
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 font-bold text-slate-900 group-hover:text-petrol transition-colors">
                             <span>{c.name}</span>
-                            <span title="Verified Source Code">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                            </span>
+                            {c.verifiedOn === 'former' ? (
+                              <span title={FORMER_NOTE} className="text-[10px] font-bold font-sans text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200 flex-shrink-0">Former explorer</span>
+                            ) : (
+                              <span title="Verified Source Code">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-1 text-[11px] text-slate-500 font-normal">
                             <span title={c.address}>{c.address.slice(0, 6)}...{c.address.slice(-4)}</span>
