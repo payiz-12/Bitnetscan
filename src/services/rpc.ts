@@ -27,12 +27,14 @@ class BitnetRpcService {
 
   constructor() {
     this.activeRpc = this.endpoints[0];
-    // Measure latency across all endpoints immediately and re-check periodically
+    // Measure latency across all endpoints immediately and re-check now and then. A failing
+    // endpoint is skipped on every call anyway, and each measurement runs both proxy functions,
+    // which count against the hosting plan's CPU time, so this is not done often.
     this.measureLatencies().catch(() => {});
     if (typeof window !== 'undefined') {
       setInterval(() => {
         if (!isPageHidden()) this.measureLatencies().catch(() => {});
-      }, 30000);
+      }, 300000);
     }
   }
 
