@@ -311,9 +311,9 @@ export const App: React.FC = () => {
       }
     };
 
-    // Blocks come about every 15 s; every RPC request now runs the filtering proxy (api/rpc.js),
-    // so 6 s keeps new blocks prompt without doubling the calls.
-    const poller = setInterval(fastPoll, 6000);
+    // Blocks come about every 15 s, so polling as often finds each new block without spending
+    // requests on intervals in which none can have arrived.
+    const poller = setInterval(fastPoll, 15000);
     return () => {
       isMounted = false;
       clearInterval(poller);
